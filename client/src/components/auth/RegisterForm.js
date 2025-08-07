@@ -112,16 +112,6 @@ export default function RegisterForm() {
           </button>
         </form>
         
-        <div className="divider-section">
-          <div className="divider-line"></div>
-          <div className="divider-text">or</div>
-        </div>
-        
-        <div className="social-login">
-          <button className="social-button" aria-label="Sign up with Google"></button>
-          <button className="social-button" aria-label="Sign up with Facebook"></button>
-          <button className="social-button" aria-label="Sign up with Apple"></button>
-        </div>
       </div>
     </div>
   );
