@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import '../auth.css';
 
 export default function Index() {
   return (
@@ -35,16 +35,18 @@ export default function Index() {
 
         <p className="text-lg text-[#082658] mb-8">
           Welcome to Breakwaters. Please sign in to your account or create a new one.
+
+          THIS PAGE IS FOR TESTING PURPOSES ONLY. IT IS NOT A REAL HOME PAGE.
         </p>
 
         <div className="space-y-4">
-          <Button asChild className="w-full h-12 bg-[#082658] hover:bg-[#082658]/90 text-white text-lg rounded-xl">
+          <button type="submit" className="auth-button">
             <Link to="/login">Log In</Link>
-          </Button>
+          </button>
 
-          <Button asChild variant="outline" className="w-full h-12 border-[#082658] text-[#082658] hover:bg-[#082658]/10 text-lg rounded-xl">
+          <button type="submit" className="auth-button">
             <Link to="/signup">Sign Up</Link>
-          </Button>
+          </button>
         </div>
       </div>
     </div>
