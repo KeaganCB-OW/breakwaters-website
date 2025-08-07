@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import octopusImage from '../../assets/images/octopus-image.png';
-import '../../auth.css';
+import '../../styling/auth.css';
 
 const BreakwatersLogo = () => (
   <svg className="breakwaters-logo" width="94" height="97" viewBox="0 0 94 97" fill="none" xmlns="http://www.w3.org/2000/svg">

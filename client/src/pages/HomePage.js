@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import '../auth.css';
+import '../styling/auth.css';
 
 export default function Index() {
   return (
