@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import octopusImage from '../../assets/images/octopus-image.png';
 import '../../styling/auth.css';
 import googleIcon from '../../assets/icons/icons8-google.svg';
@@ -24,6 +25,7 @@ export default function LoginForm() {
     email: '',
     password: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -35,6 +37,10 @@ export default function LoginForm() {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Login form submitted:', formData);
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
   };
 
   return (
@@ -67,15 +73,25 @@ export default function LoginForm() {
           
           <div className="form-group">
             <label className="form-label">Password</label>
-            <input
-              type="password"
-              name="password"
-              className="form-input"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
+            <div className="password-input-container">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                className="form-input"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={togglePasswordVisibility}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
           </div>
           
           <button type="submit" className="auth-button">
