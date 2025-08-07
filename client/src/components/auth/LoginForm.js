@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import octopusImage from '../../assets/images/octopus-image.png';
 import '../../styling/auth.css';
+import googleIcon from '../../assets/icons/icons8-google.svg';
+import facebookIcon from '../../assets/icons/icons8-facebook-logo.svg';
+import appleIcon from '../../assets/icons/icons8-apple.svg';
 
 const BreakwatersLogo = () => (
   <svg className="breakwaters-logo" width="94" height="97" viewBox="0 0 94 97" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -88,9 +91,15 @@ export default function LoginForm() {
         </div>
         
         <div className="social-login">
-          <button className="social-button" aria-label="Login with Google"></button>
-          <button className="social-button" aria-label="Login with Facebook"></button>
-          <button className="social-button" aria-label="Login with Apple"></button>
+          <button className="social-button" aria-label="Login with Google">
+            <img src={googleIcon} alt="Google icon" />
+          </button>
+          <button className="social-button" aria-label="Login with Facebook">
+            <img src={facebookIcon} alt="Facebook icon" />
+          </button>
+          <button className="social-button" aria-label="Login with Apple">
+            <img src={appleIcon} alt="Apple icon" />
+          </button>
         </div>
         
         <div className="auth-link-text">

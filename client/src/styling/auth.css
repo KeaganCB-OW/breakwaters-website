@@ -182,10 +182,18 @@
   border: none;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .social-button:hover {
   background: #c9c9c9;
+}
+
+.social-button img {
+  width: 48px;
+  height: 48px;
 }
 
 .auth-link-text {
