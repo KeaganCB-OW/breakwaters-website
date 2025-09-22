@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import octopusImage from '../../assets/images/octopus-image.png';
-import '../../styling/auth.css';
-import googleIcon from '../../assets/icons/icons8-google.svg';
-import facebookIcon from '../../assets/icons/icons8-facebook-logo.svg';
-import appleIcon from '../../assets/icons/icons8-apple.svg';
+import octopusImage from '../../../assets/images/octopus-image.png';
+import '../../../styling/auth.css';
+import googleIcon from '../../../assets/icons/icons8-google.svg';
+import facebookIcon from '../../../assets/icons/icons8-facebook-logo.svg';
+import appleIcon from '../../../assets/icons/icons8-apple.svg';
 
 
 const BreakwatersLogo = () => (

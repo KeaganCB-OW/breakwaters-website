@@ -47,6 +47,10 @@ export default function Index() {
           <button type="submit" className="auth-button">
             <Link to="/signup">Sign Up</Link>
           </button>
+
+          <button type="submit" className="auth-button">
+            <Link to="/dashboard">Dashboard</Link>
+          </button>
         </div>
       </div>
     </div>
