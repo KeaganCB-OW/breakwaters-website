@@ -15,7 +15,7 @@
   padding: 0;
   background-color: white;
   border: 0.5px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.75rem;
+  border-radius: 0.50rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
@@ -93,6 +93,12 @@
   display: inline-flex;
   align-items: center;
   height: 100%;
+}
+
+.card-nav-action .dashboard-avatar {
+  margin-left: 0.7rem;   /* Move closer to the left */
+  margin-right: 0.7rem;  /* Reduce space to the right */
+  /* You can adjust these values as needed */
 }
 
 .card-nav-cta-button {

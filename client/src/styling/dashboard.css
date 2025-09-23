@@ -3,8 +3,8 @@
 :root {
   --dashboard-primary: #082658;
   --dashboard-secondary: #10387f;
-  --dashboard-bg-start: #edf1ff;
-  --dashboard-bg-end: #b7c9ff;
+  --dashboard-bg-start: #EEECE0;
+  --dashboard-bg-end: #c8c3bb;
   --glass-white: rgba(255, 255, 255, 0.9);
   --glass-white-light: rgba(255, 255, 255, 0.55);
   --glass-white-overlay: rgba(255, 255, 255, 0.08);
@@ -24,7 +24,7 @@
 .dashboard__background-image {
   position: absolute;
   inset: 0;
-  background-image: url('https://api.builder.io/api/v1/image/assets/TEMP/454f24c3bd5c5fcae02e51afc54a365b7e716cc4?width=4058');
+  background-image: url('../assets/images/dashboard-background.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -71,11 +71,12 @@
 
 .dashboard__panel-body {
   padding: 32px 24px 40px;
+
 }
 
 @media (min-width: 768px) {
   .dashboard__panel-body {
-    padding: 80px 80px 64px;
+    padding: px 80px 64px;
   }
 }
 
@@ -154,13 +155,13 @@
   margin: 0 0 16px;
   font-family: var(--font-montagu);
   font-weight: 400;
-  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  font-size: clamp(1.5rem, 1.5vw, 2.5rem);
   color: var(--dashboard-primary);
 }
 
 .stats-card__value {
   font-family: var(--font-sarala);
-  font-size: clamp(2.5rem, 4vw, 3.5rem);
+  font-size: clamp(2.5rem, 1vw, 3.5rem);
   color: var(--dashboard-primary);
   margin-bottom: 12px;
 }
@@ -225,7 +226,7 @@
   margin: 0;
   font-family: var(--font-montagu);
   font-weight: 400;
-  font-size: clamp(2rem, 3vw, 2.75rem);
+  font-size: clamp(2rem, 1vw, 2.75rem);
   color: var(--dashboard-primary);
 }
 
@@ -263,14 +264,14 @@
 .candidate-card__name {
   margin: 0;
   font-family: var(--font-roboto);
-  font-size: clamp(1.25rem, 2.2vw, 1.875rem);
+  font-size: clamp(1.25rem, 1.3vw, 1.875rem);
   color: #10387f;
 }
 
 .candidate-card__role {
   margin: 4px 0 0;
   font-family: var(--font-roboto);
-  font-size: clamp(1rem, 1.8vw, 1.35rem);
+  font-size: clamp(1rem, 1vw, 1.35rem);
   color: rgba(0, 0, 0, 0.45);
 }
 
@@ -298,19 +299,20 @@
   margin: 0 0 6px;
   font-family: var(--font-roboto);
   font-weight: 500;
-  font-size: clamp(1.25rem, 2.2vw, 1.875rem);
+  font-size: clamp(1.25rem, 1.4vw, 1.875rem);
   color: var(--dashboard-primary);
 }
 
 .assignment-card__company {
   margin: 0;
   font-family: var(--font-roboto);
-  font-size: clamp(1rem, 1.8vw, 1.35rem);
+  font-size: clamp(1rem, 1vw, 1.35rem);
   color: rgba(8, 38, 88, 0.7);
 }
 
 .dashboard-avatar {
   display: inline-flex;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35));
 }
 
 .dashboard-avatar__svg {

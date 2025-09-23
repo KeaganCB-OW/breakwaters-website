@@ -11,7 +11,7 @@ export function DashboardAvatar({ size = 'md', className = '' }) {
   return (
     <div
       className={avatarClass}
-      style={{ width: dimension, height: dimension, filter: 'drop-shadow(0 4px 4px rgba(0, 0, 0, 0.25))' }}
+      style={{ width: dimension, height: dimension, filter: 'drop-shadow(0 3px 3px rgba(0, 0, 0, 0.18))' }}
     >
       <svg
         width="100%"
