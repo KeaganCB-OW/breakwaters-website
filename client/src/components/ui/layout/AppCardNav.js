@@ -1,5 +1,5 @@
 import CardNav from './CardNav';
-import defaultLogo from '../../../logo.svg';
+import defaultLogo from '../../../assets/images/Logo-full.svg';
 
 const defaultItems = [
   {

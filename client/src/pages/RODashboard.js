@@ -1,10 +1,4 @@
-import AppCardNav from '../components/ui/layout/AppCardNav';
-
+import Dashboard from '../components/ui/dashboard/Dashboard';
 export default function RODashboard() {
-  return (
-    <div style={{ padding: 24 }}>
-      <AppCardNav />
-    </div>
-  );
+  return <Dashboard />;
 }
-

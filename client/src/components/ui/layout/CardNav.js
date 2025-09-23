@@ -1,6 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
-// use your own icon import if react-icons is not available
 import { GoArrowUpRight } from 'react-icons/go';
 import '../../../styling/CardNav.css';
 
@@ -13,7 +12,8 @@ const CardNav = ({
   baseColor = '#fff',
   menuColor,
   buttonBgColor,
-  buttonTextColor
+  buttonTextColor,
+  rightContent
 }) => {
   const [isHamburgerOpen, setIsHamburgerOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -84,7 +84,6 @@ const CardNav = ({
       tl?.kill();
       tlRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ease, items]);
 
   useLayoutEffect(() => {
@@ -112,7 +111,6 @@ const CardNav = ({
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isExpanded]);
 
   const toggleMenu = () => {
@@ -129,8 +127,24 @@ const CardNav = ({
     }
   };
 
-  const setCardRef = i => el => {
-    if (el) cardsRef.current[i] = el;
+  const setCardRef = index => element => {
+    if (element) cardsRef.current[index] = element;
+  };
+
+  const renderRightAction = () => {
+    if (rightContent) {
+      return rightContent;
+    }
+
+    return (
+      <button
+        type="button"
+        className="card-nav-cta-button"
+        style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
+      >
+        Get Started
+      </button>
+    );
   };
 
   return (
@@ -153,13 +167,9 @@ const CardNav = ({
             <img src={logo} alt={logoAlt} className="logo" />
           </div>
 
-          <button
-            type="button"
-            className="card-nav-cta-button"
-            style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
-          >
-            Get Started
-          </button>
+          <div className="card-nav-action">
+            {renderRightAction()}
+          </div>
         </div>
 
         <div className="card-nav-content" aria-hidden={!isExpanded}>
@@ -172,8 +182,8 @@ const CardNav = ({
             >
               <div className="nav-card-label">{item.label}</div>
               <div className="nav-card-links">
-                {item.links?.map((lnk, i) => (
-                  <a key={`${lnk.label}-${i}`} className="nav-card-link" href={lnk.href} aria-label={lnk.ariaLabel}>
+                {item.links?.map((lnk, linkIdx) => (
+                  <a key={`${lnk.label}-${linkIdx}`} className="nav-card-link" href={lnk.href} aria-label={lnk.ariaLabel}>
                     <GoArrowUpRight className="nav-card-link-icon" aria-hidden="true" />
                     {lnk.label}
                   </a>
@@ -188,4 +198,3 @@ const CardNav = ({
 };
 
 export default CardNav;
-

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import '../styling/auth.css';
+import Navbar from '../components/ui/layout/AppCardNav'
 
 export default function Index() {
   return (
@@ -7,6 +8,7 @@ export default function Index() {
       <div className="text-center bg-white rounded-2xl shadow-lg p-12 max-w-md mx-4">
         {/* Logo */}
         <div className="flex justify-center mb-6">
+          <Navbar />
           <svg
             width="94"
             height="97"
