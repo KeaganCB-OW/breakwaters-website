@@ -1,50 +1,10 @@
-import CardNav from '../components/ui/layout/CardNav'
-import logo from '../logo.svg';
+import AppCardNav from '../components/ui/layout/AppCardNav';
 
 export default function RODashboard() {
-  const items = [
-    {
-      label: "About",
-      bgColor: "#082658",
-      textColor: "#fff",
-      links: [
-        { label: "Company", ariaLabel: "About Company" },
-        { label: "Careers", ariaLabel: "About Careers" }
-      ]
-    },
-    {
-      label: "Projects",
-      bgColor: "#0b3173ff",
-      textColor: "#fff",
-      links: [
-        { label: "Featured", ariaLabel: "Featured Projects" },
-        { label: "Case Studies", ariaLabel: "Project Case Studies" }
-      ]
-    },
-    {
-      label: "Contact",
-      bgColor: "#10387fff",
-      textColor: "#fff",
-      links: [
-        { label: "Email", ariaLabel: "Email us" },
-        { label: "Twitter", ariaLabel: "Twitter" },
-        { label: "LinkedIn", ariaLabel: "LinkedIn" }
-      ]
-    }
-  ];
-
   return (
     <div style={{ padding: 24 }}>
-      <CardNav
-        logo={logo}
-        logoAlt="Company Logo"
-        items={items}
-        baseColor="#fff"
-        menuColor="#000"
-        buttonBgColor="#111"
-        buttonTextColor="#fff"
-        ease="power3.out" // if CardNav uses GSAP, this string is fine
-      />
+      <AppCardNav />
     </div>
   );
 }
+
