@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';import { FaArrowLeftLong } from 'react-icons/fa6';
 import AppCardNav from '../layout/AppCardNav';
 import { StatsCard } from './StatsCard';
 import { DashboardAvatar } from './DashboardAvatar';
@@ -8,7 +8,16 @@ import { fetchAssignments } from '../../../services/assignmentService';
 import { fetchCompanyStats } from '../../../services/companyService';
 import '../../../styling/ClientDetails.css';
 
+const STATUS_VARIANTS = {
+  pending: { label: 'Pending', className: 'client-details__secondary-btn--pending' },
+  assigned: { label: 'Assigned', className: 'client-details__secondary-btn--assigned' },
+  'interview pending': { label: 'Interview Pending', className: 'client-details__secondary-btn--interview-pending' },
+  'in progress': { label: 'In Progress', className: 'client-details__secondary-btn--in-progress' },
+  interviewed: { label: 'Interviewed', className: 'client-details__secondary-btn--interviewed' }
+};
+
 export function ClientDetails() {
+  const navigate = useNavigate();
   const { clientId } = useParams();
   const [candidates, setCandidates] = useState([]);
   const [isLoadingCandidates, setIsLoadingCandidates] = useState(true);
@@ -61,7 +70,7 @@ export function ClientDetails() {
           setCompanyStats({
             total: Number.isNaN(total) ? 0 : total,
             newThisWeek: Number.isNaN(newThisWeek) ? 0 : newThisWeek,
-            unverified: Number.isNaN(unverified) ? 0 : unverified,
+            unverified: Number.isNaN(unverified) ? 0 : unverified
           });
           setCompanyError(null);
         }
@@ -214,6 +223,193 @@ export function ClientDetails() {
     );
   }, [selectedCandidate]);
 
+  const selectedCandidateStatus = selectedCandidate?.status;
+
+  const { label: statusLabel, className: statusClassName } = useMemo(() => {
+    const pendingStatus = STATUS_VARIANTS.pending;
+
+    if (isLoadingCandidates) {
+      return {
+        label: 'Loading...',
+        className: pendingStatus.className
+      };
+    }
+
+    const rawStatus = typeof selectedCandidateStatus === 'string' ? selectedCandidateStatus.trim() : '';
+
+    if (!rawStatus) {
+      return pendingStatus;
+    }
+
+    const normalizedStatus = rawStatus.toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
+    const matchedStatus = STATUS_VARIANTS[normalizedStatus];
+
+    if (matchedStatus) {
+      return matchedStatus;
+    }
+
+    return {
+      label: rawStatus,
+      className: pendingStatus.className
+    };
+  }, [isLoadingCandidates, selectedCandidateStatus]);
+
+  const secondaryButtonClassName = `client-details__secondary-btn ${statusClassName}`;
+
+  const fallbackText = 'Not provided';
+
+  const normaliseValue = (value) => {
+    if (value == null) {
+      return '';
+    }
+
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => normaliseValue(item))
+        .filter(Boolean)
+        .join(', ');
+    }
+
+    if (typeof value === 'object') {
+      return Object.values(value || {})
+        .map((item) => normaliseValue(item))
+        .filter(Boolean)
+        .join(', ');
+    }
+
+    return String(value).trim();
+  };
+
+  const formatUrl = (value) => {
+    const normalised = normaliseValue(value);
+    if (!normalised) {
+      return '';
+    }
+
+    if (/^https?:\/\//i.test(normalised)) {
+      return normalised;
+    }
+
+    return `https://${normalised}`;
+  };
+
+  const extractCandidateValue = useCallback(
+    (...keys) => {
+      if (!selectedCandidate) {
+        return '';
+      }
+
+      for (const key of keys) {
+        if (key in selectedCandidate) {
+          const candidateValue = normaliseValue(selectedCandidate[key]);
+          if (candidateValue) {
+            return candidateValue;
+          }
+        }
+      }
+
+      return '';
+    },
+    [selectedCandidate]
+  );
+
+  const leftColumnFields = useMemo(() => {
+    const createField = (id, label, rawValue) => {
+      const normalised = normaliseValue(rawValue);
+      return {
+        id,
+        label,
+        value: normalised || fallbackText,
+        raw: normalised,
+        type: 'text'
+      };
+    };
+
+    return [
+      createField('client-phone-number', 'Phone Number', extractCandidateValue('phoneNumber', 'phone_number', 'phone', 'contactNumber')),
+      createField('client-email', 'Email', extractCandidateValue('email', 'emailAddress')),
+      createField('client-location', 'Location', extractCandidateValue('location', 'city', 'region', 'country')),
+      createField('client-desired-role', 'Desired Role', candidateRole || extractCandidateValue('desiredRole', 'preferredRole')),
+      createField('client-skills', 'Skills', extractCandidateValue('skills', 'skillset', 'skillSet'))
+    ];
+  }, [candidateRole, extractCandidateValue]);
+
+  const rightColumnFields = useMemo(() => {
+    const createField = (id, label, rawValue, extra = {}) => {
+      const normalised = normaliseValue(rawValue);
+      return {
+        id,
+        label,
+        value: normalised || fallbackText,
+        raw: normalised,
+        type: extra.type ?? 'text',
+        ...extra
+      };
+    };
+
+    const linkedInRaw = extractCandidateValue('linkedin', 'linkedinUrl', 'linkedin_url', 'linkedIn');
+    const linkedInHref = formatUrl(linkedInRaw);
+
+    return [
+      createField('client-education', 'Education', extractCandidateValue('education', 'educations', 'highestEducation')),
+      createField('client-experience', 'Experience', extractCandidateValue('experience', 'experiences', 'workExperience')),
+      createField('client-linkedin', 'LinkedIn', linkedInRaw, {
+        type: linkedInHref ? 'link' : 'text',
+        href: linkedInHref
+      })
+    ];
+  }, [extractCandidateValue]);
+
+  const textareaRefs = useRef({});
+
+  useEffect(() => {
+    const adjustableFields = [...leftColumnFields, ...rightColumnFields].filter(
+      (field) => field.type !== 'link' || !field.href
+    );
+
+    adjustableFields.forEach((field) => {
+      const textarea = textareaRefs.current[field.id];
+      if (textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = `${textarea.scrollHeight}px`;
+      }
+    });
+  }, [leftColumnFields, rightColumnFields]);
+
+  const renderFieldControl = (field) => {
+    const isLink = field.type === 'link' && field.href;
+
+    if (isLink) {
+      delete textareaRefs.current[field.id];
+      return (
+        <a
+          id={field.id}
+          className="client-details__textarea client-details__textarea--link"
+          href={field.href}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {field.value}
+        </a>
+      );
+    }
+
+    return (
+      <textarea
+        id={field.id}
+        className="client-details__textarea"
+        ref={(node) => {
+          textareaRefs.current[field.id] = node;
+        }}
+        value={field.value}
+        readOnly
+        aria-readonly="true"
+        tabIndex={-1}
+        spellCheck={false}
+      />
+    );
+  };
+
   return (
     <div className="dashboard">
       <div className="dashboard__background-image" />
@@ -225,11 +421,28 @@ export function ClientDetails() {
             <section className="dashboard__panel">
               <div className="dashboard__panel-body">
                 <div className="dashboard__welcome">
-                  <h1 className="dashboard__headline">Client Details</h1>
-                  <button type="button" className="dashboard__cta">
-                    New Assignment
-                  </button>
-                </div>                <div className="dashboard__stats-grid">
+                  <div className="client-details__title">
+                    <button
+                      type="button"
+                      className="client-details__back-button"
+                      onClick={() => navigate(-1)}
+                      aria-label="Go back"
+                    >
+                      <FaArrowLeftLong />
+                    </button>
+                    <h1 className="dashboard__headline">Client Details</h1>
+                  </div>
+                  <div className="client-details__actions">
+                    <button type="button" className="dashboard__cta">
+                      Manage
+                    </button>
+                    <button type="button" className={secondaryButtonClassName}>
+                      {statusLabel}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="dashboard__stats-grid">
                   <StatsCard title="Candidates" value={candidateCountDisplay} subtitle={candidateWeekSubtitle} />
                   <StatsCard title="Companies" value={companyCountDisplay} subtitle={companySubtitle} />
                   <StatsCard
@@ -248,9 +461,28 @@ export function ClientDetails() {
                         <span className="dashboard__client-role">{candidateRole ?? 'Role not specified'}</span>
                       </div>
                       <div className="dashboard__divider" />
-                      <p className="dashboard__status-text">
-                        Detailed client information will appear here.
-                      </p>
+                      <div className="client-details__columns">
+                        <div className="client-details__column">
+                          {leftColumnFields.map((field) => (
+                            <div className="client-details__field" key={field.id}>
+                              <label className="client-details__label" htmlFor={field.id}>
+                                {field.label}
+                              </label>
+                              {renderFieldControl(field)}
+                            </div>
+                          ))}
+                        </div>
+                        <div className="client-details__column">
+                          {rightColumnFields.map((field) => (
+                            <div className="client-details__field" key={field.id}>
+                              <label className="client-details__label" htmlFor={field.id}>
+                                {field.label}
+                              </label>
+                              {renderFieldControl(field)}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </section>
 
@@ -274,3 +506,4 @@ export function ClientDetails() {
 }
 
 export default ClientDetails;
+

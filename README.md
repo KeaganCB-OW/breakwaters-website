@@ -10,12 +10,9 @@ This repository contains the foundational file structure to support role-based a
 
 ## todo
 - implement database display
-- refine logins
-    - better input fields
-    - refine alternate logins
-    - same styling
 - mock home screen
-- resume submit
+- resume submit (one submit per user)
+    - during submit clients can select from large dropdown with search of desired roles, if not found they can input custom entry (which can be reviewed and placed in list for future reference or not)
 - refine view of candidate etc
     - delete and edit
     - user can do an edit request -> email if confirmed
