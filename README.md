@@ -16,7 +16,8 @@ This repository contains the foundational file structure to support role-based a
 - refine view of candidate etc
     - delete and edit
     - user can do an edit request -> email if confirmed
-
+- create new table displaying which employees have been suggested or assigned etc to a given company
+- filter candidate overview by status
 ## todo later
 - forget password email
 - confirmation email

@@ -13,7 +13,9 @@ const STATUS_VARIANTS = {
   assigned: { label: 'Assigned', className: 'client-details__secondary-btn--assigned' },
   'interview pending': { label: 'Interview Pending', className: 'client-details__secondary-btn--interview-pending' },
   'in progress': { label: 'In Progress', className: 'client-details__secondary-btn--in-progress' },
-  interviewed: { label: 'Interviewed', className: 'client-details__secondary-btn--interviewed' }
+  interviewed: { label: 'Interviewed', className: 'client-details__secondary-btn--interviewed' },
+  suggested: { label: 'Suggested', className: 'client-details__secondary-btn--suggested' },
+  rejected: { label: 'Rejected', className: 'client-details__secondary-btn--rejected' }
 };
 
 export function ClientDetails() {

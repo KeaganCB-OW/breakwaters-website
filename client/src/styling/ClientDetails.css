@@ -84,7 +84,15 @@
 }
 
 .client-details__secondary-btn--interviewed {
-  background-color: #EC87BF;
+  background-color: #ED5564;
+}
+
+.client-details__secondary-btn--suggested {
+  background-color: #967BDA;
+}
+
+.client-details__secondary-btn--rejected {
+  background-color: #FC4242;
 }
 
 .client-details__secondary-btn:focus {

@@ -288,7 +288,7 @@
   padding: 8px 24px;
   background: #ffffff;
   border-radius: 16px;
-  box-shadow: 0 12px 32px rgba(8, 38, 88, 0.12);
+  box-shadow: 0 1px 40px rgba(8, 38, 88, 0.1);
   text-decoration: none;
   color: inherit;
 }
@@ -329,6 +329,7 @@
   color: #fff;
   text-align: center;
   white-space: nowrap;
+  min-width: 140px;
 }
 
 .assignment-card {
