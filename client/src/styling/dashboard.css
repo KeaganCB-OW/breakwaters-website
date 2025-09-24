@@ -130,10 +130,38 @@
   margin-bottom: 20px;
 }
 
+.dashboard__main-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+
 @media (min-width: 768px) {
   .dashboard__stats-grid {
     gap: 32px;
     margin-bottom: 36px;
+  }
+}
+
+@media (min-width: 768px) {
+  .dashboard__main-grid {
+    gap: 32px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard__main-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 32px;
+  }
+
+  .dashboard__candidate-panel {
+    grid-column: 1 / span 2;
+  }
+
+  .dashboard__assignments-panel {
+    grid-column: 3 / span 1;
   }
 }
 
@@ -187,20 +215,10 @@
 
 .dashboard__main-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 24px;
-
-
 }
 
-@media (min-width: 1024px) {
-  .dashboard__main-grid {
-    grid-template-columns: 2fr 1fr;
-    gap: 32px;
-  
-    
-  }
-}
 
 
 
