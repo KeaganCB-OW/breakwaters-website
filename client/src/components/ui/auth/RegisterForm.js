@@ -114,7 +114,7 @@ export default function RegisterForm() {
                 onClick={togglePasswordVisibility}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20}/>}
               </button>
             </div>
           </div>
@@ -137,7 +137,7 @@ export default function RegisterForm() {
                 onClick={toggleConfirmPasswordVisibility}
                 aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
               >
-                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                {showConfirmPassword ? <FaEyeSlash size={20}/> : <FaEye size={20}/>}
               </button>
             </div>
           </div>
@@ -162,7 +162,11 @@ export default function RegisterForm() {
                   <img src={appleIcon} alt="Apple icon" />
                 </button>
               </div>
+                      <div className="auth-link-text">
+                        Already have an account? <Link to="/login" className="auth-link">Login</Link>
+                      </div>
       </div>
+      
 
     </div>
   );

@@ -48,23 +48,24 @@
 
 .dashboard__layout {
   flex: 1;
-  padding: 120px 16px 40px;
+  padding: 110px 0 24px;
 }
 
 @media (min-width: 768px) {
   .dashboard__layout {
-    padding: 140px 64px 56px;
+    padding: 130px 0 30px;
   }
 }
 
 .dashboard__container {
-  max-width: 96%;
+  width: 90%;
+  max-width: 90%;
   margin: 0 auto;
 }
 
 .dashboard__panel {
   background: var(--glass-white-light);
-  border-radius: 10px 10px 0 0;
+  border-radius: 10px 10px 10px 10px;
   box-shadow: 0 24px 60px rgba(8, 38, 88, 0.12);
   backdrop-filter: blur(6px);
 }
@@ -379,3 +380,6 @@
 .dashboard__status-text--error {
   color: #c0392b;
 }
+
+
+
