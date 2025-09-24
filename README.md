@@ -31,7 +31,7 @@ This repository contains the foundational file structure to support role-based a
 ## Connecting to MySQL via XAMPP
 1. Start Apache and MySQL in the XAMPP Control Panel.
 2. Open phpMyAdmin (http://localhost/phpmyadmin) and create a database (for example `breakwaters`). Import your schema or tables if you have them exported already.
-3. Copy `server/.env.example` to `server/.env` and update the values to match your XAMPP MySQL credentials (default user is `root` with no password).
+3. Copy `server/.env.example` to `server/.env` and update the values to match your XAMPP MySQL credentials (default user is `root` with no password) and set `CLIENT_ORIGIN` to your React app URL (usually `http://localhost:3000`).
 4. Install dependencies and start the API:
 
 ```

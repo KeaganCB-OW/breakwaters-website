@@ -89,17 +89,22 @@
   gap: 0.5rem;
 }
 
+.card-nav-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0.7rem;
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.18));
+  height: 100%;
+  width: 100%;
+}
+
 .card-nav-action > * {
   display: inline-flex;
   align-items: center;
   height: 100%;
 }
 
-.card-nav-action .dashboard-avatar {
-  margin-left: 0.7rem;   /* Move closer to the left */
-  margin-right: 0.7rem;  /* Reduce space to the right */
-  /* You can adjust these values as needed */
-}
 
 .card-nav-cta-button {
   background-color: #082658;

@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import { pool } from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
@@ -10,6 +11,14 @@ import assignmentRoutes from './routes/assignmentRoutes.js';
 dotenv.config();
 
 const app = express();
+const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:3000';
+
+app.use(
+  cors({
+    origin: clientOrigin,
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);

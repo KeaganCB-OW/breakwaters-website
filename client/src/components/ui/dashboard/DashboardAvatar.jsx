@@ -1,6 +1,8 @@
+import './DashboardAvatar.css';
+
 const sizeMap = {
-  sm: 48,
-  md: 64,
+  sm: 42,
+  md: 48,
   lg: 80
 };
 
@@ -11,7 +13,7 @@ export function DashboardAvatar({ size = 'md', className = '' }) {
   return (
     <div
       className={avatarClass}
-      style={{ width: dimension, height: dimension, filter: 'drop-shadow(0 3px 3px rgba(0, 0, 0, 0.18))' }}
+      style={{ width: dimension, height: dimension }}
     >
       <svg
         width="100%"
