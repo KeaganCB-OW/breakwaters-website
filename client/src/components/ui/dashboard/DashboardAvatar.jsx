@@ -1,4 +1,4 @@
-import './DashboardAvatar.css';
+import '../../../styling/DashboardAvatar.css';
 
 const sizeMap = {
   sm: 42,

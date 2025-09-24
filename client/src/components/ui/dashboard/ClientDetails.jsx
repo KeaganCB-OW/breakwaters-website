@@ -5,12 +5,17 @@ import { StatsCard } from './StatsCard';
 import { DashboardAvatar } from './DashboardAvatar';
 import { fetchClients } from '../../../services/clientService';
 import { fetchAssignments } from '../../../services/assignmentService';
-import '../../../styling/dashboard.css';
+import { fetchCompanyStats } from '../../../services/companyService';
+import '../../../styling/ClientDetails.css';
 
 export function ClientDetails() {
   const { clientId } = useParams();
   const [candidates, setCandidates] = useState([]);
   const [isLoadingCandidates, setIsLoadingCandidates] = useState(true);
+
+  const [companyStats, setCompanyStats] = useState({ total: 0, newThisWeek: 0, unverified: 0 });
+  const [isLoadingCompanies, setIsLoadingCompanies] = useState(true);
+  const [companyError, setCompanyError] = useState(null);
 
   const [assignments, setAssignments] = useState([]);
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(true);
@@ -36,6 +41,43 @@ export function ClientDetails() {
     };
 
     loadCandidates();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCompanyStats = async () => {
+      try {
+        const data = await fetchCompanyStats();
+        if (isMounted) {
+          const total = Number(data?.total ?? 0);
+          const newThisWeek = Number(data?.newThisWeek ?? 0);
+          const unverified = Number(data?.unverified ?? 0);
+
+          setCompanyStats({
+            total: Number.isNaN(total) ? 0 : total,
+            newThisWeek: Number.isNaN(newThisWeek) ? 0 : newThisWeek,
+            unverified: Number.isNaN(unverified) ? 0 : unverified,
+          });
+          setCompanyError(null);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setCompanyError(error.message || 'Failed to load company stats');
+          setCompanyStats({ total: 0, newThisWeek: 0, unverified: 0 });
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingCompanies(false);
+        }
+      }
+    };
+
+    loadCompanyStats();
 
     return () => {
       isMounted = false;
@@ -118,7 +160,18 @@ export function ClientDetails() {
   }, [assignments, startOfWeek]);
 
   const candidateCountDisplay = isLoadingCandidates ? 'N/A' : String(candidates.length);
-  const candidateWeekSubtitle = isLoadingCandidates ? 'Loading...' : `${candidatesAddedThisWeek} this week`;
+  const candidateWeekSubtitle = isLoadingCandidates ? 'Loading...' : `${candidatesAddedThisWeek} new this week`;
+
+  let companyCountDisplay = 'N/A';
+  let companySubtitle = 'Loading...';
+
+  if (companyError) {
+    companyCountDisplay = 'Error';
+    companySubtitle = companyError;
+  } else if (!isLoadingCompanies) {
+    companyCountDisplay = String(companyStats.total);
+    companySubtitle = `${companyStats.newThisWeek} new this week | ${companyStats.unverified} unverified`;
+  }
 
   const assignmentCountDisplay = isLoadingAssignments ? 'N/A' : String(assignments.length);
   const assignmentWeekSubtitle = isLoadingAssignments ? 'Loading...' : `${assignmentsAddedThisWeek} new this week`;
@@ -178,7 +231,7 @@ export function ClientDetails() {
                   </button>
                 </div>                <div className="dashboard__stats-grid">
                   <StatsCard title="Candidates" value={candidateCountDisplay} subtitle={candidateWeekSubtitle} />
-                  <StatsCard title="Companies" value="7" subtitle="1 new this week" />
+                  <StatsCard title="Companies" value={companyCountDisplay} subtitle={companySubtitle} />
                   <StatsCard
                     title="Assignments"
                     value={assignmentCountDisplay}

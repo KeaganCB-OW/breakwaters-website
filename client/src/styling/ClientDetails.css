@@ -1,0 +1,20 @@
+@import './dashboard.css';
+
+.dashboard__section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dashboard__client-role {
+  margin: 0;
+  margin-left: auto;
+  font-family: var(--font-roboto);
+  font-size: clamp(1rem, 1vw, 2.75rem);
+  color: #6b6b6b;
+  text-align: right;
+}
+
+
