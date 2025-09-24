@@ -1,5 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import { pool } from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import clientRoutes from './routes/clientRoutes.js';
 import companyRoutes from './routes/companyRoutes.js';
@@ -17,7 +18,28 @@ app.use('/api/companies', companyRoutes);
 app.use('/api/officers', recruitmentOfficerRoutes);
 app.use('/api/assignments', assignmentRoutes);
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.get('/api/health/db', async (req, res) => {
+  try {
+    await pool.query('SELECT 1');
+    res.json({ status: 'ok' });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
 });
+
+const PORT = process.env.PORT || 5000;
+
+const startServer = async () => {
+  try {
+    await pool.query('SELECT 1');
+    console.log('Connected to MySQL');
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to connect to MySQL', error);
+    process.exit(1);
+  }
+};
+
+startServer();
