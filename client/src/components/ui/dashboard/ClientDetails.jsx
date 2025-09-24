@@ -1,21 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import AppCardNav from '../layout/AppCardNav';
 import { StatsCard } from './StatsCard';
-import { CandidateCard } from './CandidateCard';
-import { AssignmentCard } from './AssignmentCard';
 import { DashboardAvatar } from './DashboardAvatar';
 import { fetchClients } from '../../../services/clientService';
 import { fetchAssignments } from '../../../services/assignmentService';
 import '../../../styling/dashboard.css';
 
-export function Dashboard() {
+export function ClientDetails() {
+  const { clientId } = useParams();
   const [candidates, setCandidates] = useState([]);
   const [isLoadingCandidates, setIsLoadingCandidates] = useState(true);
-  const [candidateError, setCandidateError] = useState(null);
 
   const [assignments, setAssignments] = useState([]);
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(true);
-  const [assignmentError, setAssignmentError] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -25,11 +23,9 @@ export function Dashboard() {
         const data = await fetchClients();
         if (isMounted) {
           setCandidates(Array.isArray(data) ? data : []);
-          setCandidateError(null);
         }
       } catch (error) {
         if (isMounted) {
-          setCandidateError(error.message || 'Failed to load candidates');
           setCandidates([]);
         }
       } finally {
@@ -54,11 +50,9 @@ export function Dashboard() {
         const data = await fetchAssignments();
         if (isMounted) {
           setAssignments(Array.isArray(data) ? data : []);
-          setAssignmentError(null);
         }
       } catch (error) {
         if (isMounted) {
-          setAssignmentError(error.message || 'Failed to load assignments');
           setAssignments([]);
         }
       } finally {
@@ -129,6 +123,44 @@ export function Dashboard() {
   const assignmentCountDisplay = isLoadingAssignments ? 'N/A' : String(assignments.length);
   const assignmentWeekSubtitle = isLoadingAssignments ? 'Loading...' : `${assignmentsAddedThisWeek} new this week`;
 
+  const selectedCandidate = useMemo(() => {
+    if (!clientId || !Array.isArray(candidates)) {
+      return null;
+    }
+
+    return (
+      candidates.find((candidate) => {
+        const candidateIdentifier = candidate.id ?? candidate._id ?? candidate.clientId;
+        return candidateIdentifier != null && String(candidateIdentifier) === clientId;
+      }) || null
+    );
+  }, [candidates, clientId]);
+
+  const clientLabel = useMemo(() => {
+    if (!clientId) {
+      return null;
+    }
+
+    if (selectedCandidate?.fullName) {
+      return selectedCandidate.fullName;
+    }
+
+    return `Client ${clientId}`;
+  }, [clientId, selectedCandidate]);
+
+  const candidateRole = useMemo(() => {
+    if (!selectedCandidate) {
+      return null;
+    }
+
+    return (
+      selectedCandidate.preferredRole ||
+      selectedCandidate.role ||
+      selectedCandidate.currentRole ||
+      null
+    );
+  }, [selectedCandidate]);
+
   return (
     <div className="dashboard">
       <div className="dashboard__background-image" />
@@ -144,78 +176,38 @@ export function Dashboard() {
                   <button type="button" className="dashboard__cta">
                     New Assignment
                   </button>
-                </div>
-
-                <div className="dashboard__stats-grid">
+                </div>                <div className="dashboard__stats-grid">
                   <StatsCard title="Candidates" value={candidateCountDisplay} subtitle={candidateWeekSubtitle} />
                   <StatsCard title="Companies" value="7" subtitle="1 new this week" />
-                  <StatsCard title="Assignments" value={assignmentCountDisplay} subtitle={assignmentWeekSubtitle} className="stats-card--wide" />
+                  <StatsCard
+                    title="Assignments"
+                    value={assignmentCountDisplay}
+                    subtitle={assignmentWeekSubtitle}
+                    className="stats-card--wide"
+                  />
                 </div>
 
                 <div className="dashboard__main-grid">
                   <section className="dashboard__candidate-panel">
                     <div className="dashboard__section">
-                      <h2 className="dashboard__section-title">Candidate Overview</h2>
-                      <div className="dashboard__divider" />
-                      <div className="dashboard__candidate-list">
-                        {isLoadingCandidates && (
-                          <p className="dashboard__status-text">Loading candidates...</p>
-                        )}
-                        {candidateError && (
-                          <p className="dashboard__status-text dashboard__status-text--error">
-                            {candidateError}
-                          </p>
-                        )}
-                        {!isLoadingCandidates && !candidateError && candidates.length === 0 && (
-                          <p className="dashboard__status-text">No candidates found.</p>
-                        )}
-                        {!isLoadingCandidates &&
-                          !candidateError &&
-                          candidates.map((candidate) => {
-                            const candidateId = candidate.id ?? candidate._id ?? candidate.clientId;
-                            const candidateKey = candidateId ?? candidate.email ?? candidate.fullName;
-                            const candidateDetailsPath = candidateId ? `/client-details/${candidateId}` : undefined;
-
-                            return (
-                              <CandidateCard
-                                key={candidateKey}
-                                name={candidate.fullName}
-                                role={candidate.preferredRole || 'Role not specified'}
-                                status={candidate.status || 'pending'}
-                                to={candidateDetailsPath}
-                              />
-                            );
-                          })}
+                      <div className="dashboard__section-heading">
+                        <h2 className="dashboard__section-title">{clientLabel ?? 'Client Overview'}</h2>
+                        <span className="dashboard__client-role">{candidateRole ?? 'Role not specified'}</span>
                       </div>
+                      <div className="dashboard__divider" />
+                      <p className="dashboard__status-text">
+                        Detailed client information will appear here.
+                      </p>
                     </div>
                   </section>
 
                   <section className="dashboard__assignments-panel">
                     <div className="dashboard__section">
-                      <h2 className="dashboard__section-title">Recent Assignments</h2>
+                      <h2 className="dashboard__section-title">Related Opportunities</h2>
                       <div className="dashboard__divider" />
-                      <div className="dashboard__assignment-list">
-                        {isLoadingAssignments && (
-                          <p className="dashboard__status-text">Loading assignments...</p>
-                        )}
-                        {assignmentError && (
-                          <p className="dashboard__status-text dashboard__status-text--error">
-                            {assignmentError}
-                          </p>
-                        )}
-                        {!isLoadingAssignments && !assignmentError && assignments.length === 0 && (
-                          <p className="dashboard__status-text">No assignments found.</p>
-                        )}
-                        {!isLoadingAssignments &&
-                          !assignmentError &&
-                          assignments.map((assignment) => (
-                            <AssignmentCard
-                              key={assignment.id}
-                              name={assignment.clientName}
-                              company={assignment.companyName}
-                            />
-                          ))}
-                      </div>
+                      <p className="dashboard__status-text">
+                        Suggested roles and companies will be displayed in this area.
+                      </p>
                     </div>
                   </section>
                 </div>
@@ -228,4 +220,4 @@ export function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default ClientDetails;

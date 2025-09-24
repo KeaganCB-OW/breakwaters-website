@@ -1,10 +1,13 @@
+import { Link } from 'react-router-dom';
 import { DashboardAvatar } from './DashboardAvatar';
 
-export function CandidateCard({ name, role, status, className = '' }) {
+export function CandidateCard({ name, role, status, className = '', to }) {
   const cardClassName = ['candidate-card', className].filter(Boolean).join(' ');
+  const Container = to ? Link : 'div';
+  const containerProps = to ? { to } : {};
 
   return (
-    <div className={cardClassName}>
+    <Container className={cardClassName} {...containerProps}>
       <div className="candidate-card__person">
         <DashboardAvatar size="md" className="candidate-card__avatar" />
         <div>
@@ -15,7 +18,7 @@ export function CandidateCard({ name, role, status, className = '' }) {
       <div className="candidate-card__status">
         <span>{status}</span>
       </div>
-    </div>
+    </Container>
   );
 }
 
