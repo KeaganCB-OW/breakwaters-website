@@ -25,6 +25,33 @@ export const getCompanyStats = async (req, res) => {
   }
 };
 
+export const listCompanies = async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT
+        id,
+        company_name AS companyName,
+        industry,
+        phone_number AS phoneNumber,
+        email,
+        workforce_size AS workforceSize,
+        location,
+        available_roles AS availableRoles,
+        specifications,
+        linkedin_url AS linkedinUrl,
+        status
+      FROM companies
+      ORDER BY company_name ASC`
+    );
+
+    res.json(rows);
+  } catch (error) {
+    console.error('Failed to fetch companies', error);
+    res.status(500).json({ message: 'Failed to fetch companies' });
+  }
+};
+
 export const getCandidates = (req, res) => {
   res.send('List of assigned candidates');
 };
+

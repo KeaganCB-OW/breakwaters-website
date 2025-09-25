@@ -9,22 +9,29 @@ Recruitment Management System using React, Node/Express, and MySQL.
 This repository contains the foundational file structure to support role-based authentication, CV submissions, and candidate-company workflows.
 
 ## todo
-- implement database display
+- refine view of candidate etc
+    - delete and edit
+- store users on signup and login to database
 - mock home screen
 - resume submit (one submit per user)
     - during submit clients can select from large dropdown with search of desired roles, if not found they can input custom entry (which can be reviewed and placed in list for future reference or not)
-- refine view of candidate etc
-    - delete and edit
-    - user can do an edit request -> email if confirmed
-- create new table displaying which employees have been suggested or assigned etc to a given company
-- filter candidate overview by status
+
 ## todo later
+- replace the client details status with a more indepth display that show the clients status with each company.
+    - minmize the avaliable statuses for the client withing table (simple like: in progress, pending, assigned or rejected ) as more in depth status makes sense only in context of having multiple assignments 
 - forget password email
 - confirmation email
     - signup
     - resume submit
-    # future
     - placements (company/client)
+- create new table displaying which employees have been suggested or assigned etc to a given company
+- filter candidate overview by status
+- If client is assigned, interviewed etc. Display companies that they have progressed this far with on details page. (remove stat card to make space for this)
+- instead of suggested being said regardless in the related oportunities card, if the client has a different status with the company then it should be updated on the suggested button.
+- I like the look of 6 recent assignments. Lets cap it there for scroll.
+- candidate view
+    - user can do an edit request -> email if confirmed
+
 
 ## Connecting to MySQL via XAMPP
 1. Start Apache and MySQL in the XAMPP Control Panel.

@@ -4,9 +4,100 @@ import AppCardNav from '../layout/AppCardNav';
 import { StatsCard } from './StatsCard';
 import { DashboardAvatar } from './DashboardAvatar';
 import { fetchClients } from '../../../services/clientService';
-import { fetchAssignments } from '../../../services/assignmentService';
-import { fetchCompanyStats } from '../../../services/companyService';
+import { fetchAssignments, suggestAssignment } from '../../../services/assignmentService';
+import { fetchCompanies, fetchCompanyStats } from '../../../services/companyService';
 import '../../../styling/ClientDetails.css';
+
+const normaliseRoleName = (value) => {
+  if (value == null) {
+    return '';
+  }
+
+  return String(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
+const splitAvailableRoles = (value) => {
+  if (value == null) {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    return value
+      .flatMap((role) => String(role).split(/[,/|;]/))
+      .map((role) => role.trim())
+      .filter(Boolean);
+  }
+
+  return String(value)
+    .split(/[,/|;]/)
+    .map((role) => role.trim())
+    .filter(Boolean);
+};
+
+const levenshteinDistance = (a, b) => {
+  if (a === b) {
+    return 0;
+  }
+
+  if (!a.length) {
+    return b.length;
+  }
+
+  if (!b.length) {
+    return a.length;
+  }
+
+  let previousRow = Array.from({ length: b.length + 1 }, (_, index) => index);
+
+  for (let i = 1; i <= a.length; i += 1) {
+    const currentRow = [i];
+
+    for (let j = 1; j <= b.length; j += 1) {
+      const insertCost = currentRow[j - 1] + 1;
+      const deleteCost = previousRow[j] + 1;
+      const replaceCost = previousRow[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1);
+      currentRow[j] = Math.min(insertCost, deleteCost, replaceCost);
+    }
+
+    previousRow = currentRow;
+  }
+
+  return previousRow[b.length];
+};
+
+const rolesMatch = (role, desiredRole) => {
+  const normalizedRole = normaliseRoleName(role);
+  const normalizedDesired = normaliseRoleName(desiredRole);
+
+  if (!normalizedRole || !normalizedDesired) {
+    return false;
+  }
+
+  if (normalizedRole === normalizedDesired) {
+    return true;
+  }
+
+  if (normalizedRole.includes(normalizedDesired) || normalizedDesired.includes(normalizedRole)) {
+    return true;
+  }
+
+  const roleWords = normalizedRole.split(' ');
+  const desiredWords = normalizedDesired.split(' ');
+
+  if (roleWords.some((word) => desiredWords.includes(word))) {
+    return true;
+  }
+
+  const distance = levenshteinDistance(normalizedRole, normalizedDesired);
+  const tolerance = Math.max(1, Math.floor(Math.max(normalizedRole.length, normalizedDesired.length) * 0.25));
+
+  return distance <= tolerance;
+};
+
 
 const STATUS_VARIANTS = {
   pending: { label: 'Pending', className: 'client-details__secondary-btn--pending' },
@@ -30,6 +121,12 @@ export function ClientDetails() {
 
   const [assignments, setAssignments] = useState([]);
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(true);
+  const [companies, setCompanies] = useState([]);
+  const [isLoadingCompanyList, setIsLoadingCompanyList] = useState(true);
+  const [companyListError, setCompanyListError] = useState(null);
+  const [showAllCompanies, setShowAllCompanies] = useState(false);
+  const [suggestionStatusByCompany, setSuggestionStatusByCompany] = useState({});
+
 
   useEffect(() => {
     let isMounted = true;
@@ -116,6 +213,35 @@ export function ClientDetails() {
     };
 
     loadAssignments();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCompanies = async () => {
+      try {
+        const data = await fetchCompanies();
+        if (isMounted) {
+          setCompanies(Array.isArray(data) ? data : []);
+          setCompanyListError(null);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setCompanyListError(error?.message || 'Failed to load companies');
+          setCompanies([]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingCompanyList(false);
+        }
+      }
+    };
+
+    loadCompanies();
 
     return () => {
       isMounted = false;
@@ -218,12 +344,188 @@ export function ClientDetails() {
     }
 
     return (
+      selectedCandidate.desiredRole ||
+      selectedCandidate.desired_role ||
       selectedCandidate.preferredRole ||
       selectedCandidate.role ||
       selectedCandidate.currentRole ||
       null
     );
   }, [selectedCandidate]);
+
+  const candidateDesiredRoleNormalized = useMemo(() => {
+    if (candidateRole) {
+      return normaliseRoleName(candidateRole);
+    }
+
+    if (selectedCandidate?.desiredRole) {
+      return normaliseRoleName(selectedCandidate.desiredRole);
+    }
+
+    if (selectedCandidate?.desired_role) {
+      return normaliseRoleName(selectedCandidate.desired_role);
+    }
+
+    return '';
+  }, [candidateRole, selectedCandidate]);
+
+  const assignmentsForSelectedClient = useMemo(() => {
+    if (!clientId || !Array.isArray(assignments)) {
+      return [];
+    }
+
+    return assignments.filter((assignment) => {
+      const assignmentClientId =
+        assignment?.clientId ??
+        assignment?.client_id ??
+        assignment?.clientID ??
+        assignment?.clientid;
+
+      if (assignmentClientId == null) {
+        return false;
+      }
+
+      return String(assignmentClientId) === String(clientId);
+    });
+  }, [assignments, clientId]);
+
+  const assignedCompanyIds = useMemo(() => {
+    if (!assignmentsForSelectedClient.length) {
+      return new Set();
+    }
+
+    const ids = new Set();
+
+    assignmentsForSelectedClient.forEach((assignment) => {
+      const rawCompanyId =
+        assignment?.companyId ??
+        assignment?.company_id ??
+        assignment?.companyID ??
+        assignment?.companyid;
+
+      if (rawCompanyId != null) {
+        ids.add(String(rawCompanyId));
+      }
+    });
+
+    return ids;
+  }, [assignmentsForSelectedClient]);
+
+  const relatedCompanies = useMemo(() => {
+    if (!Array.isArray(companies) || companies.length === 0) {
+      return [];
+    }
+
+    if (showAllCompanies) {
+      return companies;
+    }
+
+    if (!candidateDesiredRoleNormalized) {
+      return [];
+    }
+
+    return companies.filter((company) => {
+      const companyRoles = splitAvailableRoles(company?.availableRoles);
+
+      if (companyRoles.length === 0) {
+        return false;
+      }
+
+      return companyRoles.some((role) => rolesMatch(role, candidateDesiredRoleNormalized));
+    });
+  }, [companies, showAllCompanies, candidateDesiredRoleNormalized]);
+
+  const toggleShowAllCompanies = useCallback(() => {
+    setShowAllCompanies((previous) => !previous);
+  }, []);
+
+  const handleSuggest = useCallback(
+    async (companyIdValue, companyKey) => {
+      const numericClientId = Number(clientId);
+      const numericCompanyId = Number(companyIdValue);
+      const stateKey =
+        companyKey ??
+        (Number.isFinite(numericCompanyId) ? String(numericCompanyId) : String(companyIdValue ?? ''));
+
+      if (!stateKey) {
+        return;
+      }
+
+      if (!Number.isFinite(numericClientId) || numericClientId <= 0) {
+        setSuggestionStatusByCompany((previous) => ({
+          ...previous,
+          [stateKey]: { loading: false, error: 'Invalid client identifier.' },
+        }));
+        return;
+      }
+
+      if (!Number.isFinite(numericCompanyId) || numericCompanyId <= 0) {
+        setSuggestionStatusByCompany((previous) => ({
+          ...previous,
+          [stateKey]: { loading: false, error: 'Invalid company identifier.' },
+        }));
+        return;
+      }
+
+      setSuggestionStatusByCompany((previous) => ({
+        ...previous,
+        [stateKey]: { loading: true, error: null },
+      }));
+
+      try {
+        const response = await suggestAssignment(numericClientId, numericCompanyId);
+
+        if (response?.assignment) {
+          setAssignments((previousAssignments) => {
+            if (!Array.isArray(previousAssignments)) {
+              return [response.assignment];
+            }
+
+            const exists = previousAssignments.some((assignment) => assignment.id === response.assignment.id);
+
+            if (exists) {
+              return previousAssignments.map((assignment) =>
+                assignment.id === response.assignment.id ? response.assignment : assignment
+              );
+            }
+
+            return [...previousAssignments, response.assignment];
+          });
+        }
+
+        if (response?.clientStatus) {
+          setCandidates((previousCandidates) =>
+            Array.isArray(previousCandidates)
+              ? previousCandidates.map((candidate) => {
+                  const candidateIdentifier = candidate.id ?? candidate._id ?? candidate.clientId;
+                  if (candidateIdentifier != null && String(candidateIdentifier) === String(clientId)) {
+                    return { ...candidate, status: response.clientStatus };
+                  }
+
+                  return candidate;
+                })
+              : previousCandidates
+          );
+        }
+
+        setSuggestionStatusByCompany((previous) => ({
+          ...previous,
+          [stateKey]: { loading: false, error: null },
+        }));
+      } catch (error) {
+        const message =
+          error?.details?.message ||
+          error?.message ||
+          'Failed to suggest assignment';
+
+        setSuggestionStatusByCompany((previous) => ({
+          ...previous,
+          [stateKey]: { loading: false, error: message },
+        }));
+      }
+    },
+    [clientId, setAssignments, setCandidates, setSuggestionStatusByCompany, suggestAssignment]
+  );
 
   const selectedCandidateStatus = selectedCandidate?.status;
 
@@ -490,11 +792,89 @@ export function ClientDetails() {
 
                   <section className="dashboard__assignments-panel">
                     <div className="dashboard__section">
-                      <h2 className="dashboard__section-title">Related Opportunities</h2>
+                      <div className="dashboard__section-heading">
+                        <h2 className="dashboard__section-title">Related Opportunities</h2>
+                        <button
+                          type="button"
+                          className="related-opportunities__toggle"
+                          onClick={toggleShowAllCompanies}
+                          disabled={isLoadingCompanyList || !Array.isArray(companies) || companies.length === 0}
+                        >
+                          {showAllCompanies ? 'See Less' : 'See All'}
+                        </button>
+                      </div>
                       <div className="dashboard__divider" />
-                      <p className="dashboard__status-text">
-                        Suggested roles and companies will be displayed in this area.
-                      </p>
+                      <div className="dashboard__assignment-list related-opportunities__list">
+                        {isLoadingCompanyList && (
+                          <p className="dashboard__status-text">Loading opportunities...</p>
+                        )}
+                        {companyListError && (
+                          <p className="dashboard__status-text dashboard__status-text--error">
+                            {companyListError}
+                          </p>
+                        )}
+                        {!isLoadingCompanyList &&
+                          !companyListError &&
+                          relatedCompanies.map((company, index) => {
+                            const companyIdValue =
+                              company?.id ??
+                              company?.companyId ??
+                              company?.companyID ??
+                              company?.company_id ??
+                              company?.companyid;
+                            const normalizedCompanyId =
+                              companyIdValue != null ? String(companyIdValue) : null;
+                            const companyKey =
+                              normalizedCompanyId ?? `${company.companyName ?? 'company'}-${index}`;
+                            const isSuggested = normalizedCompanyId ? assignedCompanyIds.has(normalizedCompanyId) : false;
+                            const suggestionState = suggestionStatusByCompany[companyKey] || {};
+                            const isLoading = Boolean(suggestionState.loading);
+                            const companyErrorMessage = suggestionState.error;
+                            const hasValidCompanyId = normalizedCompanyId != null;
+                            const isDisabled = isSuggested || isLoading || !hasValidCompanyId;
+                            const buttonText = isSuggested ? 'Suggested' : isLoading ? 'Suggesting...' : 'Suggest';
+                            const buttonClassName = [
+                              'candidate-card__status',
+                              'dashboard__assignment-status',
+                              'related-opportunities__suggest-btn',
+                              isSuggested ? 'related-opportunities__suggest-btn--suggested' : null,
+                              !isSuggested && isDisabled ? 'related-opportunities__suggest-btn--disabled' : null,
+                            ].filter(Boolean).join(' ');
+                            const rolesList = splitAvailableRoles(company?.availableRoles);
+                            const hasRoles = rolesList.length > 0;
+                            const locationText = company?.location ? String(company.location) : 'Location not specified';
+                            const rolesText = hasRoles ? rolesList.join(', ') : 'Not specified';
+                            const rolesClassName = [
+                              'related-opportunities__roles',
+                              hasRoles ? null : 'related-opportunities__roles--muted',
+                            ].filter(Boolean).join(' ');
+
+                            return (
+                              <div key={companyKey} className="dashboard__assignment-item related-opportunities__item">
+                                <div className="assignment-card">
+                                  <h3 className="assignment-card__name">{company?.companyName ?? 'Unnamed Company'}</h3>
+                                  <p className="assignment-card__company">{locationText}</p>
+                                  <p className={rolesClassName}>
+                                    Roles: {rolesText}
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  className={buttonClassName}
+                                  onClick={() => handleSuggest(companyIdValue, companyKey)}
+                                  disabled={isDisabled}
+                                >
+                                  {buttonText}
+                                </button>
+                                {companyErrorMessage && (
+                                  <p className="related-opportunities__error" role="alert">
+                                    {companyErrorMessage}
+                                  </p>
+                                )}
+                              </div>
+                            );
+                          })}
+                      </div>
                     </div>
                   </section>
                 </div>

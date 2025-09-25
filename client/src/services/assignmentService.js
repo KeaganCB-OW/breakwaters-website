@@ -9,3 +9,33 @@ export async function fetchAssignments() {
 
   return response.json();
 }
+
+export async function suggestAssignment(clientId, companyId) {
+  const response = await fetch(`${API_URL}/assignments/suggest`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ clientId, companyId }),
+  });
+
+  let data = null;
+
+  try {
+    data = await response.json();
+  } catch (error) {
+    // ignore JSON parse errors for empty responses
+  }
+
+  if (!response.ok) {
+    const message = data?.message || 'Failed to suggest assignment';
+    const error = new Error(message);
+    if (data) {
+      error.details = data;
+    }
+    throw error;
+  }
+
+  return data;
+}
+
