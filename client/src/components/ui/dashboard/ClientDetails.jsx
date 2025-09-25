@@ -418,6 +418,14 @@ export function ClientDetails() {
       .join(' ');
   }, [isManaging]);
 
+  const deleteModalDescription = useMemo(() => {
+    if (clientLabel) {
+      return `You are about to delete ${clientLabel}. This action cannot be undone.`;
+    }
+
+    return 'You are about to delete this client. This action cannot be undone.';
+  }, [clientLabel]);
+
   const toggleShowAllCompanies = useCallback(() => {
     setShowAllCompanies((previous) => !previous);
   }, []);
@@ -1185,9 +1193,49 @@ export function ClientDetails() {
           </div>
         </div>
       </div>
+      {isDeleteModalOpen && (
+        <div className="client-details__modal-backdrop" role="presentation">
+          <div
+            className="client-details__modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="client-delete-modal-title"
+            aria-describedby="client-delete-modal-description"
+          >
+            <h2 id="client-delete-modal-title" className="client-details__modal-title">
+              Delete Client
+            </h2>
+            <p id="client-delete-modal-description" className="client-details__modal-text">
+              {deleteModalDescription}
+            </p>
+            {deleteError && (
+              <p className="client-details__modal-error" role="alert">
+                {deleteError}
+              </p>
+            )}
+            <div className="client-details__modal-actions">
+              <button
+                type="button"
+                className="client-details__modal-button client-details__modal-button--secondary"
+                onClick={closeDeleteModal}
+                disabled={isDeletingClient}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="client-details__modal-button client-details__modal-button--danger"
+                onClick={handleConfirmDelete}
+                disabled={isDeletingClient}
+              >
+                {isDeletingClient ? 'Deleting...' : 'Delete client'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 export default ClientDetails;
-
