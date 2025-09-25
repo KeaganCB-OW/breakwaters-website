@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FaArrowLeftLong } from 'react-icons/fa6';
-import { BsFillPencilFill } from 'react-icons/bs';
+import { BsFillPencilFill, BsFillTrashFill } from 'react-icons/bs';
 import AppCardNav from '../layout/AppCardNav';
 import { DashboardAvatar } from './DashboardAvatar';
-import { fetchClients, updateClient } from '../../../services/clientService';
+import { fetchClients, updateClient, deleteClient as deleteClientService } from '../../../services/clientService';
 import { fetchAssignments, suggestAssignment } from '../../../services/assignmentService';
+import { AuthContext } from '../../../context/AuthContext';
 import { fetchCompanies } from '../../../services/companyService';
 import '../../../styling/ClientDetails.css';
 
@@ -185,6 +186,7 @@ const FIELD_DEFINITIONS = {
 export function ClientDetails() {
   const navigate = useNavigate();
   const { clientId } = useParams();
+  const { token } = useContext(AuthContext);
   const [candidates, setCandidates] = useState([]);
   const [isLoadingCandidates, setIsLoadingCandidates] = useState(true);
 
@@ -194,6 +196,9 @@ export function ClientDetails() {
   const [companyListError, setCompanyListError] = useState(null);
   const [showAllCompanies, setShowAllCompanies] = useState(false);
   const [suggestionStatusByCompany, setSuggestionStatusByCompany] = useState({});
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeletingClient, setIsDeletingClient] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
 
   const [isManaging, setIsManaging] = useState(false);
   const [editableValues, setEditableValues] = useState({});
@@ -407,9 +412,81 @@ export function ClientDetails() {
     });
   }, [companies, showAllCompanies, candidateDesiredRoleNormalized]);
 
+  const candidateSectionClassName = useMemo(() => {
+    return ['dashboard__section', 'client-details__section', isManaging ? 'client-details__section--managing' : null]
+      .filter(Boolean)
+      .join(' ');
+  }, [isManaging]);
+
   const toggleShowAllCompanies = useCallback(() => {
     setShowAllCompanies((previous) => !previous);
   }, []);
+  const openDeleteModal = useCallback(() => {
+    setDeleteError(null);
+    setIsDeleteModalOpen(true);
+  }, []);
+
+  const closeDeleteModal = useCallback(() => {
+    if (isDeletingClient) {
+      return;
+    }
+
+    setDeleteError(null);
+    setIsDeleteModalOpen(false);
+  }, [isDeletingClient]);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!clientId) {
+      setDeleteError('Invalid client identifier.');
+      return;
+    }
+
+    if (!token) {
+      setDeleteError('Please log in to delete this client.');
+      return;
+    }
+
+    setIsDeletingClient(true);
+    setDeleteError(null);
+
+    try {
+      await deleteClientService(clientId, token);
+
+      setAssignments((previousAssignments) =>
+        Array.isArray(previousAssignments)
+          ? previousAssignments.filter((assignment) => {
+              const assignmentClientId =
+                assignment?.clientId ??
+                assignment?.client_id ??
+                assignment?.clientID ??
+                assignment?.clientid;
+
+              return assignmentClientId == null || String(assignmentClientId) !== String(clientId);
+            })
+          : previousAssignments
+      );
+
+      setCandidates((previousCandidates) =>
+        Array.isArray(previousCandidates)
+          ? previousCandidates.filter((candidate) => {
+              const candidateIdentifier = candidate?.id ?? candidate?._id ?? candidate?.clientId;
+              return candidateIdentifier == null || String(candidateIdentifier) !== String(clientId);
+            })
+          : previousCandidates
+      );
+
+      setIsDeleteModalOpen(false);
+      setIsManaging(false);
+      navigate('/dashboard');
+    } catch (error) {
+      const message =
+        error?.details?.message || error?.message || 'Failed to delete client.';
+      setDeleteError(message);
+    } finally {
+      setIsDeletingClient(false);
+    }
+  }, [clientId, deleteClientService, navigate, setAssignments, setCandidates, token]);
+
 
   const handleSuggest = useCallback(
     async (companyIdValue, companyKey) => {
@@ -451,13 +528,24 @@ export function ClientDetails() {
         return;
       }
 
+      if (!token) {
+        setSuggestionStatusByCompany((previous) => ({
+          ...previous,
+          [stateKey]: {
+            loading: false,
+            error: 'Please log in to suggest this client.',
+          },
+        }));
+        return;
+      }
+
       setSuggestionStatusByCompany((previous) => ({
         ...previous,
         [stateKey]: { loading: true, error: null },
       }));
 
       try {
-        const response = await suggestAssignment(numericClientId, numericCompanyId);
+        const response = await suggestAssignment(numericClientId, numericCompanyId, token);
 
         if (response?.assignment) {
           setAssignments((previousAssignments) => {
@@ -508,7 +596,7 @@ export function ClientDetails() {
         }));
       }
     },
-    [assignmentByCompanyId, clientId, setAssignments, setCandidates, setSuggestionStatusByCompany, suggestAssignment]
+    [assignmentByCompanyId, clientId, setAssignments, setCandidates, setSuggestionStatusByCompany, suggestAssignment, token]
   );
 
   const selectedCandidateStatus = selectedCandidate?.status;
@@ -729,9 +817,14 @@ export function ClientDetails() {
     });
 
     try {
+    if (!token) {
+      setSubmitError('Please log in to submit changes.');
+      return;
+    }
+
       setIsSubmittingClient(true);
       setSubmitError(null);
-      const updatedClient = await updateClient(clientId, payload);
+      const updatedClient = await updateClient(clientId, payload, token);
       setCandidates((previousCandidates) =>
         Array.isArray(previousCandidates)
           ? previousCandidates.map((candidateItem) => {
@@ -771,6 +864,7 @@ export function ClientDetails() {
     setIsSubmittingClient,
     setSubmitError,
     updateClient,
+    token,
   ]);
 
   const textareaRefs = useRef({});
@@ -899,9 +993,22 @@ export function ClientDetails() {
 
                 <div className="dashboard__main-grid">
                   <section className="dashboard__candidate-panel">
-                    <div className="dashboard__section">
+                    <div className={candidateSectionClassName}>
                       <div className="dashboard__section-heading">
-                        <h2 className="dashboard__section-title">{clientLabel ?? 'Client Overview'}</h2>
+                        <div className="client-details__section-title-row">
+                          <h2 className="dashboard__section-title">{clientLabel ?? 'Client Overview'}</h2>
+                          {isManaging && (
+                            <button
+                              type="button"
+                              className="client-details__delete-button"
+                              onClick={openDeleteModal}
+                              aria-label="Delete client"
+                              disabled={isDeletingClient || !selectedCandidate}
+                            >
+                              <BsFillTrashFill />
+                            </button>
+                          )}
+                        </div>
                         <span className="dashboard__client-role">{candidateRole ?? 'Role not specified'}</span>
                       </div>
                       <div className="dashboard__divider" />
@@ -933,6 +1040,23 @@ export function ClientDetails() {
                           ))}
                         </div>
                       </div>
+                      {isManaging && (
+                        <div className="client-details__footer client-details__footer--inline">
+                          {submitError && (
+                            <p className="client-details__submit-error" role="alert">
+                              {submitError}
+                            </p>
+                          )}
+                          <button
+                            type="button"
+                            className="client-details__submit-button"
+                            onClick={handleSubmitClientDetails}
+                            disabled={isSubmittingClient || !hasPendingChanges}
+                          >
+                            {isSubmittingClient ? 'Submitting...' : 'Submit'}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </section>
 
@@ -1055,23 +1179,6 @@ export function ClientDetails() {
                       </div>
                     </div>
                   </section>
-                {isManaging && (
-                  <div className="client-details__footer">
-                    {submitError && (
-                      <p className="client-details__submit-error" role="alert">
-                        {submitError}
-                      </p>
-                    )}
-                    <button
-                      type="button"
-                      className="client-details__submit-button"
-                      onClick={handleSubmitClientDetails}
-                      disabled={isSubmittingClient || !hasPendingChanges}
-                    >
-                      {isSubmittingClient ? 'Submitting...' : 'Submit'}
-                    </button>
-                  </div>
-                )}
                 </div>
               </div>
             </section>

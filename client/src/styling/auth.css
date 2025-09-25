@@ -71,10 +71,12 @@
 }
 
 .form-group {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   width: 100%;
+  padding-bottom: 26px;
 }
 
 .form-label {
@@ -107,6 +109,25 @@
 
 .form-input::placeholder {
   color: rgba(8, 38, 88, 0.75);
+}
+
+.form-error {
+  position: absolute;
+  left: 0;
+  bottom: 4px;
+  font-family: 'Roboto', -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: clamp(0.75rem, 0.75vw, 1rem);
+  color: #c44747;
+  pointer-events: none;
+}
+
+.form-error--general {
+  position: static;
+  margin-top: 12px;
+  font-family: 'Roboto', -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: clamp(0.8rem, 0.8vw, 1.05rem);
+  color: #c44747;
+  text-align: left;
 }
 
 .password-input-container {

@@ -7,7 +7,7 @@ const router = Router();
 
 router.get('/', listAssignments);
 router.post('/', authenticate, authorize('recruitment_officer'), assignCandidate);
-router.post('/suggest', suggestAssignment);
+router.post('/suggest', authenticate, authorize('recruitment_officer'), suggestAssignment);
 
 export default router;
 

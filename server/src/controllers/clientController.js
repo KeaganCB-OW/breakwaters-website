@@ -108,6 +108,55 @@ export const updateClient = async (req, res) => {
   }
 };
 
+export const deleteClient = async (req, res) => {
+  const { id } = req.params;
+  const numericId = Number(id);
+
+  if (!Number.isFinite(numericId)) {
+    return res.status(400).json({ message: 'Invalid client id' });
+  }
+
+  let connection;
+
+  try {
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const [[client]] = await connection.query(
+      'SELECT id FROM clients WHERE id = ? LIMIT 1',
+      [numericId]
+    );
+
+    if (!client) {
+      await connection.rollback();
+      return res.status(404).json({ message: 'Client not found' });
+    }
+
+    await connection.query('DELETE FROM assignments WHERE client_id = ?', [numericId]);
+    await connection.query('DELETE FROM clients WHERE id = ?', [numericId]);
+
+    await connection.commit();
+
+    return res.json({ deletedClientId: numericId });
+  } catch (error) {
+    if (connection) {
+      try {
+        await connection.rollback();
+      } catch (rollbackError) {
+        console.error('Failed to rollback client deletion', rollbackError);
+      }
+    }
+
+    console.error('Failed to delete client', error);
+    return res.status(500).json({ message: 'Failed to delete client' });
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+};
+
+
 export const submitCv = (req, res) => {
   res.send('CV submitted');
 };

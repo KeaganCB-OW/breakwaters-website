@@ -1,5 +1,15 @@
 import API_URL from './api';
 
+const buildAuthHeaders = (token) => {
+  if (!token) {
+    return {};
+  }
+
+  return {
+    Authorization: `Bearer ${token}`,
+  };
+};
+
 export async function fetchAssignments() {
   const response = await fetch(`${API_URL}/assignments`);
 
@@ -10,11 +20,12 @@ export async function fetchAssignments() {
   return response.json();
 }
 
-export async function suggestAssignment(clientId, companyId) {
+export async function suggestAssignment(clientId, companyId, token) {
   const response = await fetch(`${API_URL}/assignments/suggest`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      ...buildAuthHeaders(token),
     },
     body: JSON.stringify({ clientId, companyId }),
   });
@@ -38,4 +49,3 @@ export async function suggestAssignment(clientId, companyId) {
 
   return data;
 }
-

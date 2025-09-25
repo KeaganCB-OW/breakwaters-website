@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useContext, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import octopusImage from '../../../assets/images/octopus-image.png';
 import '../../../styling/auth.css';
 import googleIcon from '../../../assets/icons/icons8-google.svg';
 import facebookIcon from '../../../assets/icons/icons8-facebook-logo.svg';
 import appleIcon from '../../../assets/icons/icons8-apple.svg';
-
+import { AuthContext } from '../../../context/AuthContext';
+import { register as registerRequest } from '../../../services/authService';
 
 const BreakwatersLogo = () => (
   <svg className="breakwaters-logo" width="94" height="97" viewBox="0 0 94 97" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -21,30 +22,113 @@ const BreakwatersLogo = () => (
   </svg>
 );
 
+const isValidEmail = (value) => {
+  if (!value) {
+    return false;
+  }
+  const trimmed = value.trim();
+  const parts = trimmed.split('@');
+  if (parts.length !== 2) {
+    return false;
+  }
+  const [local, domain] = parts;
+  if (!local || !domain) {
+    return false;
+  }
+  if (!domain.includes('.')) {
+    return false;
+  }
+  return true;
+};
+
 export default function RegisterForm() {
+  const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFormData((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+    setErrors((previous) => ({
+      ...previous,
+      [name]: '',
+      general: '',
+    }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match');
+  const validate = () => {
+    const nextErrors = {};
+
+    if (!formData.fullName.trim()) {
+      nextErrors.fullName = 'Full name is required.';
+    }
+
+    if (!isValidEmail(formData.email)) {
+      nextErrors.email = 'Please enter a valid email address.';
+    }
+
+    if (!formData.password || formData.password.length < 8) {
+      nextErrors.password = 'Password must be at least 8 characters long.';
+    }
+
+    if (formData.confirmPassword !== formData.password) {
+      nextErrors.confirmPassword = 'Passwords must match.';
+    }
+
+    setErrors((previous) => ({ ...previous, ...nextErrors }));
+
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!validate()) {
       return;
     }
-    console.log('Register form submitted:', formData);
+
+    setIsSubmitting(true);
+
+    try {
+      const payload = {
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+        role: 'recruitment_officer',
+      };
+
+      const result = await registerRequest(payload);
+      login(result.user, result.token);
+      navigate('/dashboard');
+    } catch (error) {
+      const field = error.field;
+      if (field && ['fullName', 'email', 'password', 'confirmPassword'].includes(field)) {
+        setErrors((previous) => ({
+          ...previous,
+          [field]: error.message,
+        }));
+      } else {
+        setErrors((previous) => ({
+          ...previous,
+          general: error.message || 'Unable to sign up right now.',
+        }));
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -57,55 +141,71 @@ export default function RegisterForm() {
 
   return (
     <div className="auth-page">
-      <img 
-        className="octopus-illustration" 
-        src={octopusImage} 
-        alt="Octopus illustration" 
+      <img
+        className="octopus-illustration"
+        src={octopusImage}
+        alt="Octopus illustration"
       />
-      
+
       <div className="auth-container">
         <BreakwatersLogo />
-        
+
         <h1 className="brand-title">Breakwaters</h1>
         <h2 className="auth-subtitle">Lets get you signed up!</h2>
-        
-        <form className="auth-form" onSubmit={handleSubmit}>
+
+        <form className="auth-form" onSubmit={handleSubmit} noValidate>
           <div className="form-group">
-            <label className="form-label">Full Name</label>
+            <label className="form-label" htmlFor="signup-name">Full Name</label>
             <input
+              id="signup-name"
               type="text"
               name="fullName"
               className="form-input"
               placeholder="Full Name"
               value={formData.fullName}
               onChange={handleChange}
+              autoComplete="name"
               required
             />
+            {errors.fullName && (
+              <span className="form-error" role="alert">
+                {errors.fullName}
+              </span>
+            )}
           </div>
-          
+
           <div className="form-group">
-            <label className="form-label">Email</label>
+            <label className="form-label" htmlFor="signup-email">Email</label>
             <input
+              id="signup-email"
               type="email"
               name="email"
               className="form-input"
               placeholder="Email"
               value={formData.email}
               onChange={handleChange}
+              autoComplete="email"
               required
             />
+            {errors.email && (
+              <span className="form-error" role="alert">
+                {errors.email}
+              </span>
+            )}
           </div>
-          
+
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <label className="form-label" htmlFor="signup-password">Password</label>
             <div className="password-input-container">
               <input
+                id="signup-password"
                 type={showPassword ? 'text' : 'password'}
                 name="password"
                 className="form-input"
                 placeholder="Password"
                 value={formData.password}
                 onChange={handleChange}
+                autoComplete="new-password"
                 required
               />
               <button
@@ -114,21 +214,28 @@ export default function RegisterForm() {
                 onClick={togglePasswordVisibility}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20}/>}
+                {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
               </button>
             </div>
+            {errors.password && (
+              <span className="form-error" role="alert">
+                {errors.password}
+              </span>
+            )}
           </div>
 
           <div className="form-group">
-            <label className="form-label">Confirm Password</label>
+            <label className="form-label" htmlFor="signup-confirm-password">Confirm Password</label>
             <div className="password-input-container">
               <input
+                id="signup-confirm-password"
                 type={showConfirmPassword ? 'text' : 'password'}
                 name="confirmPassword"
                 className="form-input"
                 placeholder="Confirm Password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
+                autoComplete="new-password"
                 required
               />
               <button
@@ -137,37 +244,48 @@ export default function RegisterForm() {
                 onClick={toggleConfirmPasswordVisibility}
                 aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
               >
-                {showConfirmPassword ? <FaEyeSlash size={20}/> : <FaEye size={20}/>}
+                {showConfirmPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
               </button>
             </div>
+            {errors.confirmPassword && (
+              <span className="form-error" role="alert">
+                {errors.confirmPassword}
+              </span>
+            )}
           </div>
-          
-          <button type="submit" className="auth-button">
-            Sign Up
-          </button>
-        </form>
-                      <div className="divider-section">
-                <div className="divider-line"></div>
-                <div className="divider-text">or</div>
-              </div>
-              
-              <div className="social-login">
-                <button className="social-button" aria-label="Login with Google">
-                  <img src={googleIcon} alt="Google icon" />
-                </button>
-                <button className="social-button" aria-label="Login with Facebook">
-                  <img src={facebookIcon} alt="Facebook icon" />
-                </button>
-                <button className="social-button" aria-label="Login with Apple">
-                  <img src={appleIcon} alt="Apple icon" />
-                </button>
-              </div>
-                      <div className="auth-link-text">
-                        Already have an account? <Link to="/login" className="auth-link">Login</Link>
-                      </div>
-      </div>
-      
 
+          <button type="submit" className="auth-button" disabled={isSubmitting}>
+            {isSubmitting ? 'Signing up...' : 'Sign Up'}
+          </button>
+
+          {errors.general && (
+            <p className="form-error form-error--general" role="alert">
+              {errors.general}
+            </p>
+          )}
+        </form>
+
+        <div className="divider-section">
+          <div className="divider-line"></div>
+          <div className="divider-text">or</div>
+        </div>
+
+        <div className="social-login">
+          <button className="social-button" aria-label="Sign up with Google">
+            <img src={googleIcon} alt="Google icon" />
+          </button>
+          <button className="social-button" aria-label="Sign up with Facebook">
+            <img src={facebookIcon} alt="Facebook icon" />
+          </button>
+          <button className="social-button" aria-label="Sign up with Apple">
+            <img src={appleIcon} alt="Apple icon" />
+          </button>
+        </div>
+
+        <div className="auth-link-text">
+          Already have an account? <Link to="/login" className="auth-link">Login</Link>
+        </div>
+      </div>
     </div>
   );
 }

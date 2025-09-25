@@ -5,6 +5,7 @@ export const listAssignments = async (req, res) => {
     const [rows] = await pool.query(`SELECT a.id,
               a.client_id AS clientId,
               a.company_id AS companyId,
+              a.assigned_by AS assignedBy,
               a.status,
               a.assigned_at AS assignedAt,
               c.full_name AS clientName,
@@ -29,9 +30,14 @@ export const suggestAssignment = async (req, res) => {
 
   const numericClientId = Number(clientId);
   const numericCompanyId = Number(companyId);
+  const assignedByUserId = Number(req.user?.id);
 
   if (!Number.isFinite(numericClientId) || !Number.isFinite(numericCompanyId)) {
     return res.status(400).json({ message: 'clientId and companyId are required' });
+  }
+
+  if (!Number.isFinite(assignedByUserId) || assignedByUserId <= 0) {
+    return res.status(403).json({ message: 'Authenticated user context is required.' });
   }
 
   let connection;
@@ -39,6 +45,16 @@ export const suggestAssignment = async (req, res) => {
   try {
     connection = await pool.getConnection();
     await connection.beginTransaction();
+
+    const [[assigner]] = await connection.query(
+      'SELECT id FROM users WHERE id = ? LIMIT 1',
+      [assignedByUserId]
+    );
+
+    if (!assigner) {
+      await connection.rollback();
+      return res.status(403).json({ message: 'User record not found for assignment.' });
+    }
 
     const [[client]] = await connection.query(
       'SELECT id, status FROM clients WHERE id = ? LIMIT 1',
@@ -86,8 +102,8 @@ export const suggestAssignment = async (req, res) => {
     }
 
     const [insertResult] = await connection.query(
-      'INSERT INTO assignments (client_id, company_id, status, assigned_at) VALUES (?, ?, ?, NOW())',
-      [numericClientId, numericCompanyId, 'suggested']
+      'INSERT INTO assignments (client_id, company_id, assigned_by, status, assigned_at) VALUES (?, ?, ?, ?, NOW())',
+      [numericClientId, numericCompanyId, assignedByUserId, 'suggested']
     );
 
     const assignmentId = insertResult.insertId;
@@ -96,6 +112,7 @@ export const suggestAssignment = async (req, res) => {
       `SELECT a.id,
               a.client_id AS clientId,
               a.company_id AS companyId,
+              a.assigned_by AS assignedBy,
               a.status,
               a.assigned_at AS assignedAt,
               c.full_name AS clientName,
@@ -104,13 +121,14 @@ export const suggestAssignment = async (req, res) => {
          FROM assignments a
          JOIN clients c ON c.id = a.client_id
          JOIN companies co ON co.id = a.company_id
-         WHERE a.id = ?`,
+         WHERE a.id = ?
+         LIMIT 1`,
       [assignmentId]
     );
 
     await connection.commit();
 
-    const assignment = assignmentRows.length > 0 ? assignmentRows[0] : null;
+    const assignment = Array.isArray(assignmentRows) && assignmentRows.length > 0 ? assignmentRows[0] : null;
 
     return res.status(201).json({
       assignment,
@@ -133,4 +151,3 @@ export const suggestAssignment = async (req, res) => {
     }
   }
 };
-

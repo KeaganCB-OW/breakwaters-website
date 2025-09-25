@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useContext, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import octopusImage from '../../../assets/images/octopus-image.png';
 import '../../../styling/auth.css';
 import googleIcon from '../../../assets/icons/icons8-google.svg';
 import facebookIcon from '../../../assets/icons/icons8-facebook-logo.svg';
 import appleIcon from '../../../assets/icons/icons8-apple.svg';
+import { AuthContext } from '../../../context/AuthContext';
+import { login as loginRequest } from '../../../services/authService';
 
 const BreakwatersLogo = () => (
   <svg className="breakwaters-logo" width="94" height="97" viewBox="0 0 94 97" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -20,23 +22,94 @@ const BreakwatersLogo = () => (
   </svg>
 );
 
+const isValidEmail = (value) => {
+  if (!value) {
+    return false;
+  }
+  const trimmed = value.trim();
+  const parts = trimmed.split('@');
+  if (parts.length !== 2) {
+    return false;
+  }
+  const [local, domain] = parts;
+  if (!local || !domain) {
+    return false;
+  }
+  if (!domain.includes('.')) {
+    return false;
+  }
+  return true;
+};
+
 export default function LoginForm() {
+  const navigate = useNavigate();
+  const { login: setAuthState } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFormData((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+    setErrors((previous) => ({
+      ...previous,
+      [name]: '',
+      general: '',
+    }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Login form submitted:', formData);
+  const validate = () => {
+    const nextErrors = {};
+
+    if (!isValidEmail(formData.email)) {
+      nextErrors.email = 'Please enter a valid email address.';
+    }
+
+    if (!formData.password) {
+      nextErrors.password = 'Password is required.';
+    }
+
+    setErrors((previous) => ({ ...previous, ...nextErrors }));
+
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!validate()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const result = await loginRequest(formData.email.trim(), formData.password);
+      setAuthState(result.user, result.token);
+      navigate('/dashboard');
+    } catch (error) {
+      const field = error.field;
+      if (field === 'email' || field === 'password') {
+        setErrors((previous) => ({
+          ...previous,
+          [field]: error.message,
+        }));
+      } else {
+        setErrors((previous) => ({
+          ...previous,
+          general: error.message || 'Unable to log in right now.',
+        }));
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -45,42 +118,51 @@ export default function LoginForm() {
 
   return (
     <div className="auth-page">
-      <img 
-        className="octopus-illustration" 
-        src={octopusImage} 
-        alt="Octopus illustration" 
+      <img
+        className="octopus-illustration"
+        src={octopusImage}
+        alt="Octopus illustration"
       />
-      
+
       <div className="auth-container">
         <BreakwatersLogo />
-        
+
         <h1 className="brand-title">Breakwaters</h1>
         <h2 className="auth-subtitle">Log into your account</h2>
-        
-        <form className="auth-form" onSubmit={handleSubmit}>
+
+        <form className="auth-form" onSubmit={handleSubmit} noValidate>
           <div className="form-group">
-            <label className="form-label">Email</label>
+            <label className="form-label" htmlFor="login-email">Email</label>
             <input
+              id="login-email"
               type="email"
               name="email"
               className="form-input"
               placeholder="Email"
               value={formData.email}
               onChange={handleChange}
+              autoComplete="email"
               required
             />
+            {errors.email && (
+              <span className="form-error" role="alert">
+                {errors.email}
+              </span>
+            )}
           </div>
-          
+
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <label className="form-label" htmlFor="login-password">Password</label>
             <div className="password-input-container">
               <input
+                id="login-password"
                 type={showPassword ? 'text' : 'password'}
                 name="password"
                 className="form-input"
                 placeholder="Password"
                 value={formData.password}
                 onChange={handleChange}
+                autoComplete="current-password"
                 required
               />
               <button
@@ -92,20 +174,31 @@ export default function LoginForm() {
                 {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
               </button>
             </div>
+            {errors.password && (
+              <span className="form-error" role="alert">
+                {errors.password}
+              </span>
+            )}
           </div>
-          
-          <button type="submit" className="auth-button">
-            Log In
+
+          <button type="submit" className="auth-button" disabled={isSubmitting}>
+            {isSubmitting ? 'Logging in...' : 'Log In'}
           </button>
+
+          {errors.general && (
+            <p className="form-error form-error--general" role="alert">
+              {errors.general}
+            </p>
+          )}
         </form>
-        
+
         <a href="#" className="forgot-password">Forgot password?</a>
-        
+
         <div className="divider-section">
           <div className="divider-line"></div>
           <div className="divider-text">or</div>
         </div>
-        
+
         <div className="social-login">
           <button className="social-button" aria-label="Login with Google">
             <img src={googleIcon} alt="Google icon" />
@@ -117,7 +210,7 @@ export default function LoginForm() {
             <img src={appleIcon} alt="Apple icon" />
           </button>
         </div>
-        
+
         <div className="auth-link-text">
           Don't have an account? <Link to="/signup" className="auth-link">Sign up</Link>
         </div>

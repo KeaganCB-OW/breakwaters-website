@@ -9,14 +9,14 @@ Recruitment Management System using React, Node/Express, and MySQL.
 This repository contains the foundational file structure to support role-based authentication, CV submissions, and candidate-company workflows.
 
 ## todo
-- refine view of candidate etc
-    - delete and edit
 - store users on signup and login to database
 - mock home screen
 - resume submit (one submit per user)
     - during submit clients can select from large dropdown with search of desired roles, if not found they can input custom entry (which can be reviewed and placed in list for future reference or not)
+- status's in the related opportunities card does not change color correctly (Interview pending not yellow)
 
 ## todo later
+- pursonalized welcome message
 - replace the client details status with a more indepth display that show the clients status with each company.
     - minmize the avaliable statuses for the client withing table (simple like: in progress, pending, assigned or rejected ) as more in depth status makes sense only in context of having multiple assignments 
 - forget password email
