@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';import { FaArrowLeftLong } from 'react-icons/fa6';
+import { useNavigate, useParams } from 'react-router-dom';
+import { FaArrowLeftLong } from 'react-icons/fa6';
+import { BsFillPencilFill } from 'react-icons/bs';
 import AppCardNav from '../layout/AppCardNav';
-import { StatsCard } from './StatsCard';
 import { DashboardAvatar } from './DashboardAvatar';
-import { fetchClients } from '../../../services/clientService';
+import { fetchClients, updateClient } from '../../../services/clientService';
 import { fetchAssignments, suggestAssignment } from '../../../services/assignmentService';
-import { fetchCompanies, fetchCompanyStats } from '../../../services/companyService';
+import { fetchCompanies } from '../../../services/companyService';
 import '../../../styling/ClientDetails.css';
 
 const normaliseRoleName = (value) => {
@@ -109,24 +110,97 @@ const STATUS_VARIANTS = {
   rejected: { label: 'Rejected', className: 'client-details__secondary-btn--rejected' }
 };
 
+const formatAssignmentStatusLabel = (status) => {
+  if (!status) {
+    return 'Suggested';
+  }
+
+  const trimmed = String(status).trim();
+  if (!trimmed) {
+    return 'Suggested';
+  }
+
+  return trimmed
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
+
+const FIELD_DEFINITIONS = {
+  left: [
+    {
+      id: 'client-phone-number',
+      label: 'Phone Number',
+      editableKey: 'phoneNumber',
+      candidateKeys: ['phoneNumber', 'phone_number', 'phone', 'contactNumber'],
+    },
+    {
+      id: 'client-email',
+      label: 'Email',
+      editableKey: 'email',
+      candidateKeys: ['email', 'emailAddress'],
+    },
+    {
+      id: 'client-location',
+      label: 'Location',
+      editableKey: 'location',
+      candidateKeys: ['location', 'city', 'region', 'country'],
+    },
+    {
+      id: 'client-desired-role',
+      label: 'Desired Role',
+      editableKey: 'preferredRole',
+      candidateKeys: ['preferredRole', 'desiredRole', 'desired_role', 'role', 'currentRole'],
+    },
+    {
+      id: 'client-skills',
+      label: 'Skills',
+      editableKey: 'skills',
+      candidateKeys: ['skills', 'skillset', 'skillSet'],
+    },
+  ],
+  right: [
+    {
+      id: 'client-education',
+      label: 'Education',
+      editableKey: 'education',
+      candidateKeys: ['education', 'educations', 'highestEducation'],
+    },
+    {
+      id: 'client-experience',
+      label: 'Experience',
+      editableKey: 'experience',
+      candidateKeys: ['experience', 'experiences', 'workExperience'],
+    },
+    {
+      id: 'client-linkedin',
+      label: 'LinkedIn',
+      editableKey: 'linkedinUrl',
+      candidateKeys: ['linkedinUrl', 'linkedin_url', 'linkedin', 'linkedIn'],
+      type: 'link',
+    },
+  ],
+};
+
 export function ClientDetails() {
   const navigate = useNavigate();
   const { clientId } = useParams();
   const [candidates, setCandidates] = useState([]);
   const [isLoadingCandidates, setIsLoadingCandidates] = useState(true);
 
-  const [companyStats, setCompanyStats] = useState({ total: 0, newThisWeek: 0, unverified: 0 });
-  const [isLoadingCompanies, setIsLoadingCompanies] = useState(true);
-  const [companyError, setCompanyError] = useState(null);
-
   const [assignments, setAssignments] = useState([]);
-  const [isLoadingAssignments, setIsLoadingAssignments] = useState(true);
   const [companies, setCompanies] = useState([]);
   const [isLoadingCompanyList, setIsLoadingCompanyList] = useState(true);
   const [companyListError, setCompanyListError] = useState(null);
   const [showAllCompanies, setShowAllCompanies] = useState(false);
   const [suggestionStatusByCompany, setSuggestionStatusByCompany] = useState({});
 
+  const [isManaging, setIsManaging] = useState(false);
+  const [editableValues, setEditableValues] = useState({});
+  const [initialEditableValues, setInitialEditableValues] = useState({});
+  const [activeFieldId, setActiveFieldId] = useState(null);
+  const [isSubmittingClient, setIsSubmittingClient] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -158,43 +232,6 @@ export function ClientDetails() {
   useEffect(() => {
     let isMounted = true;
 
-    const loadCompanyStats = async () => {
-      try {
-        const data = await fetchCompanyStats();
-        if (isMounted) {
-          const total = Number(data?.total ?? 0);
-          const newThisWeek = Number(data?.newThisWeek ?? 0);
-          const unverified = Number(data?.unverified ?? 0);
-
-          setCompanyStats({
-            total: Number.isNaN(total) ? 0 : total,
-            newThisWeek: Number.isNaN(newThisWeek) ? 0 : newThisWeek,
-            unverified: Number.isNaN(unverified) ? 0 : unverified
-          });
-          setCompanyError(null);
-        }
-      } catch (error) {
-        if (isMounted) {
-          setCompanyError(error.message || 'Failed to load company stats');
-          setCompanyStats({ total: 0, newThisWeek: 0, unverified: 0 });
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoadingCompanies(false);
-        }
-      }
-    };
-
-    loadCompanyStats();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-
     const loadAssignments = async () => {
       try {
         const data = await fetchAssignments();
@@ -207,7 +244,6 @@ export function ClientDetails() {
         }
       } finally {
         if (isMounted) {
-          setIsLoadingAssignments(false);
         }
       }
     };
@@ -248,70 +284,10 @@ export function ClientDetails() {
     };
   }, []);
 
-  const startOfWeek = useMemo(() => {
-    const now = new Date();
-    const day = now.getDay();
-    const diffToMonday = now.getDate() - day + (day === 0 ? -6 : 1);
-    const start = new Date(now);
-    start.setDate(diffToMonday);
-    start.setHours(0, 0, 0, 0);
-    return start;
-  }, []);
-
-  const candidatesAddedThisWeek = useMemo(() => {
-    if (!Array.isArray(candidates) || candidates.length === 0) {
-      return 0;
-    }
-
-    return candidates.filter((candidate) => {
-      if (!candidate.createdAt) {
-        return false;
-      }
-
-      const createdAtDate = new Date(candidate.createdAt);
-      if (Number.isNaN(createdAtDate.getTime())) {
-        return false;
-      }
-
-      return createdAtDate >= startOfWeek;
-    }).length;
-  }, [candidates, startOfWeek]);
-
-  const assignmentsAddedThisWeek = useMemo(() => {
-    if (!Array.isArray(assignments) || assignments.length === 0) {
-      return 0;
-    }
-
-    return assignments.filter((assignment) => {
-      if (!assignment.assignedAt) {
-        return false;
-      }
-
-      const assignedAtDate = new Date(assignment.assignedAt);
-      if (Number.isNaN(assignedAtDate.getTime())) {
-        return false;
-      }
-
-      return assignedAtDate >= startOfWeek;
-    }).length;
-  }, [assignments, startOfWeek]);
-
-  const candidateCountDisplay = isLoadingCandidates ? 'N/A' : String(candidates.length);
-  const candidateWeekSubtitle = isLoadingCandidates ? 'Loading...' : `${candidatesAddedThisWeek} new this week`;
-
-  let companyCountDisplay = 'N/A';
-  let companySubtitle = 'Loading...';
-
-  if (companyError) {
-    companyCountDisplay = 'Error';
-    companySubtitle = companyError;
-  } else if (!isLoadingCompanies) {
-    companyCountDisplay = String(companyStats.total);
-    companySubtitle = `${companyStats.newThisWeek} new this week | ${companyStats.unverified} unverified`;
-  }
-
-  const assignmentCountDisplay = isLoadingAssignments ? 'N/A' : String(assignments.length);
-  const assignmentWeekSubtitle = isLoadingAssignments ? 'Loading...' : `${assignmentsAddedThisWeek} new this week`;
+  useEffect(() => {
+    setSuggestionStatusByCompany({});
+    setShowAllCompanies(false);
+  }, [clientId]);
 
   const selectedCandidate = useMemo(() => {
     if (!clientId || !Array.isArray(candidates)) {
@@ -389,12 +365,8 @@ export function ClientDetails() {
     });
   }, [assignments, clientId]);
 
-  const assignedCompanyIds = useMemo(() => {
-    if (!assignmentsForSelectedClient.length) {
-      return new Set();
-    }
-
-    const ids = new Set();
+  const assignmentByCompanyId = useMemo(() => {
+    const map = {};
 
     assignmentsForSelectedClient.forEach((assignment) => {
       const rawCompanyId =
@@ -404,11 +376,11 @@ export function ClientDetails() {
         assignment?.companyid;
 
       if (rawCompanyId != null) {
-        ids.add(String(rawCompanyId));
+        map[String(rawCompanyId)] = assignment;
       }
     });
 
-    return ids;
+    return map;
   }, [assignmentsForSelectedClient]);
 
   const relatedCompanies = useMemo(() => {
@@ -448,6 +420,18 @@ export function ClientDetails() {
         (Number.isFinite(numericCompanyId) ? String(numericCompanyId) : String(companyIdValue ?? ''));
 
       if (!stateKey) {
+        return;
+      }
+
+      const normalizedCompanyKey = Number.isFinite(numericCompanyId) ? String(numericCompanyId) : null;
+      if (normalizedCompanyKey && assignmentByCompanyId[normalizedCompanyKey]) {
+        setSuggestionStatusByCompany((previous) => ({
+          ...previous,
+          [stateKey]: {
+            loading: false,
+            error: 'Client already has an assignment with this company.',
+          },
+        }));
         return;
       }
 
@@ -524,7 +508,7 @@ export function ClientDetails() {
         }));
       }
     },
-    [clientId, setAssignments, setCandidates, setSuggestionStatusByCompany, suggestAssignment]
+    [assignmentByCompanyId, clientId, setAssignments, setCandidates, setSuggestionStatusByCompany, suggestAssignment]
   );
 
   const selectedCandidateStatus = selectedCandidate?.status;
@@ -560,9 +544,7 @@ export function ClientDetails() {
 
   const secondaryButtonClassName = `client-details__secondary-btn ${statusClassName}`;
 
-  const fallbackText = 'Not provided';
-
-  const normaliseValue = (value) => {
+    const normaliseValue = (value) => {
     if (value == null) {
       return '';
     }
@@ -597,78 +579,205 @@ export function ClientDetails() {
     return `https://${normalised}`;
   };
 
-  const extractCandidateValue = useCallback(
-    (...keys) => {
-      if (!selectedCandidate) {
-        return '';
-      }
+  const fallbackText = 'Not provided';
 
-      for (const key of keys) {
-        if (key in selectedCandidate) {
-          const candidateValue = normaliseValue(selectedCandidate[key]);
-          if (candidateValue) {
-            return candidateValue;
-          }
+  const getCandidateFieldValue = useCallback((candidate, definition) => {
+    if (!candidate || !definition?.candidateKeys) {
+      return '';
+    }
+
+    for (const key of definition.candidateKeys) {
+      const candidateValue = candidate?.[key];
+      if (candidateValue != null && candidateValue !== undefined) {
+        const normalisedValue = normaliseValue(candidateValue);
+        if (normalisedValue) {
+          return normalisedValue;
         }
       }
+    }
 
-      return '';
+    return '';
+  }, []);
+
+  const buildEditableSnapshot = useCallback(
+    (candidate) => {
+      const snapshot = {};
+
+      [...FIELD_DEFINITIONS.left, ...FIELD_DEFINITIONS.right].forEach((definition) => {
+        if (!definition.editableKey) {
+          return;
+        }
+
+        snapshot[definition.editableKey] = getCandidateFieldValue(candidate, definition);
+      });
+
+      return snapshot;
     },
-    [selectedCandidate]
+    [getCandidateFieldValue]
   );
 
   const leftColumnFields = useMemo(() => {
-    const createField = (id, label, rawValue) => {
-      const normalised = normaliseValue(rawValue);
-      return {
-        id,
-        label,
-        value: normalised || fallbackText,
-        raw: normalised,
-        type: 'text'
-      };
-    };
+    return FIELD_DEFINITIONS.left.map((definition) => {
+      const rawValue = getCandidateFieldValue(selectedCandidate, definition);
+      const editableKey = definition.editableKey;
+      const editableValue = editableKey ? editableValues[editableKey] ?? '' : '';
+      const baselineValue = editableKey ? initialEditableValues[editableKey] ?? '' : '';
+      const displayValue = isManaging && editableKey ? editableValue : rawValue || fallbackText;
+      const href = !isManaging && definition.type === 'link' ? formatUrl(rawValue) : '';
+      const isDirty = isManaging && editableKey ? editableValue !== baselineValue : false;
 
-    return [
-      createField('client-phone-number', 'Phone Number', extractCandidateValue('phoneNumber', 'phone_number', 'phone', 'contactNumber')),
-      createField('client-email', 'Email', extractCandidateValue('email', 'emailAddress')),
-      createField('client-location', 'Location', extractCandidateValue('location', 'city', 'region', 'country')),
-      createField('client-desired-role', 'Desired Role', candidateRole || extractCandidateValue('desiredRole', 'preferredRole')),
-      createField('client-skills', 'Skills', extractCandidateValue('skills', 'skillset', 'skillSet'))
-    ];
-  }, [candidateRole, extractCandidateValue]);
+      return {
+        ...definition,
+        displayValue,
+        editableValue,
+        rawValue,
+        href,
+        isLink: Boolean(href),
+        isEditable: Boolean(editableKey),
+        isDirty,
+      };
+    });
+  }, [editableValues, formatUrl, getCandidateFieldValue, initialEditableValues, isManaging, selectedCandidate]);
 
   const rightColumnFields = useMemo(() => {
-    const createField = (id, label, rawValue, extra = {}) => {
-      const normalised = normaliseValue(rawValue);
+    return FIELD_DEFINITIONS.right.map((definition) => {
+      const rawValue = getCandidateFieldValue(selectedCandidate, definition);
+      const editableKey = definition.editableKey;
+      const editableValue = editableKey ? editableValues[editableKey] ?? '' : '';
+      const baselineValue = editableKey ? initialEditableValues[editableKey] ?? '' : '';
+      const displayValue = isManaging && editableKey ? editableValue : rawValue || fallbackText;
+      const href = !isManaging && definition.type === 'link' ? formatUrl(rawValue) : '';
+      const isDirty = isManaging && editableKey ? editableValue !== baselineValue : false;
+
       return {
-        id,
-        label,
-        value: normalised || fallbackText,
-        raw: normalised,
-        type: extra.type ?? 'text',
-        ...extra
+        ...definition,
+        displayValue,
+        editableValue,
+        rawValue,
+        href,
+        isLink: Boolean(href),
+        isEditable: Boolean(editableKey),
+        isDirty,
       };
-    };
+    });
+  }, [editableValues, formatUrl, getCandidateFieldValue, initialEditableValues, isManaging, selectedCandidate]);
 
-    const linkedInRaw = extractCandidateValue('linkedin', 'linkedinUrl', 'linkedin_url', 'linkedIn');
-    const linkedInHref = formatUrl(linkedInRaw);
+  const handleFieldChange = useCallback(
+    (key, value) => {
+      if (!key) {
+        return;
+      }
 
-    return [
-      createField('client-education', 'Education', extractCandidateValue('education', 'educations', 'highestEducation')),
-      createField('client-experience', 'Experience', extractCandidateValue('experience', 'experiences', 'workExperience')),
-      createField('client-linkedin', 'LinkedIn', linkedInRaw, {
-        type: linkedInHref ? 'link' : 'text',
-        href: linkedInHref
-      })
-    ];
-  }, [extractCandidateValue]);
+      setEditableValues((previous) => ({
+        ...previous,
+        [key]: value,
+      }));
+      setSubmitError(null);
+    },
+    [setEditableValues, setSubmitError]
+  );
+
+  const hasPendingChanges = useMemo(() => {
+    if (!isManaging) {
+      return false;
+    }
+
+    return Object.keys(initialEditableValues).some(
+      (key) => (editableValues[key] ?? '') !== (initialEditableValues[key] ?? '')
+    );
+  }, [editableValues, initialEditableValues, isManaging]);
+
+  const handleManageToggle = useCallback(() => {
+    if (!selectedCandidate) {
+      return;
+    }
+
+    if (!isManaging) {
+      const snapshot = buildEditableSnapshot(selectedCandidate);
+      setEditableValues(snapshot);
+      setInitialEditableValues(snapshot);
+      setSubmitError(null);
+      setActiveFieldId(null);
+      setIsManaging(true);
+    } else {
+      setIsManaging(false);
+      setEditableValues({});
+      setInitialEditableValues({});
+      setActiveFieldId(null);
+      setSubmitError(null);
+    }
+  }, [buildEditableSnapshot, isManaging, selectedCandidate, setActiveFieldId, setEditableValues, setInitialEditableValues, setIsManaging, setSubmitError]);
+
+  const handleSubmitClientDetails = useCallback(async () => {
+    if (!isManaging || !selectedCandidate) {
+      return;
+    }
+
+    const changedKeys = Object.keys(initialEditableValues).filter(
+      (key) => (editableValues[key] ?? '') !== (initialEditableValues[key] ?? '')
+    );
+
+    if (changedKeys.length === 0) {
+      setSubmitError('No changes to submit.');
+      return;
+    }
+
+    const payload = {};
+    changedKeys.forEach((key) => {
+      const value = editableValues[key];
+      payload[key] = typeof value === 'string' ? value.trim() : value;
+    });
+
+    try {
+      setIsSubmittingClient(true);
+      setSubmitError(null);
+      const updatedClient = await updateClient(clientId, payload);
+      setCandidates((previousCandidates) =>
+        Array.isArray(previousCandidates)
+          ? previousCandidates.map((candidateItem) => {
+              const candidateIdentifier =
+                candidateItem.id ?? candidateItem._id ?? candidateItem.clientId;
+
+              if (candidateIdentifier != null && String(candidateIdentifier) === String(clientId)) {
+                return { ...candidateItem, ...updatedClient };
+              }
+
+              return candidateItem;
+            })
+          : previousCandidates
+      );
+      const updatedSnapshot = buildEditableSnapshot(updatedClient);
+      setInitialEditableValues(updatedSnapshot);
+      setEditableValues(updatedSnapshot);
+      setActiveFieldId(null);
+    } catch (error) {
+      const message =
+        error?.details?.message || error?.message || 'Failed to update client details';
+      setSubmitError(message);
+    } finally {
+      setIsSubmittingClient(false);
+    }
+  }, [
+    buildEditableSnapshot,
+    clientId,
+    editableValues,
+    initialEditableValues,
+    isManaging,
+    selectedCandidate,
+    setActiveFieldId,
+    setCandidates,
+    setEditableValues,
+    setInitialEditableValues,
+    setIsSubmittingClient,
+    setSubmitError,
+    updateClient,
+  ]);
 
   const textareaRefs = useRef({});
 
   useEffect(() => {
     const adjustableFields = [...leftColumnFields, ...rightColumnFields].filter(
-      (field) => field.type !== 'link' || !field.href
+      (field) => !field.isLink
     );
 
     adjustableFields.forEach((field) => {
@@ -681,9 +790,7 @@ export function ClientDetails() {
   }, [leftColumnFields, rightColumnFields]);
 
   const renderFieldControl = (field) => {
-    const isLink = field.type === 'link' && field.href;
-
-    if (isLink) {
+    if (field.isLink) {
       delete textareaRefs.current[field.id];
       return (
         <a
@@ -693,23 +800,56 @@ export function ClientDetails() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          {field.value}
+          {field.displayValue}
         </a>
       );
     }
 
+    const isEditable = isManaging && field.isEditable;
+    const textareaClassName = [
+      'client-details__textarea',
+      isEditable ? 'client-details__textarea--editable' : 'client-details__textarea--readonly',
+      field.isDirty ? 'client-details__textarea--editing' : null,
+      isEditable && activeFieldId === field.id ? 'client-details__textarea--active' : null,
+    ]
+      .filter(Boolean)
+      .join(' ');
+
     return (
       <textarea
         id={field.id}
-        className="client-details__textarea"
+        className={textareaClassName}
         ref={(node) => {
-          textareaRefs.current[field.id] = node;
+          if (node) {
+            textareaRefs.current[field.id] = node;
+          } else {
+            delete textareaRefs.current[field.id];
+          }
         }}
-        value={field.value}
-        readOnly
-        aria-readonly="true"
-        tabIndex={-1}
-        spellCheck={false}
+        value={isEditable ? field.editableValue : field.displayValue}
+        onChange={
+          isEditable
+            ? (event) => handleFieldChange(field.editableKey, event.target.value)
+            : undefined
+        }
+        readOnly={!isEditable}
+        aria-readonly={isEditable ? undefined : true}
+        tabIndex={isEditable ? 0 : -1}
+        spellCheck={field.editableKey === 'linkedinUrl' ? false : true}
+        onFocus={
+          isEditable
+            ? () => {
+                setActiveFieldId(field.id);
+              }
+            : undefined
+        }
+        onBlur={
+          isEditable
+            ? () => {
+                setActiveFieldId((current) => (current === field.id ? null : current));
+              }
+            : undefined
+        }
       />
     );
   };
@@ -737,24 +877,24 @@ export function ClientDetails() {
                     <h1 className="dashboard__headline">Client Details</h1>
                   </div>
                   <div className="client-details__actions">
-                    <button type="button" className="dashboard__cta">
-                      Manage
+                    <button
+                      type="button"
+                      className={[
+                        'dashboard__cta',
+                        'client-details__manage-button',
+                        isManaging ? 'client-details__manage-button--active' : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                      onClick={handleManageToggle}
+                      disabled={isSubmittingClient || !selectedCandidate}
+                    >
+                      {isManaging ? 'Unmanage' : 'Manage'}
                     </button>
                     <button type="button" className={secondaryButtonClassName}>
                       {statusLabel}
                     </button>
                   </div>
-                </div>
-
-                <div className="dashboard__stats-grid">
-                  <StatsCard title="Candidates" value={candidateCountDisplay} subtitle={candidateWeekSubtitle} />
-                  <StatsCard title="Companies" value={companyCountDisplay} subtitle={companySubtitle} />
-                  <StatsCard
-                    title="Assignments"
-                    value={assignmentCountDisplay}
-                    subtitle={assignmentWeekSubtitle}
-                    className="stats-card--wide"
-                  />
                 </div>
 
                 <div className="dashboard__main-grid">
@@ -770,7 +910,10 @@ export function ClientDetails() {
                           {leftColumnFields.map((field) => (
                             <div className="client-details__field" key={field.id}>
                               <label className="client-details__label" htmlFor={field.id}>
-                                {field.label}
+                                <span>{field.label}</span>
+                                {isManaging && field.isEditable && (
+                                  <BsFillPencilFill className="client-details__label-icon" aria-hidden="true" />
+                                )}
                               </label>
                               {renderFieldControl(field)}
                             </div>
@@ -780,7 +923,10 @@ export function ClientDetails() {
                           {rightColumnFields.map((field) => (
                             <div className="client-details__field" key={field.id}>
                               <label className="client-details__label" htmlFor={field.id}>
-                                {field.label}
+                                <span>{field.label}</span>
+                                {isManaging && field.isEditable && (
+                                  <BsFillPencilFill className="client-details__label-icon" aria-hidden="true" />
+                                )}
                               </label>
                               {renderFieldControl(field)}
                             </div>
@@ -815,6 +961,17 @@ export function ClientDetails() {
                         )}
                         {!isLoadingCompanyList &&
                           !companyListError &&
+                          relatedCompanies.length === 0 && (
+                            <p className="dashboard__status-text">
+                              {showAllCompanies
+                                ? 'No companies available at the moment.'
+                                : candidateDesiredRoleNormalized
+                                  ? 'No related opportunities found. Try See All to browse every company.'
+                                  : 'Client desired role not specified. Use See All to review every company.'}
+                            </p>
+                          )}
+                        {!isLoadingCompanyList &&
+                          !companyListError &&
                           relatedCompanies.map((company, index) => {
                             const companyIdValue =
                               company?.id ??
@@ -826,19 +983,40 @@ export function ClientDetails() {
                               companyIdValue != null ? String(companyIdValue) : null;
                             const companyKey =
                               normalizedCompanyId ?? `${company.companyName ?? 'company'}-${index}`;
-                            const isSuggested = normalizedCompanyId ? assignedCompanyIds.has(normalizedCompanyId) : false;
+                            const existingAssignment = normalizedCompanyId
+                              ? assignmentByCompanyId[normalizedCompanyId]
+                              : undefined;
+                            const assignmentStatusRaw =
+                              typeof existingAssignment?.status === 'string'
+                                ? existingAssignment.status
+                                : '';
+                            const assignmentStatusNormalized = assignmentStatusRaw
+                              ? assignmentStatusRaw.trim().toLowerCase()
+                              : '';
                             const suggestionState = suggestionStatusByCompany[companyKey] || {};
                             const isLoading = Boolean(suggestionState.loading);
                             const companyErrorMessage = suggestionState.error;
                             const hasValidCompanyId = normalizedCompanyId != null;
-                            const isDisabled = isSuggested || isLoading || !hasValidCompanyId;
-                            const buttonText = isSuggested ? 'Suggested' : isLoading ? 'Suggesting...' : 'Suggest';
+                            const hasExistingAssignment = Boolean(existingAssignment);
+                            const isSuggested =
+                              hasExistingAssignment && assignmentStatusNormalized === 'suggested';
+                            const isDisabled = hasExistingAssignment || isLoading || !hasValidCompanyId;
+                            const buttonText = hasExistingAssignment
+                              ? formatAssignmentStatusLabel(assignmentStatusRaw)
+                              : isLoading
+                                ? 'Suggesting...'
+                                : 'Suggest';
                             const buttonClassName = [
                               'candidate-card__status',
                               'dashboard__assignment-status',
                               'related-opportunities__suggest-btn',
                               isSuggested ? 'related-opportunities__suggest-btn--suggested' : null,
-                              !isSuggested && isDisabled ? 'related-opportunities__suggest-btn--disabled' : null,
+                              hasExistingAssignment && !isSuggested
+                                ? 'related-opportunities__suggest-btn--locked'
+                                : null,
+                              !hasExistingAssignment && isDisabled
+                                ? 'related-opportunities__suggest-btn--disabled'
+                                : null,
                             ].filter(Boolean).join(' ');
                             const rolesList = splitAvailableRoles(company?.availableRoles);
                             const hasRoles = rolesList.length > 0;
@@ -877,6 +1055,23 @@ export function ClientDetails() {
                       </div>
                     </div>
                   </section>
+                {isManaging && (
+                  <div className="client-details__footer">
+                    {submitError && (
+                      <p className="client-details__submit-error" role="alert">
+                        {submitError}
+                      </p>
+                    )}
+                    <button
+                      type="button"
+                      className="client-details__submit-button"
+                      onClick={handleSubmitClientDetails}
+                      disabled={isSubmittingClient || !hasPendingChanges}
+                    >
+                      {isSubmittingClient ? 'Submitting...' : 'Submit'}
+                    </button>
+                  </div>
+                )}
                 </div>
               </div>
             </section>
