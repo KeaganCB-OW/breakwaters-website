@@ -1130,8 +1130,16 @@ export function ClientDetails() {
                             const companyErrorMessage = suggestionState.error;
                             const hasValidCompanyId = normalizedCompanyId != null;
                             const hasExistingAssignment = Boolean(existingAssignment);
-                            const isSuggested =
-                              hasExistingAssignment && assignmentStatusNormalized === 'suggested';
+                            const statusVariant = hasExistingAssignment
+                              ? STATUS_VARIANTS[assignmentStatusNormalized]
+                              : null;
+                            const statusVariantClassName = statusVariant?.className;
+                            const relatedStatusClassName = statusVariantClassName
+                              ? statusVariantClassName.replace(
+                                  'client-details__secondary-btn',
+                                  'related-opportunities__suggest-btn'
+                                )
+                              : null;
                             const isDisabled = hasExistingAssignment || isLoading || !hasValidCompanyId;
                             const buttonText = hasExistingAssignment
                               ? formatAssignmentStatusLabel(assignmentStatusRaw)
@@ -1142,8 +1150,8 @@ export function ClientDetails() {
                               'candidate-card__status',
                               'dashboard__assignment-status',
                               'related-opportunities__suggest-btn',
-                              isSuggested ? 'related-opportunities__suggest-btn--suggested' : null,
-                              hasExistingAssignment && !isSuggested
+                              relatedStatusClassName,
+                              hasExistingAssignment && !relatedStatusClassName
                                 ? 'related-opportunities__suggest-btn--locked'
                                 : null,
                               !hasExistingAssignment && isDisabled

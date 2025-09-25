@@ -419,6 +419,31 @@
   background-color: #a997e4;
 }
 
+.related-opportunities__suggest-btn--pending {
+  background-color: #10387F;
+}
+
+.related-opportunities__suggest-btn--assigned {
+  background-color: #48CFAE;
+}
+
+.related-opportunities__suggest-btn--interview-pending {
+  background-color: #FFCE55;
+  color: #082658;
+}
+
+.related-opportunities__suggest-btn--in-progress {
+  background-color: #5D9CEC;
+}
+
+.related-opportunities__suggest-btn--interviewed {
+  background-color: #ED5564;
+}
+
+.related-opportunities__suggest-btn--rejected {
+  background-color: #FC4242;
+}
+
 .related-opportunities__suggest-btn--disabled,
 .related-opportunities__suggest-btn:disabled {
   cursor: not-allowed;
