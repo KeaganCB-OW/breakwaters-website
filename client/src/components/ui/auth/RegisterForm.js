@@ -107,7 +107,7 @@ export default function RegisterForm() {
         email: formData.email.trim(),
         password: formData.password,
         confirmPassword: formData.confirmPassword,
-        role: 'recruitment_officer',
+        role: 'client',
       };
 
       const result = await registerRequest(payload);

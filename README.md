@@ -8,6 +8,8 @@ Recruitment Management System using React, Node/Express, and MySQL.
 
 This repository contains the foundational file structure to support role-based authentication, CV submissions, and candidate-company workflows.
 
+
+
 ## todo
 - store users on signup and login to database
 - mock home screen

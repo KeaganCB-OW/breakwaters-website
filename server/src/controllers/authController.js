@@ -6,12 +6,27 @@ const MIN_PASSWORD_LENGTH = 8;
 const JWT_EXPIRY = '12h';
 const ALLOWED_ROLES = new Set(['client', 'company_rep', 'recruitment_officer']);
 
-const { JWT_SECRET } = process.env;
+const getJwtSecret = (() => {
+  let cachedSecret;
 
-if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET is not configured.');
-}
 
+  return () => {
+    if (cachedSecret) {
+      return cachedSecret;
+    }
+
+    const secret = process.env.JWT_SECRET;
+
+    if (typeof secret === 'string' && secret.trim().length > 0) {
+      cachedSecret = secret;
+      return cachedSecret;
+    }
+
+    throw new Error(
+      'JWT_SECRET environment variable is not configured. Please set it in your server/.env file before starting the API.'
+    );
+  };
+})();
 const normaliseEmail = (value = '') => String(value).trim().toLowerCase();
 
 const isValidEmail = (email) => {
@@ -44,7 +59,7 @@ const buildAuthResponse = (user) => {
     role: user.role,
   };
 
-  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRY });
+  const token = jwt.sign(payload, getJwtSecret(), { expiresIn: JWT_EXPIRY });
   return { token, user: payload };
 };
 
@@ -59,7 +74,7 @@ export const register = async (req, res) => {
 
   if (typeof password !== 'string' || password.length < MIN_PASSWORD_LENGTH) {
     return res.status(400).json({
-      message: 'Password must be at least characters long.',
+      message: `Password must be at least  characters long.`,
       field: 'password',
     });
   }
@@ -76,7 +91,7 @@ export const register = async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const userRole = ALLOWED_ROLES.has(role) ? role : 'recruitment_officer';
+    const userRole = ALLOWED_ROLES.has(role) ? role : 'client';
 
     const [insertResult] = await pool.query(
       'INSERT INTO users (email, password_hash, role) VALUES (?, ?, ?)',
