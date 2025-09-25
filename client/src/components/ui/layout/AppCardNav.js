@@ -7,17 +7,18 @@ const defaultItems = [
     bgColor: '#082658',
     textColor: '#fff',
     links: [
-      { label: 'Company', ariaLabel: 'About Company' },
-      { label: 'Careers', ariaLabel: 'About Careers' }
+      { label: 'Home', ariaLabel: 'Home Page' },
+      { label: 'About Us', ariaLabel: 'About Us' },
+      { label: 'For Companies', ariaLabel: 'Join the Breakwaters Network' }
     ]
   },
   {
-    label: 'Projects',
+    label: 'Our Clients',
     bgColor: '#0b3173ff',
     textColor: '#fff',
     links: [
-      { label: 'Featured', ariaLabel: 'Featured Projects' },
-      { label: 'Case Studies', ariaLabel: 'Project Case Studies' }
+      { label: 'Featured Companies', ariaLabel: 'Featured Companies' },
+      { label: 'Testimonials', ariaLabel: 'Our Testimonials' }
     ]
   },
   {

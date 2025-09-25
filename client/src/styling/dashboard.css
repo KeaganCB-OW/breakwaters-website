@@ -333,8 +333,35 @@
 }
 
 .assignment-card {
-  padding: 8px 0;
+  padding: 8px 0 10px;
   border-bottom: 1px solid rgba(8, 38, 88, 0.2);
+}
+
+
+
+.dashboard__assignment-item {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.dashboard__assignment-item .assignment-card {
+  width: 100%;
+  padding-right: 130px; /* leave space for status card */
+  box-sizing: border-box;
+}
+
+.dashboard__assignment-item .candidate-card__status.dashboard__assignment-status {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.dashboard__assignment-item .assignment-card {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .dashboard__assignment-list .assignment-card:last-child {

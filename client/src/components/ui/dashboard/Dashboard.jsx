@@ -260,13 +260,33 @@ export function Dashboard() {
                         )}
                         {!isLoadingAssignments &&
                           !assignmentError &&
-                          assignments.map((assignment) => (
-                            <AssignmentCard
-                              key={assignment.id}
-                              name={assignment.clientName}
-                              company={assignment.companyName}
-                            />
-                          ))}
+                          assignments.map((assignment, index) => {
+                            const fallbackKey =
+                              [assignment.clientName, assignment.companyName].filter(Boolean).join(' - ') ||
+                              'assignment';
+                            const assignmentKey = assignment.id ?? `${fallbackKey}-${index}`;
+                            // Find the associated client/candidate for status
+                            const associatedClient = candidates.find(
+                              (c) => c.fullName === assignment.clientName
+                            );
+                            const statusLabel =
+                              (associatedClient && associatedClient.status) ? associatedClient.status :
+                              (typeof assignment.status === 'string' && assignment.status.trim()
+                                ? assignment.status.trim()
+                                : 'Pending');
+
+                            return (
+                              <div key={assignmentKey} className="dashboard__assignment-item">
+                                <AssignmentCard
+                                  name={assignment.clientName}
+                                  company={assignment.companyName}
+                                />
+                                <div className="candidate-card__status dashboard__assignment-status">
+                                  <span>{statusLabel}</span>
+                                </div>
+                              </div>
+                            );
+                          })}
                       </div>
                     </div>
                   </section>
