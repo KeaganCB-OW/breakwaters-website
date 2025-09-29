@@ -65,7 +65,7 @@
 
 .dashboard__panel {
   background: var(--glass-white-light);
-  border-radius: 10px 10px 10px 10px;
+  border-radius: 8px 8px 8px 8px;
   box-shadow: 0 24px 60px rgba(8, 38, 88, 0.12);
   backdrop-filter: blur(6px);
 }
@@ -168,7 +168,7 @@
 
 .stats-card {
   background: var(--glass-white);
-  border-radius: 28px;
+  border-radius: 8px;
   box-shadow: 0 18px 48px rgba(8, 38, 88, 0.12);
   padding: 24px;
   backdrop-filter: blur(4px);
@@ -226,7 +226,7 @@
 .dashboard__candidate-panel,
 .dashboard__assignments-panel {
   background: var(--glass-white);
-  border-radius: 30px;
+  border-radius: 8px;
   box-shadow: 0 18px 48px rgba(8, 38, 88, 0.12);
   backdrop-filter: blur(4px);
 }

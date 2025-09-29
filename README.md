@@ -16,22 +16,22 @@ This repository contains the foundational file structure to support role-based a
 - resume submit (one submit per user)
     - during submit clients can select from large dropdown with search of desired roles, if not found they can input custom entry (which can be reviewed and placed in list for future reference or not)
 - status's in the related opportunities card does not change color correctly (Interview pending not yellow)
-
-## todo later
-- pursonalized welcome message
+- edit "forbidden" error when not logged in as a RO when editing to some text that is nice to look at
+- pursonalized welcome message (add name column to users)
 - replace the client details status with a more indepth display that show the clients status with each company.
     - minmize the avaliable statuses for the client withing table (simple like: in progress, pending, assigned or rejected ) as more in depth status makes sense only in context of having multiple assignments 
+- create new table displaying which employees have been suggested or assigned etc to a given company (client details)
+- If client is assigned, interviewed etc. Display companies that they have progressed this far with on details page. (remove stat card to make space for this)
+- filter candidate overview by status
+- I like the look of 6 recent assignments. Lets cap it there for scroll.
+
+## todo later
 - forget password email
 - confirmation email
     - signup
     - resume submit
     - placements (company/client)
-- create new table displaying which employees have been suggested or assigned etc to a given company
-- filter candidate overview by status
-- If client is assigned, interviewed etc. Display companies that they have progressed this far with on details page. (remove stat card to make space for this)
-- instead of suggested being said regardless in the related oportunities card, if the client has a different status with the company then it should be updated on the suggested button.
-- I like the look of 6 recent assignments. Lets cap it there for scroll.
-- candidate view
+- candidate view dashboard
     - user can do an edit request -> email if confirmed
 
 
