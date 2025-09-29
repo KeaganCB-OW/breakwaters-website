@@ -186,7 +186,7 @@ const FIELD_DEFINITIONS = {
 export function ClientDetails() {
   const navigate = useNavigate();
   const { clientId } = useParams();
-  const { token } = useContext(AuthContext);
+  const { token, logout } = useContext(AuthContext);
   const [candidates, setCandidates] = useState([]);
   const [isLoadingCandidates, setIsLoadingCandidates] = useState(true);
 
@@ -206,6 +206,11 @@ export function ClientDetails() {
   const [activeFieldId, setActiveFieldId] = useState(null);
   const [isSubmittingClient, setIsSubmittingClient] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+
+  const handleAvatarClick = useCallback(() => {
+    logout();
+    navigate('/login', { replace: true });
+  }, [logout, navigate]);
 
   useEffect(() => {
     let isMounted = true;
@@ -961,7 +966,17 @@ export function ClientDetails() {
       <div className="dashboard__background-image" />
       <div className="dashboard__overlay" />
       <div className="dashboard__content">
-        <AppCardNav rightContent={<DashboardAvatar size="md" className="card-nav-avatar" />} />
+        <AppCardNav
+          rightContent={(
+            <DashboardAvatar
+              size="md"
+              className="card-nav-avatar"
+              onClick={handleAvatarClick}
+              aria-label="Sign out"
+              title="Sign out"
+            />
+          )}
+        />
         <div className="dashboard__layout">
           <div className="dashboard__container">
             <section className="dashboard__panel">

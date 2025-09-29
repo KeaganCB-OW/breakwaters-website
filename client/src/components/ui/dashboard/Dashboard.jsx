@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AppCardNav from '../layout/AppCardNav';
 import { StatsCard } from './StatsCard';
 import { CandidateCard } from './CandidateCard';
@@ -7,9 +8,12 @@ import { DashboardAvatar } from './DashboardAvatar';
 import { fetchClients } from '../../../services/clientService';
 import { fetchAssignments } from '../../../services/assignmentService';
 import { fetchCompanyStats } from '../../../services/companyService';
+import { AuthContext } from '../../../context/AuthContext';
 import '../../../styling/dashboard.css';
 
 export function Dashboard() {
+  const navigate = useNavigate();
+  const { logout } = useContext(AuthContext);
   const [candidates, setCandidates] = useState([]);
   const [isLoadingCandidates, setIsLoadingCandidates] = useState(true);
   const [candidateError, setCandidateError] = useState(null);
@@ -181,12 +185,27 @@ export function Dashboard() {
   const assignmentCountDisplay = isLoadingAssignments ? 'N/A' : String(assignments.length);
   const assignmentWeekSubtitle = isLoadingAssignments ? 'Loading...' : `${assignmentsAddedThisWeek} new this week`;
 
+  const handleAvatarClick = useCallback(() => {
+    logout();
+    navigate('/login', { replace: true });
+  }, [logout, navigate]);
+
   return (
     <div className="dashboard">
       <div className="dashboard__background-image" />
       <div className="dashboard__overlay" />
       <div className="dashboard__content">
-        <AppCardNav rightContent={<DashboardAvatar size="md" className="card-nav-avatar" />} />
+        <AppCardNav
+          rightContent={(
+            <DashboardAvatar
+              size="md"
+              className="card-nav-avatar"
+              onClick={handleAvatarClick}
+              aria-label="Sign out"
+              title="Sign out"
+            />
+          )}
+        />
         <div className="dashboard__layout">
           <div className="dashboard__container">
             <section className="dashboard__panel">

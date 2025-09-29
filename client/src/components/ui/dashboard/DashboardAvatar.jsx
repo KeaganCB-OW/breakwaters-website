@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import '../../../styling/DashboardAvatar.css';
 
 const sizeMap = {
@@ -6,14 +7,57 @@ const sizeMap = {
   lg: 80
 };
 
-export function DashboardAvatar({ size = 'md', className = '' }) {
+export function DashboardAvatar({
+  size = 'md',
+  className = '',
+  onClick,
+  onKeyDown: forwardedOnKeyDown,
+  tabIndex,
+  role,
+  ...rest
+}) {
   const dimension = sizeMap[size] || sizeMap.md;
-  const avatarClass = ['dashboard-avatar', className].filter(Boolean).join(' ');
+  const avatarClass = [
+    'dashboard-avatar',
+    onClick ? 'dashboard-avatar--interactive' : null,
+    className
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const handleKeyDown = useCallback(
+    (event) => {
+      if (typeof forwardedOnKeyDown === 'function') {
+        forwardedOnKeyDown(event);
+      }
+
+      if (!onClick) {
+        return;
+      }
+
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        onClick(event);
+      }
+    },
+    [forwardedOnKeyDown, onClick]
+  );
 
   return (
     <div
       className={avatarClass}
       style={{ width: dimension, height: dimension }}
+      onClick={onClick}
+      onKeyDown={handleKeyDown}
+      role={role ?? (onClick ? 'button' : undefined)}
+      tabIndex={
+        typeof tabIndex === 'number'
+          ? tabIndex
+          : onClick
+            ? 0
+            : undefined
+      }
+      {...rest}
     >
       <svg
         width="100%"
