@@ -86,9 +86,63 @@
   overflow: hidden;
 }
 
+.mission-content {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 960px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(32px, 6vw, 56px);
+}
+
+.mission-wave {
+  width: 100%;
+  position: absolute;
+  inset: 0;
+  background-color: #29436e;
+  transform: translateY(100%);
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.mission-wave::before,
+.mission-wave::after {
+  content: "";
+  position: absolute;
+  left: -10%;
+  width: 120%;
+  height: clamp(140px, 26vw, 220px);
+  background-repeat: repeat-x;
+  background-size: 160% 100%;
+  opacity: 0.8;
+  animation: mission-wave-drift 30s linear infinite;
+}
+
+.mission-wave::before {
+  bottom: -6%;
+}
+
+.mission-wave::after {
+  bottom: -10%;
+  opacity: 0.55;
+  animation-duration: 10s;
+  animation-direction: reverse;
+}
+
+.mission-wave--covering {
+  animation: mission-wave-cover 2s ease-in forwards;
+}
+
+.mission-wave--revealing {
+  animation: mission-wave-reveal 2s ease-out forwards;
+}
+
 .mission-title {
   width: min(100%, 940px);
   position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -118,6 +172,27 @@
   opacity: 1;
   transform: translateY(0);
   filter: blur(0);
+}
+
+.mission-title--updated span {
+  animation: mission-title-reveal 0.3s ease forwards;
+}
+
+.mission-subtext {
+  max-width: 720px;
+  margin: 0;
+  font-family: "Work Sans", sans-serif;
+  font-size: clamp(18px, 2.2vw, 24px);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.74);
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.mission-subtext--visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .hero-title {
@@ -395,5 +470,43 @@
 
   .mission-title {
     font-size: clamp(28px, 12vw, 48px);
+  }
+}
+
+@keyframes mission-wave-cover {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes mission-wave-reveal {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes mission-wave-drift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-40%, 0, 0);
+  }
+}
+
+@keyframes mission-title-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
