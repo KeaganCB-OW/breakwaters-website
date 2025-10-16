@@ -74,126 +74,20 @@
   z-index: 1;
 }
 
-.mission-section {
-  position: relative;
-  min-height: 70vh;
-  background: linear-gradient(160deg, #040f20 0%, #06162f 45%, #0b2748 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: clamp(96px, 14vw, 160px) clamp(1.5rem, 6vw, 4rem);
-  text-align: center;
-  overflow: hidden;
-}
-
-.mission-content {
-  position: relative;
-  z-index: 1;
-  width: min(100%, 960px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(32px, 6vw, 56px);
-}
-
-.mission-wave {
-  width: 100%;
-  position: absolute;
-  inset: 0;
-  background-image: url('../assets/images/Mission-wave.png');
-  transform: translateY(100%);
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 2;
-}
-
-.mission-wave::before,
-.mission-wave::after {
-  content: "";
-  position: absolute;
-  left: -10%;
-  width: 120%;
-  height: clamp(140px, 26vw, 220px);
-  background-repeat: repeat-x;
-  background-size: 160% 100%;
-  opacity: 0.8;
-  animation: mission-wave-drift 30s linear infinite;
-}
-
-.mission-wave::before {
-  bottom: -6%;
-}
-
-.mission-wave::after {
-  bottom: -10%;
-  opacity: 0.55;
-  animation-duration: 10s;
-  animation-direction: reverse;
-}
-
-.mission-wave--covering {
-  animation: mission-wave-cover 1s ease-in forwards;
-}
-
-.mission-wave--revealing {
-  animation: mission-wave-reveal 1s ease-out forwards;
-}
-
-.mission-title {
-  width: min(100%, 940px);
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-  font-family: 'Montagu Slab', serif;
-  font-weight: 500;
-  font-size: clamp(44px, 6vw, 96px);
-  line-height: 1.08;
-  color: rgba(255, 255, 255, 0.9);
-  opacity: 0;
-  transform: translateY(36px);
-  filter: blur(12px);
-  transition: opacity 1.2s ease, transform 1.2s ease, filter 1.2s ease;
-    text-shadow:
-    3px 5px 0 rgba(255, 255, 255, 0.12);
-}
-
-.mission-title span {
-  display: block;
-  position: relative;
-  z-index: 1;
-}
 
 
-.mission-title--visible {
-  opacity: 1;
-  transform: translateY(0);
-  filter: blur(0);
-}
 
-.mission-title--updated span {
-  animation: mission-title-reveal 0.3s ease forwards;
-}
 
-.mission-subtext {
-  max-width: 720px;
-  margin: 0;
-  font-family: "Work Sans", sans-serif;
-  font-size: clamp(18px, 2.2vw, 24px);
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.74);
-  opacity: 0;
-  transform: translateY(32px);
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
 
-.mission-subtext--visible {
-  opacity: 1;
-  transform: translateY(0);
-}
+
+
+
+
+
+
+
+
+
 
 .hero-title {
   width: min(100%, 931px);
@@ -354,13 +248,7 @@
     font-size: clamp(20px, 1.9vw, 23px);
   }
 
-  .mission-section {
-    padding: clamp(72px, 12vw, 128px) clamp(1.5rem, 7vw, 3rem);
-  }
 
-  .mission-title {
-    font-size: clamp(40px, 6.2vw, 88px);
-  }
 }
 
 @media (max-width: 900px) {
@@ -388,14 +276,7 @@
     padding: clamp(16px, 2.8vw, 24px) clamp(28px, 8vw, 48px);
   }
 
-  .mission-section {
-    padding: clamp(64px, 16vw, 112px) clamp(1.25rem, 6vw, 2.5rem);
-  }
 
-  .mission-title {
-    font-size: clamp(36px, 8.5vw, 72px);
-    line-height: 1.1;
-  }
 }
 
 @media (max-width: 768px) {
@@ -435,13 +316,7 @@
     font-size: clamp(18px, 4.6vw, 20px);
   }
 
-  .mission-section {
-    padding: clamp(56px, 18vw, 96px) clamp(1rem, 8vw, 2rem);
-  }
 
-  .mission-title {
-    font-size: clamp(32px, 10vw, 62px);
-  }
 }
 
 @media (max-width: 480px) {
@@ -485,49 +360,9 @@
     padding: clamp(14px, 4vw, 20px);
   }
 
-  .mission-section {
-    padding: clamp(48px, 22vw, 80px) clamp(1rem, 10vw, 1.5rem);
-  }
 
-  .mission-title {
-    font-size: clamp(28px, 12vw, 48px);
-  }
 }
 
-@keyframes mission-wave-cover {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
 
-@keyframes mission-wave-reveal {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(100%);
-  }
-}
 
-@keyframes mission-wave-drift {
-  0% {
-    transform: translate3d(0, 0, 0);
-  }
-  100% {
-    transform: translate3d(-40%, 0, 0);
-  }
-}
 
-@keyframes mission-title-reveal {
-  0% {
-    opacity: 0;
-    transform: translateY(28px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
