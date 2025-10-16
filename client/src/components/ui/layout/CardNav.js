@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, useCallback } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { GoArrowUpRight } from 'react-icons/go';
 import '../../../styling/CardNav.css';
@@ -21,7 +21,7 @@ const CardNav = ({
   const cardsRef = useRef([]);
   const tlRef = useRef(null);
 
-  const calculateHeight = useCallback(() => {
+  const calculateHeight = () => {
     const navEl = navRef.current;
     if (!navEl) return 260;
 
@@ -39,10 +39,6 @@ const CardNav = ({
         contentEl.style.position = 'static';
         contentEl.style.height = 'auto';
 
-  // force reflow so scrollHeight is accurate
-  /* eslint-disable-next-line no-unused-expressions */
-  contentEl.offsetHeight;
-
         const topBar = 60;
         const padding = 16;
         const contentHeight = contentEl.scrollHeight;
@@ -56,9 +52,9 @@ const CardNav = ({
       }
     }
     return 260;
-  }, []);
+  };
 
-  const createTimeline = useCallback(() => {
+  const createTimeline = () => {
     const navEl = navRef.current;
     if (!navEl) return null;
 
@@ -76,7 +72,7 @@ const CardNav = ({
     tl.to(cardsRef.current, { y: 0, opacity: 1, duration: 0.4, ease, stagger: 0.08 }, '-=0.1');
 
     return tl;
-  }, [ease, calculateHeight]);
+  };
 
   useLayoutEffect(() => {
     const tl = createTimeline();
@@ -86,7 +82,7 @@ const CardNav = ({
       tl?.kill();
       tlRef.current = null;
     };
-  }, [createTimeline, items]);
+  }, [ease, items]);
 
   useLayoutEffect(() => {
     const handleResize = () => {
@@ -98,14 +94,14 @@ const CardNav = ({
 
         tlRef.current.kill();
         const newTl = createTimeline();
-        if (newTl != null) {
+        if (newTl) {
           newTl.progress(1);
           tlRef.current = newTl;
         }
       } else {
         tlRef.current.kill();
         const newTl = createTimeline();
-        if (newTl != null) {
+        if (newTl) {
           tlRef.current = newTl;
         }
       }
@@ -113,7 +109,7 @@ const CardNav = ({
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [isExpanded, createTimeline]);
+  }, [isExpanded]);
 
   const toggleMenu = () => {
     const tl = tlRef.current;
@@ -153,16 +149,17 @@ const CardNav = ({
     <div className={`card-nav-container ${className}`}>
       <nav ref={navRef} className={`card-nav ${isExpanded ? 'open' : ''}`} style={{ backgroundColor: baseColor }}>
         <div className="card-nav-top">
-          <button
-            type="button"
+          <div
             className={`hamburger-menu ${isHamburgerOpen ? 'open' : ''}`}
             onClick={toggleMenu}
+            role="button"
             aria-label={isExpanded ? 'Close menu' : 'Open menu'}
+            tabIndex={0}
             style={{ color: menuColor || '#000' }}
           >
-            <span className="hamburger-line" />
-            <span className="hamburger-line" />
-          </button>
+            <div className="hamburger-line" />
+            <div className="hamburger-line" />
+          </div>
 
           <div className="logo-container">
             <img src={logo} alt={logoAlt} className="logo" />

@@ -11,7 +11,7 @@
 
 .card-nav {
   display: block;
-  height: 60px;
+  height: 70px;
   padding: 0;
   background-color: white;
   border: 0.5px solid rgba(255, 255, 255, 0.1);
@@ -19,7 +19,6 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
-  will-change: height;
 }
 
 .card-nav-top {
@@ -45,20 +44,22 @@
   gap: 6px;
 }
 
+
 .hamburger-menu:hover .hamburger-line {
   opacity: 0.75;
 }
 
 .hamburger-line {
   width: 30px;
-  height: 2px;
-  background-color: currentColor;
+  height: 3px;
+  background-color: #082658;
   transition:
     transform 0.25s ease,
     opacity 0.2s ease,
     margin 0.3s ease;
   transform-origin: 50% 50%;
 }
+
 
 .hamburger-menu.open .hamburger-line:first-child {
   transform: translateY(4px) rotate(45deg);
