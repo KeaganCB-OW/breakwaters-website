@@ -242,12 +242,17 @@ export default function HomePage() {
           </h1>
 
           <p className="hero-subtext">
-            Submit your resume today and connect with top companies in search of the best talent.
+            Connecting companies with top talent and talent with top companies!
           </p>
 
-          <button type="button" className="hero-cta">
-            Connect with us!
-          </button>
+          <div className="hero-cta-container">
+            <button type="button" className="hero-cta">
+              Submit your resume
+            </button>
+            <button type="button" className="hero-cta hero-cta--white">
+              Register your business
+            </button>
+          </div>
         </div>
         <div className="hero-wave-accent" aria-hidden="true" />
         <img
