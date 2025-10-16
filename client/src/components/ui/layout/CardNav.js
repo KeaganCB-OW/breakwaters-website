@@ -3,6 +3,13 @@ import { gsap } from 'gsap';
 import { GoArrowUpRight } from 'react-icons/go';
 import '../../../styling/CardNav.css';
 
+const COLLAPSED_HEIGHT = 70;
+const TOP_BAR_HEIGHT = 45;
+const CONTENT_PADDING = 16;
+const CONTENT_OFFSET = COLLAPSED_HEIGHT + 10;
+const LOGO_HEIGHT = TOP_BAR_HEIGHT + 5;
+const DESKTOP_EXPANDED_HEIGHT = 260;
+
 const CardNav = ({
   logo,
   logoAlt = 'Logo',
@@ -23,7 +30,7 @@ const CardNav = ({
 
   const calculateHeight = () => {
     const navEl = navRef.current;
-    if (!navEl) return 260;
+    if (!navEl) return DESKTOP_EXPANDED_HEIGHT;
 
     const isMobile = window.matchMedia('(max-width: 768px)').matches;
     if (isMobile) {
@@ -39,8 +46,8 @@ const CardNav = ({
         contentEl.style.position = 'static';
         contentEl.style.height = 'auto';
 
-        const topBar = 60;
-        const padding = 16;
+        const topBar = TOP_BAR_HEIGHT;
+        const padding = CONTENT_PADDING;
         const contentHeight = contentEl.scrollHeight;
 
         contentEl.style.visibility = wasVisible;
@@ -51,14 +58,21 @@ const CardNav = ({
         return topBar + contentHeight + padding;
       }
     }
-    return 260;
+    return DESKTOP_EXPANDED_HEIGHT;
   };
 
   const createTimeline = () => {
     const navEl = navRef.current;
     if (!navEl) return null;
 
-    gsap.set(navEl, { height: 60, overflow: 'hidden' });
+    gsap.set(navEl, {
+      height: COLLAPSED_HEIGHT,
+      overflow: 'hidden',
+      '--card-nav-collapsed-height': `${COLLAPSED_HEIGHT}px`,
+      '--card-nav-top-height': `${TOP_BAR_HEIGHT}px`,
+      '--card-nav-content-offset': `${CONTENT_OFFSET}px`,
+      '--card-nav-logo-height': `${LOGO_HEIGHT}px`
+    });
     gsap.set(cardsRef.current, { y: 50, opacity: 0 });
 
     const tl = gsap.timeline({ paused: true });

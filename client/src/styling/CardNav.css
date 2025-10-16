@@ -11,7 +11,7 @@
 
 .card-nav {
   display: block;
-  height: 70px;
+  height: var(--card-nav-collapsed-height, 70px);
   padding: 0;
   background-color: white;
   border: 0.5px solid rgba(255, 255, 255, 0.1);
@@ -26,7 +26,7 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 45px;
+  height: var(--card-nav-top-height, 45px);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -79,7 +79,7 @@
 }
 
 .logo {
-  height: 50px;
+  height: var(--card-nav-logo-height, 50px);
 }
 
 .card-nav-action {
@@ -127,7 +127,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 80px;
+  top: var(--card-nav-content-offset, 80px);
   bottom: 0;
   padding: 0.5rem;
   display: flex;
