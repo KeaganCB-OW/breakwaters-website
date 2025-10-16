@@ -9,6 +9,42 @@ const UPDATED_MISSION_LINES = ["Its simple.", "We want to get you hired."];
 const UPDATED_MISSION_SUBTEXT =
   "We connect people to opportunity. By streamlining the job application and recruitment process, we help candidates get noticed and companies find the right fit quickly, simply, and meaningfully.";
 
+function MissionCallToAction() {
+  return (
+    <div className="mission-call-to-action">
+      <h3>Ready to take the next step?</h3>
+      <p>
+        Whether you&apos;re kickstarting your career or scaling your team, our crew is
+        here to clear the path forward.
+      </p>
+      <div className="mission-call-to-action__actions">
+        <button type="button" className="mission-call-to-action__button">
+          Submit your resume
+        </button>
+        <button
+          type="button"
+          className="mission-call-to-action__button mission-call-to-action__button--alt"
+        >
+          Partner with Breakwaters
+        </button>
+      </div>
+    </div>
+  );
+}
+
+const MISSION_ENTRIES = [
+  { id: "mission-intro", lines: INITIAL_MISSION_LINES },
+  {
+    id: "mission-update",
+    lines: UPDATED_MISSION_LINES,
+    subtext: UPDATED_MISSION_SUBTEXT,
+  },
+  {
+    id: "mission-component",
+    component: <MissionCallToAction />,
+  },
+];
+
 export default function HomePage() {
   return (
     <main className="home-page">
@@ -43,12 +79,7 @@ export default function HomePage() {
         />
       </section>
 
-      <MissionSection
-        id="mission"
-        initialLines={INITIAL_MISSION_LINES}
-        updatedLines={UPDATED_MISSION_LINES}
-        subtext={UPDATED_MISSION_SUBTEXT}
-      />
+      <MissionSection id="mission" entries={MISSION_ENTRIES} />
     </main>
   );
 }

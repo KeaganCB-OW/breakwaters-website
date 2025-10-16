@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "../../styling/mission-section.css";
 
 const DEFAULT_OBSERVER_THRESHOLDS = Array.from({ length: 101 }, (_, index) => index / 100);
@@ -14,8 +14,109 @@ const normalizeLines = (lines) => {
   return [String(lines)];
 };
 
+const resolveSubtext = (subtext) => {
+  if (subtext == null || subtext === false) {
+    return { hasSubtext: false, value: null };
+  }
+
+  if (typeof subtext === "string" && subtext.trim().length === 0) {
+    return { hasSubtext: false, value: null };
+  }
+
+  return { hasSubtext: true, value: subtext };
+};
+
+const createMissionEntry = (entry, index) => {
+  if (entry == null) {
+    return null;
+  }
+
+  if (typeof entry === "string" || Array.isArray(entry)) {
+    const lines = normalizeLines(entry);
+    return {
+      key: `mission-entry-${index}`,
+      lines,
+      component: null,
+      hasSubtext: false,
+      subtext: null,
+    };
+  }
+
+  const lines = normalizeLines(entry.lines ?? entry.title ?? []);
+  const component = entry.component ?? null;
+  const { hasSubtext, value: subtext } = resolveSubtext(entry.subtext);
+
+  return {
+    key: entry.id != null ? String(entry.id) : `mission-entry-${index}`,
+    lines,
+    component,
+    hasSubtext,
+    subtext,
+  };
+};
+
+const buildMissionEntries = (entriesProp, initialLines, updatedLines, updatedSubtext) => {
+  const normalizedEntries = [];
+
+  if (Array.isArray(entriesProp) && entriesProp.length > 0) {
+    entriesProp.forEach((entry, index) => {
+      const missionEntry = createMissionEntry(entry, index);
+      if (missionEntry) {
+        normalizedEntries.push(missionEntry);
+      }
+    });
+  }
+
+  if (normalizedEntries.length === 0) {
+    const initialEntryLines = normalizeLines(initialLines);
+    const updatedEntryLines = normalizeLines(updatedLines);
+    const { hasSubtext, value: subtextValue } = resolveSubtext(updatedSubtext);
+
+    if (initialEntryLines.length > 0 || (!initialEntryLines.length && !updatedEntryLines.length)) {
+      normalizedEntries.push({
+        key: "mission-entry-initial",
+        lines: initialEntryLines,
+        component: null,
+        hasSubtext: false,
+        subtext: null,
+      });
+    }
+
+    if (updatedEntryLines.length > 0 || hasSubtext) {
+      normalizedEntries.push({
+        key: "mission-entry-updated",
+        lines: updatedEntryLines,
+        component: null,
+        hasSubtext,
+        subtext: subtextValue,
+      });
+    }
+  }
+
+  if (normalizedEntries.length === 0) {
+    normalizedEntries.push({
+      key: "mission-entry-empty",
+      lines: [],
+      component: null,
+      hasSubtext: false,
+      subtext: null,
+    });
+  }
+
+  return normalizedEntries;
+};
+
+const EMPTY_ENTRY = {
+  key: "mission-entry-empty",
+  lines: [],
+  component: null,
+  hasSubtext: false,
+  subtext: null,
+};
+
 export default function MissionSection({
   id,
+  entries: entriesProp,
   initialLines = [],
   updatedLines = [],
   subtext = "",
@@ -26,46 +127,72 @@ export default function MissionSection({
   const waveDelayTimeoutRef = useRef(null);
   const scrollDirectionRef = useRef("down");
   const lastScrollYRef = useRef(null);
-  const latestInitialLinesRef = useRef(normalizeLines(initialLines));
-  const latestUpdatedLinesRef = useRef(normalizeLines(updatedLines));
+  const pendingEntryIndexRef = useRef(null);
+
+  const entries = useMemo(
+    () => buildMissionEntries(entriesProp, initialLines, updatedLines, subtext),
+    [entriesProp, initialLines, updatedLines, subtext]
+  );
+  const entriesRef = useRef(entries);
 
   const [isTitleVisible, setTitleVisible] = useState(false);
-  const [isSubtextVisible, setSubtextVisible] = useState(false);
-  const [isUpdatedTextVisible, setUpdatedTextVisible] = useState(false);
+  const [isSubtextVisible, setSubtextVisible] = useState(() => {
+    const entry = entriesRef.current[0] ?? EMPTY_ENTRY;
+    return entry.hasSubtext;
+  });
   const [wavePhase, setWavePhaseState] = useState("idle");
   const wavePhaseRef = useRef("idle");
   const setWavePhase = useCallback((nextPhase) => {
     wavePhaseRef.current = nextPhase;
     setWavePhaseState(nextPhase);
   }, []);
-  const [missionLines, setMissionLines] = useState(() => [...latestInitialLinesRef.current]);
-  const [canTriggerWave, setCanTriggerWaveState] = useState(false);
+  const [activeEntryIndexState, setActiveEntryIndexState] = useState(0);
+  const activeEntryIndexRef = useRef(0);
+  const setActiveEntryIndex = useCallback((nextIndex) => {
+    activeEntryIndexRef.current = nextIndex;
+    setActiveEntryIndexState(nextIndex);
+  }, []);
   const canTriggerWaveRef = useRef(false);
   const setCanTriggerWave = useCallback((nextValue) => {
     canTriggerWaveRef.current = nextValue;
-    setCanTriggerWaveState(nextValue);
   }, []);
   const isSectionActiveRef = useRef(false);
   const setSectionActive = useCallback((nextValue) => {
     isSectionActiveRef.current = nextValue;
   }, []);
-  const [isSectionReady, setSectionReadyState] = useState(false);
+  const [isSectionReadyState, setSectionReadyState] = useState(false);
   const isSectionReadyRef = useRef(false);
   const setSectionReady = useCallback((nextValue) => {
     isSectionReadyRef.current = nextValue;
     setSectionReadyState(nextValue);
   }, []);
+  const isSectionReady = isSectionReadyState;
 
   useEffect(() => {
-    latestInitialLinesRef.current = normalizeLines(initialLines);
-    if (wavePhase === "idle") {
-      setMissionLines([...latestInitialLinesRef.current]);
+    entriesRef.current = entries;
+    const maxIndex = Math.max(0, entries.length - 1);
+    const safeIndex = Math.min(activeEntryIndexRef.current, maxIndex);
+
+    if (safeIndex !== activeEntryIndexRef.current) {
+      setActiveEntryIndex(safeIndex);
     }
-  }, [initialLines, wavePhase]);
+
+    if (wavePhaseRef.current === "idle") {
+      const entry = entriesRef.current[safeIndex] ?? EMPTY_ENTRY;
+      setSubtextVisible(entry.hasSubtext);
+    } else {
+      setSubtextVisible(false);
+    }
+  }, [entries, setActiveEntryIndex]);
 
   useEffect(() => {
-    latestUpdatedLinesRef.current = normalizeLines(updatedLines);
-  }, [updatedLines]);
+    return () => {
+      if (waveDelayTimeoutRef.current != null) {
+        window.clearTimeout(waveDelayTimeoutRef.current);
+        waveDelayTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   const clearWaveDelayTimeout = useCallback(() => {
     if (waveDelayTimeoutRef.current != null) {
@@ -76,32 +203,54 @@ export default function MissionSection({
 
   const resetMissionExperience = useCallback(() => {
     clearWaveDelayTimeout();
-    setMissionLines([...latestInitialLinesRef.current]);
+    pendingEntryIndexRef.current = null;
+    setActiveEntryIndex(0);
+    const entry = entriesRef.current[0] ?? EMPTY_ENTRY;
     setWavePhase("idle");
-    setUpdatedTextVisible(false);
-    setSubtextVisible(false);
+    setSubtextVisible(entry.hasSubtext);
     setCanTriggerWave(false);
     setTitleVisible(false);
     setSectionReady(false);
     touchStartYRef.current = null;
-  }, [clearWaveDelayTimeout, setCanTriggerWave, setSectionReady, setWavePhase]);
+  }, [clearWaveDelayTimeout, setActiveEntryIndex, setCanTriggerWave, setSectionReady, setWavePhase]);
 
-  const triggerWave = useCallback(() => {
-    if (
-      wavePhaseRef.current !== "idle" ||
-      !isSectionActiveRef.current ||
-      !isSectionReadyRef.current ||
-      !canTriggerWaveRef.current
-    ) {
-      return false;
-    }
+  const triggerWave = useCallback(
+    (direction) => {
+      if (
+        wavePhaseRef.current !== "idle" ||
+        !isSectionActiveRef.current ||
+        !isSectionReadyRef.current ||
+        !canTriggerWaveRef.current
+      ) {
+        return false;
+      }
 
-    clearWaveDelayTimeout();
-    setWavePhase("covering");
-    setCanTriggerWave(false);
-    touchStartYRef.current = null;
-    return true;
-  }, [clearWaveDelayTimeout, setCanTriggerWave, setWavePhase]);
+      const entriesList = entriesRef.current;
+      if (entriesList.length <= 1) {
+        return false;
+      }
+
+      const currentIndex = activeEntryIndexRef.current;
+      const offset = direction === "backward" ? -1 : 1;
+      const nextIndex = Math.min(
+        Math.max(currentIndex + offset, 0),
+        entriesList.length - 1
+      );
+
+      if (nextIndex === currentIndex) {
+        return false;
+      }
+
+      pendingEntryIndexRef.current = nextIndex;
+      clearWaveDelayTimeout();
+      setSubtextVisible(false);
+      setWavePhase("covering");
+      setCanTriggerWave(false);
+      touchStartYRef.current = null;
+      return true;
+    },
+    [clearWaveDelayTimeout, setCanTriggerWave, setSubtextVisible, setWavePhase]
+  );
 
   useEffect(() => {
     const handleScroll = () => {
@@ -209,7 +358,14 @@ export default function MissionSection({
     return () => {
       observer.disconnect();
     };
-  }, [clearWaveDelayTimeout, resetMissionExperience, setCanTriggerWave, setSectionActive, setSectionReady, wavePhase]);
+  }, [
+    clearWaveDelayTimeout,
+    resetMissionExperience,
+    setCanTriggerWave,
+    setSectionActive,
+    setSectionReady,
+    wavePhase,
+  ]);
 
   useEffect(() => {
     if (!isSectionReady || wavePhase !== "idle") {
@@ -234,33 +390,12 @@ export default function MissionSection({
   }, [clearWaveDelayTimeout, isSectionReady, setCanTriggerWave, wavePhase, waveTriggerDelay]);
 
   useEffect(() => {
-    if (!isSectionActiveRef.current) {
-      return undefined;
-    }
-
-    if (!isSectionReady || wavePhase !== "idle" || !canTriggerWave || wavePhaseRef.current !== "idle") {
-      return undefined;
-    }
-
-    const autoStartId = window.requestAnimationFrame(() => {
-      triggerWave();
-    });
-
-    return () => {
-      window.cancelAnimationFrame(autoStartId);
-    };
-  }, [canTriggerWave, isSectionReady, triggerWave, wavePhase]);
-
-  useEffect(() => {
     const handleWheel = (event) => {
       const isScrollingDown = event.deltaY > 0;
+      const direction = isScrollingDown ? "forward" : "backward";
       const phase = wavePhaseRef.current;
       const isLockingPhase = phase === "covering" || phase === "revealing";
       const isIdlePhase = phase === "idle";
-
-      if (!isScrollingDown) {
-        return;
-      }
 
       if (isLockingPhase) {
         event.preventDefault();
@@ -275,7 +410,7 @@ export default function MissionSection({
         return;
       }
 
-      const waveStarted = triggerWave();
+      const waveStarted = triggerWave(direction);
       if (waveStarted || !canTriggerWaveRef.current) {
         event.preventDefault();
       }
@@ -293,11 +428,12 @@ export default function MissionSection({
       const currentY = event.touches[0]?.clientY ?? touchStartYRef.current;
       const deltaY = touchStartYRef.current - currentY;
       const isScrollingDown = deltaY > 0;
+      const isScrollingUp = deltaY < 0;
       const phase = wavePhaseRef.current;
       const isLockingPhase = phase === "covering" || phase === "revealing";
       const isIdlePhase = phase === "idle";
 
-      if (!isScrollingDown) {
+      if (!isScrollingDown && !isScrollingUp) {
         return;
       }
 
@@ -314,7 +450,8 @@ export default function MissionSection({
         return;
       }
 
-      const waveStarted = triggerWave();
+      const direction = isScrollingDown ? "forward" : "backward";
+      const waveStarted = triggerWave(direction);
       if (waveStarted || !canTriggerWaveRef.current) {
         event.preventDefault();
       }
@@ -334,34 +471,51 @@ export default function MissionSection({
         return;
       }
 
-      const isLockingPhase =
-        wavePhaseRef.current === "covering" || wavePhaseRef.current === "revealing";
-      const isIdlePhase = wavePhaseRef.current === "idle";
+      const phase = wavePhaseRef.current;
+      const isLockingPhase = phase === "covering" || phase === "revealing";
+      const isIdlePhase = phase === "idle";
 
-      if (
-        event.key === "ArrowDown" ||
-        event.key === "PageDown" ||
-        event.key === "End" ||
-        event.key === " " ||
-        event.key === "Spacebar"
-      ) {
-        if (isLockingPhase) {
-          event.preventDefault();
-          return;
-        }
-
-        if (!isIdlePhase) {
-          return;
-        }
-
-        if (!isSectionActiveRef.current || !isSectionReadyRef.current) {
-          return;
-        }
-
-        const waveStarted = triggerWave();
-        if (waveStarted || !canTriggerWaveRef.current) {
+      if (isLockingPhase) {
+        if (
+          event.key === "ArrowDown" ||
+          event.key === "PageDown" ||
+          event.key === "End" ||
+          event.key === " " ||
+          event.key === "Spacebar" ||
+          event.key === "ArrowUp" ||
+          event.key === "PageUp" ||
+          event.key === "Home"
+        ) {
           event.preventDefault();
         }
+        return;
+      }
+
+      if (!isIdlePhase) {
+        return;
+      }
+
+      if (!isSectionActiveRef.current || !isSectionReadyRef.current) {
+        return;
+      }
+
+      const forwardKeys = ["ArrowDown", "PageDown", "End", " ", "Spacebar"];
+      const backwardKeys = ["ArrowUp", "PageUp", "Home"];
+
+      let direction = null;
+      if (forwardKeys.includes(event.key)) {
+        direction = "forward";
+      } else if (backwardKeys.includes(event.key)) {
+        direction = "backward";
+      }
+
+      if (!direction) {
+        return;
+      }
+
+      const waveStarted = triggerWave(direction);
+      if (waveStarted || !canTriggerWaveRef.current) {
+        event.preventDefault();
       }
     };
 
@@ -381,44 +535,72 @@ export default function MissionSection({
 
   const handleWaveAnimationEnd = () => {
     if (wavePhase === "covering") {
-      setMissionLines([...latestUpdatedLinesRef.current]);
-      setUpdatedTextVisible(true);
+      const entriesList = entriesRef.current;
+      const nextIndex = pendingEntryIndexRef.current;
+      const resolvedIndex =
+        typeof nextIndex === "number"
+          ? Math.min(Math.max(nextIndex, 0), entriesList.length - 1)
+          : activeEntryIndexRef.current;
+      pendingEntryIndexRef.current = null;
+      setActiveEntryIndex(resolvedIndex);
       setWavePhase("revealing");
       return;
     }
 
     if (wavePhase === "revealing") {
-      setWavePhase("done");
-      setSubtextVisible(true);
-      setCanTriggerWave(true);
+      const activeEntry = entriesRef.current[activeEntryIndexRef.current] ?? EMPTY_ENTRY;
+      setSubtextVisible(activeEntry.hasSubtext);
+      setWavePhase("idle");
     }
   };
+
+  const activeEntryIndex = activeEntryIndexState;
+  const activeEntry = entriesRef.current[activeEntryIndex] ?? EMPTY_ENTRY;
+  const missionLines = activeEntry.lines ?? [];
+  const missionLinesText = missionLines.join("\n");
+  const hasComponent = activeEntry.component != null;
+  const shouldRenderSubtext = activeEntry.hasSubtext;
+  const hasAdvanced = activeEntryIndex > 0;
 
   return (
     <section className="mission-section" ref={sectionRef} id={id}>
       <div
         className={`mission-wave ${
-          wavePhase === "idle" || wavePhase === "done" ? "" : `mission-wave--${wavePhase}`
+          wavePhase === "idle" ? "" : `mission-wave--${wavePhase}`
         }`}
         onAnimationEnd={handleWaveAnimationEnd}
         aria-hidden="true"
       />
 
-      <div className={`mission-content ${isUpdatedTextVisible ? "mission-content--updated" : ""}`}>
-        <h2
-          className={`mission-title ${
-            isTitleVisible ? "mission-title--visible" : ""
-          } ${isUpdatedTextVisible ? "mission-title--updated" : ""}`}
-          data-text={missionLines.join("\n")}
-        >
-          {missionLines.map((line, index) => (
-            <span key={`${line}-${index}`}>{line}</span>
-          ))}
-        </h2>
+      <div
+        className={`mission-content ${
+          hasAdvanced ? "mission-content--updated" : ""
+        } ${hasComponent ? "mission-content--component" : ""}`}
+      >
+        {hasComponent ? (
+          <div
+            className={`mission-component ${isTitleVisible ? "mission-component--visible" : ""}`}
+          >
+            {activeEntry.component}
+          </div>
+        ) : (
+          <h2
+            className={`mission-title ${
+              isTitleVisible ? "mission-title--visible" : ""
+            } ${hasAdvanced ? "mission-title--updated" : ""}`}
+            data-text={missionLinesText}
+          >
+            {missionLines.map((line, index) => (
+              <span key={`${line}-${index}`}>{line}</span>
+            ))}
+          </h2>
+        )}
 
-        <p className={`mission-subtext ${isSubtextVisible ? "mission-subtext--visible" : ""}`}>
-          {subtext}
-        </p>
+        {shouldRenderSubtext ? (
+          <p className={`mission-subtext ${isSubtextVisible ? "mission-subtext--visible" : ""}`}>
+            {activeEntry.subtext}
+          </p>
+        ) : null}
       </div>
     </section>
   );
