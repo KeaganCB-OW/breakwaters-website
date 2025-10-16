@@ -140,6 +140,8 @@ const BACKGROUND_SENTENCES = [
   "I ended up with a role I love and I owe that to their hard work."
 ];
 
+const BACKGROUND_TEXT = BACKGROUND_SENTENCES.join(" ");
+
 export default function HomePage() {
   const [progress, setProgress] = useState(0);
 
@@ -163,29 +165,22 @@ export default function HomePage() {
     return () => clearInterval(intervalId);
   }, []);
 
-  const typedSentences = useMemo(
-    () =>
-      BACKGROUND_SENTENCES.map((sentence) => {
-        if (progress >= 1) {
-          return sentence;
-        }
+  const typedBackgroundText = useMemo(() => {
+    if (progress >= 1) {
+      return BACKGROUND_TEXT;
+    }
 
-        const visibleCharacters = Math.floor(sentence.length * progress);
-        return sentence.slice(0, visibleCharacters);
-      }),
-    [progress]
-  );
+    const visibleCharacters = Math.floor(BACKGROUND_TEXT.length * progress);
+    return BACKGROUND_TEXT.slice(0, visibleCharacters);
+  }, [progress]);
 
   return (
     <section className="hero-section">
       <div className="hero-background-text" aria-hidden="true">
-        {typedSentences.map((sentence, index) => (
-          <span key={index}>
-            {sentence}
-            {progress < 1 && index === typedSentences.length - 1 ? "\u2588" : ""}
-            {index !== typedSentences.length - 1 ? " " : ""}
-          </span>
-        ))}
+        <p className="hero-background-text-content">
+          {typedBackgroundText}
+          {progress < 1 ? "\u2588" : ""}
+        </p>
       </div>
 
       <div className="hero-content">
