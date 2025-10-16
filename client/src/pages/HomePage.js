@@ -1,60 +1,207 @@
-import { Link } from "react-router-dom";
-import '../styling/auth.css';
-import Navbar from '../components/ui/layout/AppCardNav'
+import { useEffect, useMemo, useState } from "react";
+import "../styling/home.css";
 
-export default function Index() {
+const BACKGROUND_TEXT = `the team was amazing and helped me find a job faster than I expected.
+They listened to what I wanted and actually cared about matching me with the right company.
+The process was smooth and easy from start to finish.
+Communication was quick and I always knew what was happening.
+They checked in often and made sure I felt confident before interviews.
+I felt supported the whole way through.
+They were professional but also friendly and approachable.
+I appreciated how honest they were about each opportunity.
+It never felt like they were just trying to fill a role.
+They gave me great advice and feedback that helped me improve my interviews.
+The staff were patient and understanding when I had questions.
+They worked hard to find positions that matched my skills perfectly.
+I was impressed with how quickly they responded to emails.
+Every interaction felt positive and genuine.
+I could tell they cared about people not just placements.
+They helped me polish my CV and made me feel prepared.
+The experience gave me a lot more confidence in my job search.
+I appreciated their honesty about what employers were looking for.
+They treated me with respect and kindness the entire time.
+I was never left waiting or wondering what was next.
+The attention to detail was incredible.
+They made sure I understood every step of the process.
+The agency felt reliable and trustworthy.
+I could feel their dedication from the very first call.
+They celebrated my success like it was their own.
+It felt good to know someone was in my corner.
+The whole process was fast but never rushed.
+They made me feel like a priority.
+I am so grateful for the effort they put into finding the right fit.
+They were always positive and encouraging even when I doubted myself.
+It felt like working with friends who wanted me to win.
+I would recommend them to anyone looking for a real career move.
+They made a stressful process feel simple and rewarding.
+I ended up with a role I love and I owe that to their hard work.
+he team was amazing and helped me find a job faster than I expected.
+They listened to what I wanted and actually cared about matching me with the right company.
+The process was smooth and easy from start to finish.
+Communication was quick and I always knew what was happening.
+They checked in often and made sure I felt confident before interviews.
+I felt supported the whole way through.
+They were professional but also friendly and approachable.
+I appreciated how honest they were about each opportunity.
+It never felt like they were just trying to fill a role.
+They gave me great advice and feedback that helped me improve my interviews.
+The staff were patient and understanding when I had questions.
+They worked hard to find positions that matched my skills perfectly.
+I was impressed with how quickly they responded to emails.
+Every interaction felt positive and genuine.
+I could tell they cared about people not just placements.
+They helped me polish my CV and made me feel prepared.
+The experience gave me a lot more confidence in my job search.
+I appreciated their honesty about what employers were looking for.
+They treated me with respect and kindness the entire time.
+I was never left waiting or wondering what was next.
+The attention to detail was incredible.
+They made sure I understood every step of the process.
+The agency felt reliable and trustworthy.
+I could feel their dedication from the very first call.
+They celebrated my success like it was their own.
+It felt good to know someone was in my corner.
+The whole process was fast but never rushed.
+They made me feel like a priority.
+I am so grateful for the effort they put into finding the right fit.
+They were always positive and encouraging even when I doubted myself.
+It felt like working with friends who wanted me to win.
+I would recommend them to anyone looking for a real career move.
+They made a stressful process feel simple and rewarding.
+I ended up with a role I love and I owe that to their hard work.
+he team was amazing and helped me find a job faster than I expected.
+They listened to what I wanted and actually cared about matching me with the right company.
+The process was smooth and easy from start to finish.
+Communication was quick and I always knew what was happening.
+They checked in often and made sure I felt confident before interviews.
+I felt supported the whole way through.
+They were professional but also friendly and approachable.
+I appreciated how honest they were about each opportunity.
+It never felt like they were just trying to fill a role.
+They gave me great advice and feedback that helped me improve my interviews.
+The staff were patient and understanding when I had questions.
+They worked hard to find positions that matched my skills perfectly.
+I was impressed with how quickly they responded to emails.
+Every interaction felt positive and genuine.
+I could tell they cared about people not just placements.
+They helped me polish my CV and made me feel prepared.
+The experience gave me a lot more confidence in my job search.
+I appreciated their honesty about what employers were looking for.
+They treated me with respect and kindness the entire time.
+I was never left waiting or wondering what was next.
+The attention to detail was incredible.
+They made sure I understood every step of the process.
+The agency felt reliable and trustworthy.
+I could feel their dedication from the very first call.
+They celebrated my success like it was their own.
+It felt good to know someone was in my corner.
+The whole process was fast but never rushed.
+They made me feel like a priority.
+I am so grateful for the effort they put into finding the right fit.
+They were always positive and encouraging even when I doubted myself.
+It felt like working with friends who wanted me to win.
+I would recommend them to anyone looking for a real career move.
+They made a stressful process feel simple and rewarding.
+I ended up with a role I love and I owe that to their hard work.
+The team was amazing and helped me find a job faster than I expected.
+They listened to what I wanted and actually cared about matching me with the right company.
+The process was smooth and easy from start to finish.
+Communication was quick and I always knew what was happening.
+They checked in often and made sure I felt confident before interviews.
+I felt supported the whole way through.
+They were professional but also friendly and approachable.
+I appreciated how honest they were about each opportunity.
+It never felt like they were just trying to fill a role.
+They gave me great advice and feedback that helped me improve my interviews.
+The staff were patient and understanding when I had questions.
+They worked hard to find positions that matched my skills perfectly.
+I was impressed with how quickly they responded to emails.
+Every interaction felt positive and genuine.
+I could tell they cared about people not just placements.
+They helped me polish my CV and made me feel prepared.
+The experience gave me a lot more confidence in my job search.
+I appreciated their honesty about what employers were looking for.
+They treated me with respect and kindness the entire time.
+I was never left waiting or wondering what was next.
+The attention to detail was incredible.
+They made sure I understood every step of the process.
+The agency felt reliable and trustworthy.
+I could feel their dedication from the very first call.
+They celebrated my success like it was their own.
+It felt good to know someone was in my corner.
+The whole process was fast but never rushed.
+They made me feel like a priority.
+I am so grateful for the effort they put into finding the right fit.
+They were always positive and encouraging even when I doubted myself.
+It felt like working with friends who wanted me to win.
+I would recommend them to anyone looking for a real career move.
+They made a stressful process feel simple and rewarding.
+I ended up with a role I love and I owe that to their hard work.`;
+
+const SENTENCES = BACKGROUND_TEXT.split(/(?<=\.)\s+/);
+
+export default function HomePage() {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const intervalMs = 30;
+    const durationMs = 10000;
+    const totalSteps = Math.ceil(durationMs / intervalMs);
+    let currentStep = 0;
+
+    const intervalId = setInterval(() => {
+      currentStep += 1;
+      setProgress((prev) => {
+        const next = Math.min(1, currentStep / totalSteps);
+        if (next >= 1) {
+          clearInterval(intervalId);
+        }
+        return next;
+      });
+    }, intervalMs);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const typedSentences = useMemo(
+    () =>
+      SENTENCES.map((sentence) => {
+        if (progress >= 1) {
+          return sentence;
+        }
+
+        const visibleCharacters = Math.floor(sentence.length * progress);
+        return sentence.slice(0, visibleCharacters);
+      }),
+    [progress]
+  );
+
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#EEECE0" }}>
-      <div className="text-center bg-white rounded-2xl shadow-lg p-12 max-w-md mx-4">
-        {/* Logo */}
-        <div className="flex justify-center mb-6">
-          <Navbar />
-          <svg
-            width="94"
-            height="97"
-            viewBox="0 0 94 97"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-20 h-20"
-          >
-            <g clipPath="url(#clip0_48_115)">
-              <path
-                d="M59.0125 77.4052C47.3171 76.2526 35.3941 68.5786 31.6597 57.0523C29.4388 50.7775 28.8358 43.2885 32.158 37.3157C33.5731 34.8687 35.7694 32.4956 38.3903 31.269C40.9496 30.517 45.5945 30.7697 48.0062 32.1751C48.5168 32.5203 49.9934 33.3894 49.4335 34.0982C48.9967 34.5112 48.2584 34.7208 47.717 35.0659C39.9283 40.3422 39.9837 51.9794 44.7886 59.2527C53.6663 72.9549 72.935 75.5314 87.5035 70.7853C88.0388 70.6866 88.4202 70.5942 88.5371 70.8962C88.654 71.1612 88.5248 71.642 88.2664 72.0427C80.8714 83.6122 70.1604 91.8963 58.385 95.2864C46.7388 98.8306 33.0932 96.8212 22.4314 89.7513C-17.9519 64.2454 -0.227329 0.0616017 47.1203 -3.651e-05C68.7454 -0.160296 88.1618 15.9643 92.8314 37.0199C94.7632 45.7602 94.5725 56.9352 90.1798 65.3488C78.6566 74.237 53.7708 70.9825 47.0957 57.1324C43.9027 51.3816 45.3484 43.2392 49.1505 38.0431C53.2417 32.7483 60.9628 32.3847 67.0535 34.7208C70.3327 36.0152 71.9076 38.0431 73.8025 40.9955C74.4608 42.0557 76.3926 41.6242 76.7494 40.7921C77.8138 38.2341 75.8143 34.6838 74.793 32.3415C72.5844 27.5892 67.1766 22.7814 63.0915 20.47C41.977 9.0731 13.0307 22.9355 9.55473 47.1039C9.39477 47.936 9.78851 47.936 10.0961 47.11C12.2802 39.9353 19.9335 30.1595 27.1624 27.0776C30.2201 25.8633 34.1268 25.0497 37.2829 24.908C35.8863 26.4489 33.327 28.2672 31.9981 29.95C28.7005 34.24 26.3134 38.7827 25.3229 44.176C24.4739 49.1564 24.2094 54.4203 26.1165 58.9569C32.8348 76.1231 50.1287 81.6829 67.0228 78.8907C67.5949 78.7674 71.2124 78.3483 69.822 77.4792C66.3952 77.2819 62.4947 77.775 59.1171 77.4052L59.0125 77.3929V77.4052Z"
-                fill="#082658"
-              />
-            </g>
-            <defs>
-              <clipPath id="clip0_48_115">
-                <rect width="94" height="97" fill="white" />
-              </clipPath>
-            </defs>
-          </svg>
-        </div>
+    <section className="hero-section">
+      <div className="hero-background-text" aria-hidden="true">
+        {typedSentences.map((sentence, index) => (
+          <span key={index}>
+            {sentence}
+            {progress < 1 && index === typedSentences.length - 1 ? "\u2588" : ""}
+            {index !== typedSentences.length - 1 ? " " : ""}
+          </span>
+        ))}
+      </div>
 
-        <h1 className="text-4xl font-normal text-[#082658] mb-8" style={{ fontFamily: "Montagu Slab, serif" }}>
-          Breakwaters
+      <div className="hero-content">
+        <h1 className="hero-title">
+          <span>We Break Barriers</span>
+          <span className="accent">for your success.</span>
         </h1>
 
-        <p className="text-lg text-[#082658] mb-8">
-          Welcome to Breakwaters. Please sign in to your account or create a new one.
-
-          THIS PAGE IS FOR TESTING PURPOSES ONLY. IT IS NOT A REAL HOME PAGE.
+        <p className="hero-subtext">
+          Submit your resume today and connect with top companies in search of the best talent.
         </p>
 
-        <div className="space-y-4">
-          <button type="submit" className="auth-button">
-            <Link to="/login">Log In</Link>
-          </button>
-
-          <button type="submit" className="auth-button">
-            <Link to="/signup">Sign Up</Link>
-          </button>
-
-          <button type="submit" className="auth-button">
-            <Link to="/dashboard">Dashboard</Link>
-          </button>
-        </div>
+        <button type="button" className="hero-cta">
+          Connect with us!
+        </button>
       </div>
-    </div>
+    </section>
   );
 }

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Montagu+Slab:wght@400;500&family=Roboto:wght@400&display=swap');
+
 :root {
   --font-size-headline: clamp(2.5rem, 2.4vw, 5rem);
   --font-size-title: clamp(1.5rem, 1vw, 2.75rem);
