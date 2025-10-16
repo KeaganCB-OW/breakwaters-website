@@ -97,14 +97,28 @@ export default function MissionSection({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        const { isIntersecting, boundingClientRect } = entry;
-        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        if (!entry || entry.target !== sectionEl) {
+          return;
+        }
+
+        const { isIntersecting, boundingClientRect, intersectionRect, rootBounds } = entry;
+        const viewportHeight =
+          rootBounds?.height ?? window.innerHeight ?? document.documentElement.clientHeight;
+        const viewportTop = rootBounds?.top ?? 0;
+        const viewportBottom = rootBounds?.bottom ?? viewportTop + viewportHeight;
+        const sectionHeight = boundingClientRect.height;
+        const visibleHeight = intersectionRect.height;
+
+        const fitsViewport = sectionHeight <= viewportHeight + VISIBILITY_TOLERANCE;
         const fullyVisible =
           isIntersecting &&
-          boundingClientRect.top >= -VISIBILITY_TOLERANCE &&
-          boundingClientRect.bottom <= viewportHeight + VISIBILITY_TOLERANCE;
+          (fitsViewport
+            ? boundingClientRect.top >= viewportTop - VISIBILITY_TOLERANCE &&
+              boundingClientRect.bottom <= viewportBottom + VISIBILITY_TOLERANCE
+            : visibleHeight >= viewportHeight - VISIBILITY_TOLERANCE &&
+              Math.abs(boundingClientRect.top - viewportTop) <= VISIBILITY_TOLERANCE);
 
-        setSectionActive(isIntersecting);
+        setSectionActive(isIntersecting && visibleHeight > viewportHeight * 0.25);
 
         if (wavePhase === "idle") {
           setTitleVisible(fullyVisible);
