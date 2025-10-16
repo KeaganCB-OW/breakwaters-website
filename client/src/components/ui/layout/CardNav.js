@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { GoArrowUpRight } from 'react-icons/go';
 import '../../../styling/CardNav.css';
@@ -17,9 +17,42 @@ const CardNav = ({
 }) => {
   const [isHamburgerOpen, setIsHamburgerOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isFloating, setIsFloating] = useState(false);
+  const [isCircleCollapsed, setIsCircleCollapsed] = useState(false);
+  const containerRef = useRef(null);
   const navRef = useRef(null);
   const cardsRef = useRef([]);
   const tlRef = useRef(null);
+  const navThresholdRef = useRef(0);
+  const scrollFrameRef = useRef(null);
+
+  const closeMenuInstant = useCallback(() => {
+    const tl = tlRef.current;
+    if (tl) {
+      tl.pause(0);
+      tl.seek(0);
+    }
+
+    if (navRef.current) {
+      gsap.set(navRef.current, { height: 60 });
+    }
+
+    if (cardsRef.current.length) {
+      gsap.set(cardsRef.current, { y: 50, opacity: 0 });
+    }
+
+    setIsHamburgerOpen(false);
+    setIsExpanded(false);
+  }, []);
+
+  const updateFloatingThreshold = useCallback(() => {
+    if (!containerRef.current || isFloating) return;
+
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const navHeight = navRef.current?.offsetHeight ?? containerRect.height ?? 0;
+
+    navThresholdRef.current = containerRect.top + window.scrollY + navHeight + 40;
+  }, [isFloating]);
 
   const calculateHeight = () => {
     const navEl = navRef.current;
@@ -78,11 +111,61 @@ const CardNav = ({
     const tl = createTimeline();
     tlRef.current = tl;
 
+    if (!isFloating) {
+      updateFloatingThreshold();
+    }
+
     return () => {
       tl?.kill();
       tlRef.current = null;
     };
-  }, [ease, items]);
+  }, [ease, isFloating, items, updateFloatingThreshold]);
+
+  useLayoutEffect(() => {
+    updateFloatingThreshold();
+    window.addEventListener('resize', updateFloatingThreshold);
+
+    return () => {
+      window.removeEventListener('resize', updateFloatingThreshold);
+    };
+  }, [updateFloatingThreshold]);
+
+  useEffect(() => {
+    if (!isFloating) {
+      updateFloatingThreshold();
+    }
+  }, [isExpanded, isFloating, updateFloatingThreshold]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (scrollFrameRef.current) return;
+
+      scrollFrameRef.current = window.requestAnimationFrame(() => {
+        scrollFrameRef.current = null;
+        const shouldFloat = window.scrollY > navThresholdRef.current;
+
+        if (shouldFloat && !isFloating) {
+          setIsCircleCollapsed(true);
+          closeMenuInstant();
+          setIsFloating(true);
+        } else if (!shouldFloat && isFloating) {
+          setIsFloating(false);
+          setIsCircleCollapsed(false);
+        }
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollFrameRef.current) {
+        window.cancelAnimationFrame(scrollFrameRef.current);
+        scrollFrameRef.current = null;
+      }
+    };
+  }, [closeMenuInstant, isFloating]);
 
   useLayoutEffect(() => {
     const handleResize = () => {
@@ -112,6 +195,8 @@ const CardNav = ({
   }, [isExpanded]);
 
   const toggleMenu = () => {
+    if (isFloating && isCircleCollapsed) return;
+
     const tl = tlRef.current;
     if (!tl) return;
     if (!isExpanded) {
@@ -123,6 +208,18 @@ const CardNav = ({
       tl.eventCallback('onReverseComplete', () => setIsExpanded(false));
       tl.reverse();
     }
+  };
+
+  const handleFloatingToggle = () => {
+    if (!isFloating) return;
+
+    setIsCircleCollapsed(prev => {
+      const next = !prev;
+      if (next) {
+        closeMenuInstant();
+      }
+      return next;
+    });
   };
 
   const setCardRef = index => element => {
@@ -145,8 +242,19 @@ const CardNav = ({
     );
   };
 
+  const containerClasses = ['card-nav-container', className];
+  if (isFloating) {
+    containerClasses.push('card-nav-container--floating');
+    containerClasses.push(
+      isCircleCollapsed ? 'card-nav-container--floating-collapsed' : 'card-nav-container--floating-expanded'
+    );
+  }
+
+  const floatingToggleColor = menuColor || buttonBgColor || '#082658';
+  const floatingToggleTextColor = buttonTextColor || '#ffffff';
+
   return (
-    <div className={`card-nav-container ${className}`}>
+    <div ref={containerRef} className={containerClasses.filter(Boolean).join(' ')}>
       <nav ref={navRef} className={`card-nav ${isExpanded ? 'open' : ''}`} style={{ backgroundColor: baseColor }}>
         <div className="card-nav-top">
           <div
@@ -191,6 +299,24 @@ const CardNav = ({
           ))}
         </div>
       </nav>
+      {isFloating && (
+        <button
+          type="button"
+          className={`card-nav-floating-toggle ${
+            isCircleCollapsed ? 'card-nav-floating-toggle--collapsed' : 'card-nav-floating-toggle--expanded'
+          }`}
+          onClick={handleFloatingToggle}
+          aria-expanded={!isCircleCollapsed}
+          aria-label={isCircleCollapsed ? 'Expand navigation' : 'Collapse navigation'}
+          style={{ backgroundColor: floatingToggleColor, color: floatingToggleTextColor }}
+        >
+          <span className="card-nav-floating-toggle-icon">
+            <span />
+            <span />
+            <span />
+          </span>
+        </button>
+      )}
     </div>
   );
 };

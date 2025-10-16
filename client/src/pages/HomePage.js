@@ -16,10 +16,7 @@ export default function HomePage() {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setMissionVisible(true);
-          observer.unobserve(entry.target);
-        }
+        setMissionVisible(entry.isIntersecting);
       },
       { threshold: 0.6 }
     );
