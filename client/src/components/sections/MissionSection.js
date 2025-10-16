@@ -32,11 +32,29 @@ export default function MissionSection({
   const [isTitleVisible, setTitleVisible] = useState(false);
   const [isSubtextVisible, setSubtextVisible] = useState(false);
   const [isUpdatedTextVisible, setUpdatedTextVisible] = useState(false);
-  const [wavePhase, setWavePhase] = useState("idle");
+  const [wavePhase, setWavePhaseState] = useState("idle");
+  const wavePhaseRef = useRef("idle");
+  const setWavePhase = useCallback((nextPhase) => {
+    wavePhaseRef.current = nextPhase;
+    setWavePhaseState(nextPhase);
+  }, []);
   const [missionLines, setMissionLines] = useState(() => [...latestInitialLinesRef.current]);
-  const [canTriggerWave, setCanTriggerWave] = useState(false);
-  const [isSectionActive, setSectionActive] = useState(false);
-  const [isSectionReady, setSectionReady] = useState(false);
+  const [canTriggerWave, setCanTriggerWaveState] = useState(false);
+  const canTriggerWaveRef = useRef(false);
+  const setCanTriggerWave = useCallback((nextValue) => {
+    canTriggerWaveRef.current = nextValue;
+    setCanTriggerWaveState(nextValue);
+  }, []);
+  const isSectionActiveRef = useRef(false);
+  const setSectionActive = useCallback((nextValue) => {
+    isSectionActiveRef.current = nextValue;
+  }, []);
+  const [isSectionReady, setSectionReadyState] = useState(false);
+  const isSectionReadyRef = useRef(false);
+  const setSectionReady = useCallback((nextValue) => {
+    isSectionReadyRef.current = nextValue;
+    setSectionReadyState(nextValue);
+  }, []);
 
   useEffect(() => {
     latestInitialLinesRef.current = normalizeLines(initialLines);
@@ -66,7 +84,24 @@ export default function MissionSection({
     setTitleVisible(false);
     setSectionReady(false);
     touchStartYRef.current = null;
-  }, [clearWaveDelayTimeout]);
+  }, [clearWaveDelayTimeout, setCanTriggerWave, setSectionReady, setWavePhase]);
+
+  const triggerWave = useCallback(() => {
+    if (
+      wavePhaseRef.current !== "idle" ||
+      !isSectionActiveRef.current ||
+      !isSectionReadyRef.current ||
+      !canTriggerWaveRef.current
+    ) {
+      return false;
+    }
+
+    clearWaveDelayTimeout();
+    setWavePhase("covering");
+    setCanTriggerWave(false);
+    touchStartYRef.current = null;
+    return true;
+  }, [clearWaveDelayTimeout, setCanTriggerWave, setWavePhase]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -101,38 +136,65 @@ export default function MissionSection({
           return;
         }
 
-        const { isIntersecting, boundingClientRect, intersectionRect, rootBounds } = entry;
+        const {
+          isIntersecting,
+          boundingClientRect,
+          intersectionRect,
+          rootBounds,
+          intersectionRatio: rawIntersectionRatio,
+        } = entry;
         const viewportHeight =
           rootBounds?.height ?? window.innerHeight ?? document.documentElement.clientHeight;
         const viewportTop = rootBounds?.top ?? 0;
-        const viewportBottom = rootBounds?.bottom ?? viewportTop + viewportHeight;
+        const viewportBottom = viewportTop + viewportHeight;
         const sectionHeight = boundingClientRect.height;
         const visibleHeight = intersectionRect.height;
+        const intersectionRatio =
+          rawIntersectionRatio ??
+          (sectionHeight > 0 ? Math.min(1, visibleHeight / sectionHeight) : 0);
 
-        const fitsViewport = sectionHeight <= viewportHeight + VISIBILITY_TOLERANCE;
-        const fullyVisible =
-          isIntersecting &&
-          (fitsViewport
-            ? boundingClientRect.top >= viewportTop - VISIBILITY_TOLERANCE &&
-              boundingClientRect.bottom <= viewportBottom + VISIBILITY_TOLERANCE
-            : visibleHeight >= viewportHeight - VISIBILITY_TOLERANCE &&
-              Math.abs(boundingClientRect.top - viewportTop) <= VISIBILITY_TOLERANCE);
+        const sectionFullyFits = sectionHeight <= viewportHeight + VISIBILITY_TOLERANCE;
+        const topAligned = boundingClientRect.top <= viewportTop + VISIBILITY_TOLERANCE;
+        const bottomAligned = boundingClientRect.bottom <= viewportBottom + VISIBILITY_TOLERANCE;
+        const viewportFilled = visibleHeight >= viewportHeight - VISIBILITY_TOLERANCE;
+        const reachedSectionBottom = isIntersecting && bottomAligned;
 
-        setSectionActive(isIntersecting && visibleHeight > viewportHeight * 0.25);
+        const readyToLock = isIntersecting
+          ? sectionFullyFits
+            ? reachedSectionBottom && topAligned
+            : reachedSectionBottom && viewportFilled
+          : false;
 
-        if (wavePhase === "idle") {
-          setTitleVisible(fullyVisible);
-          setSectionReady(fullyVisible);
-        } else {
-          setTitleVisible(isIntersecting);
-          if (!isIntersecting) {
-            setSectionReady(false);
-          }
+        const nextSectionActive =
+          isIntersecting && (intersectionRatio >= 0.4 || visibleHeight >= viewportHeight * 0.6);
+        if (nextSectionActive !== isSectionActiveRef.current) {
+          setSectionActive(nextSectionActive);
         }
 
-        if (wavePhase === "idle" && !fullyVisible) {
-          setCanTriggerWave(false);
-          clearWaveDelayTimeout();
+        const shouldRevealTitle = isIntersecting && (intersectionRatio >= 0.35 || readyToLock);
+
+        if (wavePhase === "idle") {
+          setTitleVisible(shouldRevealTitle);
+          if (readyToLock) {
+            if (!isSectionReadyRef.current) {
+              setSectionReady(true);
+            }
+          } else if (
+            isSectionReadyRef.current &&
+            (!isIntersecting ||
+              (scrollDirectionRef.current === "up" &&
+                (boundingClientRect.top > viewportTop + VISIBILITY_TOLERANCE ||
+                  intersectionRatio < 0.5)))
+          ) {
+            setSectionReady(false);
+            setCanTriggerWave(false);
+            clearWaveDelayTimeout();
+          }
+        } else {
+          setTitleVisible(isIntersecting);
+          if (!isIntersecting && isSectionReadyRef.current) {
+            setSectionReady(false);
+          }
         }
 
         if (!isIntersecting && scrollDirectionRef.current === "up") {
@@ -147,10 +209,13 @@ export default function MissionSection({
     return () => {
       observer.disconnect();
     };
-  }, [clearWaveDelayTimeout, resetMissionExperience, wavePhase]);
+  }, [clearWaveDelayTimeout, resetMissionExperience, setCanTriggerWave, setSectionActive, setSectionReady, wavePhase]);
 
   useEffect(() => {
     if (!isSectionReady || wavePhase !== "idle") {
+      if (canTriggerWaveRef.current) {
+        setCanTriggerWave(false);
+      }
       clearWaveDelayTimeout();
       return undefined;
     }
@@ -166,29 +231,52 @@ export default function MissionSection({
     return () => {
       clearWaveDelayTimeout();
     };
-  }, [clearWaveDelayTimeout, isSectionReady, wavePhase, waveTriggerDelay]);
+  }, [clearWaveDelayTimeout, isSectionReady, setCanTriggerWave, wavePhase, waveTriggerDelay]);
 
   useEffect(() => {
-    if (!isSectionReady || wavePhase !== "idle" || !isSectionActive) {
+    if (!isSectionActiveRef.current) {
       return undefined;
     }
 
-    const triggerWave = () => {
-      if (!canTriggerWave) {
-        return false;
+    if (!isSectionReady || wavePhase !== "idle" || !canTriggerWave || wavePhaseRef.current !== "idle") {
+      return undefined;
+    }
+
+    const autoStartId = window.requestAnimationFrame(() => {
+      triggerWave();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(autoStartId);
+    };
+  }, [canTriggerWave, isSectionReady, triggerWave, wavePhase]);
+
+  useEffect(() => {
+    const handleWheel = (event) => {
+      const isScrollingDown = event.deltaY > 0;
+      const phase = wavePhaseRef.current;
+      const isLockingPhase = phase === "covering" || phase === "revealing";
+      const isIdlePhase = phase === "idle";
+
+      if (!isScrollingDown) {
+        return;
       }
 
-      clearWaveDelayTimeout();
-      setWavePhase("covering");
-      setCanTriggerWave(false);
-      touchStartYRef.current = null;
-      return true;
-    };
+      if (isLockingPhase) {
+        event.preventDefault();
+        return;
+      }
 
-    const handleWheel = (event) => {
-      if (event.deltaY <= 0) return;
+      if (!isIdlePhase) {
+        return;
+      }
+
+      if (!isSectionActiveRef.current || !isSectionReadyRef.current) {
+        return;
+      }
+
       const waveStarted = triggerWave();
-      if (waveStarted || !canTriggerWave) {
+      if (waveStarted || !canTriggerWaveRef.current) {
         event.preventDefault();
       }
     };
@@ -198,13 +286,39 @@ export default function MissionSection({
     };
 
     const handleTouchMove = (event) => {
-      if (touchStartYRef.current == null) return;
-      const deltaY = touchStartYRef.current - (event.touches[0]?.clientY ?? touchStartYRef.current);
-      if (deltaY <= 0) return;
+      if (touchStartYRef.current == null) {
+        return;
+      }
+
+      const currentY = event.touches[0]?.clientY ?? touchStartYRef.current;
+      const deltaY = touchStartYRef.current - currentY;
+      const isScrollingDown = deltaY > 0;
+      const phase = wavePhaseRef.current;
+      const isLockingPhase = phase === "covering" || phase === "revealing";
+      const isIdlePhase = phase === "idle";
+
+      if (!isScrollingDown) {
+        return;
+      }
+
+      if (isLockingPhase) {
+        event.preventDefault();
+        return;
+      }
+
+      if (!isIdlePhase) {
+        return;
+      }
+
+      if (!isSectionActiveRef.current || !isSectionReadyRef.current) {
+        return;
+      }
+
       const waveStarted = triggerWave();
-      if (waveStarted || !canTriggerWave) {
+      if (waveStarted || !canTriggerWaveRef.current) {
         event.preventDefault();
       }
+
       if (waveStarted) {
         touchStartYRef.current = null;
       }
@@ -220,6 +334,10 @@ export default function MissionSection({
         return;
       }
 
+      const isLockingPhase =
+        wavePhaseRef.current === "covering" || wavePhaseRef.current === "revealing";
+      const isIdlePhase = wavePhaseRef.current === "idle";
+
       if (
         event.key === "ArrowDown" ||
         event.key === "PageDown" ||
@@ -227,8 +345,21 @@ export default function MissionSection({
         event.key === " " ||
         event.key === "Spacebar"
       ) {
+        if (isLockingPhase) {
+          event.preventDefault();
+          return;
+        }
+
+        if (!isIdlePhase) {
+          return;
+        }
+
+        if (!isSectionActiveRef.current || !isSectionReadyRef.current) {
+          return;
+        }
+
         const waveStarted = triggerWave();
-        if (waveStarted || !canTriggerWave) {
+        if (waveStarted || !canTriggerWaveRef.current) {
           event.preventDefault();
         }
       }
@@ -246,19 +377,7 @@ export default function MissionSection({
       window.removeEventListener("keydown", handleKeyDown);
       touchStartYRef.current = null;
     };
-  }, [canTriggerWave, clearWaveDelayTimeout, isSectionActive, isSectionReady, wavePhase]);
-
-  useEffect(() => {
-    const shouldLockScroll = wavePhase === "covering" || wavePhase === "revealing";
-    if (!shouldLockScroll) return undefined;
-
-    const { overflow } = document.body.style;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = overflow;
-    };
-  }, [wavePhase]);
+  }, [triggerWave]);
 
   const handleWaveAnimationEnd = () => {
     if (wavePhase === "covering") {
@@ -271,6 +390,7 @@ export default function MissionSection({
     if (wavePhase === "revealing") {
       setWavePhase("done");
       setSubtextVisible(true);
+      setCanTriggerWave(true);
     }
   };
 
