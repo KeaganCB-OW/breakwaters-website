@@ -14,8 +14,10 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: min(1866px, 95vw);
-  height: min(1008px, 95vh);
+  width: 1866px;
+  height: 1008px;
+  box-sizing: border-box;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
