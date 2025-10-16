@@ -1,5 +1,6 @@
 import "../styling/home.css";
 import AppCardNav from "../components/ui/layout/AppCardNav";
+import heroWave from "../assets/svgs/Hero-wave.svg";
 
 const HERO_TITLE = "We Break Barriers\nfor your success.";
 
@@ -23,6 +24,14 @@ export default function HomePage() {
 
         
       </div>
+      <div className="hero-wave-accent" aria-hidden="true" />
+      <img
+        src={heroWave}
+        alt=""
+        className="hero-wave"
+        decoding="async"
+        aria-hidden="true"
+      />
     </section>
   );
 }
