@@ -154,11 +154,11 @@
 }
 
 .mission-wave--covering {
-  animation: mission-wave-cover 1s ease-in forwards;
+  animation: mission-wave-cover 0.5s ease-in forwards;
 }
 
 .mission-wave--revealing {
-  animation: mission-wave-reveal 1s ease-out forwards;
+  animation: mission-wave-reveal 0.5s ease-out forwards;
 }
 
 .mission-title {
@@ -207,7 +207,7 @@
   color: rgba(255, 255, 255, 0.74);
   opacity: 0;
   transform: translateY(32px);
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.1s ease, transform 0.1s ease;
 }
 
 .mission-subtext--visible {

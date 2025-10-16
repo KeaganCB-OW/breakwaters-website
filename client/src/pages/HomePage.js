@@ -8,8 +8,10 @@ const INITIAL_MISSION_LINES = ["What we do", "and why we do it."];
 const UPDATED_MISSION_LINES = ["Its simple.", "We want to get you hired."];
 const UPDATED_MISSION_SUBTEXT =
   "We connect people to opportunity. By streamlining the job application and recruitment process, we help candidates get noticed and companies find the right fit quickly, simply, and meaningfully.";
+const TEAM_INTRO_LINES = ["Meet the crew."];
+const TEAN_INTRO_SUBTEXT = ["We're here to help you succeed."]
 
-function MissionCallToAction() {
+/*function MissionCallToAction() {
   return (
     <div className="mission-call-to-action">
       <h3>Ready to take the next step?</h3>
@@ -30,7 +32,7 @@ function MissionCallToAction() {
       </div>
     </div>
   );
-}
+}*/
 
 const MISSION_ENTRIES = [
   { id: "mission-intro", lines: INITIAL_MISSION_LINES },
@@ -40,8 +42,9 @@ const MISSION_ENTRIES = [
     subtext: UPDATED_MISSION_SUBTEXT,
   },
   {
-    id: "mission-component",
-    component: <MissionCallToAction />,
+    id: "team-intro",
+    lines: TEAM_INTRO_LINES,
+    subtext: TEAN_INTRO_SUBTEXT,
   },
 ];
 
