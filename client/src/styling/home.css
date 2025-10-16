@@ -100,7 +100,7 @@
   width: 100%;
   position: absolute;
   inset: 0;
-  background-color: #29436e;
+  background-image: url('../assets/images/Mission-wave.png');
   transform: translateY(100%);
   pointer-events: none;
   overflow: hidden;
