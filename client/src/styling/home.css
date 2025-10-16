@@ -77,26 +77,26 @@
   max-width: min(100%, 900px);
   color: #082658;
   font-family: 'Roboto', sans-serif;
-  font-size: clamp(20px, 1.5vw, 96px);
+  font-size: clamp(20px, 1.5vw, 28px);
   font-style: normal;
   font-weight: 400;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .hero-cta {
   margin-top: 52px;
   height: 60px;
   width: fit-content;
-  padding: 2vh;
+  padding: 2vh 56px;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: #082658;
   color: #fff;
   font-family: 'Montagu Slab', serif;
-  font-size: 24px;
+  font-size: clamp(20px, 2.2vw, 24px);
   font-weight: 400;
-  line-height: normal;
+  line-height: 1;
   border: none;
   border-radius: 12px;
   cursor: pointer;
@@ -137,29 +137,106 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
   .hero-content {
-    padding-top: 200px;
+    padding-top: 248px;
+    padding-left: clamp(1.25rem, 2.5vw, 2rem);
+    padding-right: clamp(1.25rem, 2.5vw, 2rem);
+  }
+
+  .hero-title {
+    min-height: 228px;
+    font-size: clamp(46px, 6.5vw, 88px);
+  }
+
+  .hero-subtext {
+    font-size: clamp(18px, 2.1vw, 24px);
+    margin-top: clamp(18px, 1.4vw, 24px);
+  }
+
+  .hero-cta {
+    font-size: clamp(20px, 1.9vw, 23px);
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 900px) {
   .hero-content {
-    padding-top: 160px;
+    padding-top: 208px;
+    gap: 16px;
+    padding-left: clamp(1.25rem, 4vw, 2rem);
+    padding-right: clamp(1.25rem, 4vw, 2rem);
+  }
+
+  .hero-title {
+    min-height: 210px;
+    font-size: clamp(40px, 8.5vw, 72px);
+    line-height: 1.1;
+  }
+
+  .hero-subtext {
+    font-size: clamp(18px, 3.4vw, 22px);
+    line-height: 1.55;
+    margin-top: clamp(18px, 3vw, 28px);
+  }
+
+  .hero-cta {
+    height: auto;
+    padding: clamp(16px, 2.8vw, 24px) clamp(28px, 8vw, 48px);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-content {
+    padding-top: 184px;
+    padding-left: clamp(1rem, 5vw, 1.75rem);
+    padding-right: clamp(1rem, 5vw, 1.75rem);
+    gap: 18px;
   }
 
   .hero-title {
     min-height: auto;
+    font-size: clamp(36px, 10vw, 64px);
   }
 
   .hero-subtext {
-    margin-top: 30px;
-    min-height: auto;
+    margin-top: 20px;
+    font-size: clamp(16px, 4.8vw, 21px);
+    padding: 0 0.5rem;
   }
 
   .hero-cta {
-    margin-top: 40px;
-    height: 56px;
-    font-size: 20px;
+    margin-top: 32px;
+    padding: clamp(14px, 3.5vw, 20px) clamp(24px, 10vw, 40px);
+    font-size: clamp(18px, 4.6vw, 20px);
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    min-height: auto;
+    padding-bottom: 80px;
+  }
+
+  .hero-content {
+    padding-top: 144px;
+    gap: 20px;
+    padding-left: clamp(1rem, 6vw, 1.5rem);
+    padding-right: clamp(1rem, 6vw, 1.5rem);
+  }
+
+  .hero-title {
+    font-size: clamp(32px, 12vw, 52px);
+  }
+
+  .hero-subtext {
+    margin-top: 16px;
+    font-size: clamp(15px, 5vw, 19px);
+  }
+
+  .hero-cta {
+    width: 100%;
+    max-width: 320px;
+    margin-top: 28px;
+    padding: clamp(14px, 4vw, 20px);
   }
 }
