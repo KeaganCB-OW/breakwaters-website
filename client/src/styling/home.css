@@ -9,34 +9,6 @@
   overflow: hidden;
 }
 
-.hero-background-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 1866px;
-  height: 1008px;
-  box-sizing: border-box;
-  overflow: hidden;
-  display: grid;
-  place-items: center;
-  text-align: center;
-  font-family: 'Montagu Slab', serif;
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 1.4;
-  color: #000;
-  opacity: 0.15;
-  pointer-events: none;
-  padding: 2rem;
-}
-
-.hero-background-text-content {
-  max-width: 100%;
-  margin: 0;
-  white-space: pre-wrap;
-}
-
 .hero-content {
   position: relative;
   z-index: 1;
@@ -63,12 +35,36 @@
   font-weight: 500;
   font-size: clamp(48px, 6vw, 96px);
   line-height: 1.05;
-  color: #082658;
+  color: #fff;
   margin: 0;
 }
 
-.hero-title .accent {
-  color: #5584D3;
+.hero-title span {
+  display: block;
+}
+
+.hero-title::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  color: #082658;
+  text-align: center;
+  white-space: pre-line;
+  pointer-events: none;
+  mix-blend-mode: normal;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40' preserveAspectRatio='none'%3E%3Cpath fill='%23ffffff' d='M0 20C10 5 30 5 40 20c10 15 30 15 40 0 10-15 30-15 40 0 10 15 30 15 40 0V40H0Z'/%3E%3C/svg%3E");
+  mask-size: 200% 100%;
+  mask-repeat: repeat-x;
+  animation: hero-wave-motion 8s linear infinite;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40' preserveAspectRatio='none'%3E%3Cpath fill='%23ffffff' d='M0 20C10 5 30 5 40 20c10 15 30 15 40 0 10-15 30-15 40 0 10 15 30 15 40 0V40H0Z'/%3E%3C/svg%3E");
+  -webkit-mask-size: 200% 100%;
+  -webkit-mask-repeat: repeat-x;
+  -webkit-animation: hero-wave-motion 8s linear infinite;
 }
 
 .hero-subtext {
@@ -111,13 +107,33 @@
   outline-offset: 2px;
 }
 
+@keyframes hero-wave-motion {
+  0% {
+    mask-position: 0 0;
+    -webkit-mask-position: 0 0;
+  }
+
+  100% {
+    mask-position: 200% 0;
+    -webkit-mask-position: 200% 0;
+  }
+}
+
+@-webkit-keyframes hero-wave-motion {
+  0% {
+    mask-position: 0 0;
+    -webkit-mask-position: 0 0;
+  }
+
+  100% {
+    mask-position: 200% 0;
+    -webkit-mask-position: 200% 0;
+  }
+}
+
 @media (max-width: 768px) {
   .hero-content {
     padding-top: 200px;
-  }
-
-  .hero-background-text {
-    font-size: 12px;
   }
 }
 
