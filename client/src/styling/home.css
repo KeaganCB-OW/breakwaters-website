@@ -77,7 +77,7 @@
 .mission-section {
   position: relative;
   min-height: 70vh;
-  background-color: #06162F;
+  background: linear-gradient(160deg, #040f20 0%, #06162f 45%, #0b2748 100%);
   display: flex;
   align-items: center;
   justify-content: center;
