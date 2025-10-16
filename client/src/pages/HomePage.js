@@ -9,12 +9,15 @@ const UPDATED_MISSION_LINES = ["Its simple.", "We want to get you hired."];
 const UPDATED_MISSION_SUBTEXT =
   "We connect people to opportunity. By streamlining the job application and recruitment process, we help candidates get noticed and companies find the right fit quickly, simply, and meaningfully.";
 const WAVE_TRIGGER_DELAY_MS = 1000;
+const OBSERVER_THRESHOLDS = Array.from({ length: 101 }, (_, index) => index / 100);
 
 export default function HomePage() {
+  const heroSectionRef = useRef(null);
   const missionSectionRef = useRef(null);
   const touchStartYRef = useRef(null);
   const waveDelayTimeoutRef = useRef(null);
   const [isMissionVisible, setMissionVisible] = useState(false);
+  const [isMissionReady, setMissionReady] = useState(false);
   const [missionLines, setMissionLines] = useState(INITIAL_MISSION_LINES);
   const [wavePhase, setWavePhase] = useState("idle"); // idle | covering | revealing | done
   const [canTriggerWave, setCanTriggerWave] = useState(false);
@@ -35,6 +38,8 @@ export default function HomePage() {
     setUpdatedTextVisible(false);
     setSubtextVisible(false);
     setCanTriggerWave(false);
+    setMissionVisible(false);
+    setMissionReady(false);
     touchStartYRef.current = null;
   }, [clearWaveDelayTimeout]);
 
@@ -45,21 +50,29 @@ export default function HomePage() {
     const observer = new IntersectionObserver(
       ([entry]) => {
         const { isIntersecting, boundingClientRect } = entry;
-        setMissionVisible(isIntersecting);
+        const fillsViewport =
+          isIntersecting &&
+          boundingClientRect.top <= 1 &&
+          boundingClientRect.bottom >= window.innerHeight * 0.6;
 
-        if (!isIntersecting) {
+        setMissionReady(fillsViewport);
+        setMissionVisible(wavePhase !== "idle" ? isIntersecting : fillsViewport);
+
+        if (!fillsViewport) {
           setCanTriggerWave(false);
           clearWaveDelayTimeout();
+        }
 
-          const hasScrolledPast =
-            boundingClientRect.bottom < 0 || boundingClientRect.top > window.innerHeight;
-
-          if (hasScrolledPast && wavePhase !== "idle") {
+        if (!isIntersecting) {
+          if (wavePhase !== "idle" || isUpdatedTextVisible || isSubtextVisible) {
             resetMissionExperience();
+          } else {
+            setMissionVisible(false);
+            setMissionReady(false);
           }
         }
       },
-      { threshold: 0.6 }
+      { threshold: OBSERVER_THRESHOLDS }
     );
 
     observer.observe(sectionEl);
@@ -67,10 +80,34 @@ export default function HomePage() {
     return () => {
       observer.disconnect();
     };
-  }, [clearWaveDelayTimeout, resetMissionExperience, wavePhase]);
+  }, [clearWaveDelayTimeout, isSubtextVisible, isUpdatedTextVisible, resetMissionExperience, wavePhase]);
 
   useEffect(() => {
-    if (!isMissionVisible || wavePhase !== "idle") {
+    const heroEl = heroSectionRef.current;
+    if (!heroEl) return undefined;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) {
+          return;
+        }
+
+        if (wavePhase !== "idle" || isUpdatedTextVisible || isSubtextVisible) {
+          resetMissionExperience();
+        }
+      },
+      { threshold: 0.15 }
+    );
+
+    observer.observe(heroEl);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [isSubtextVisible, isUpdatedTextVisible, resetMissionExperience, wavePhase]);
+
+  useEffect(() => {
+    if (!isMissionReady || wavePhase !== "idle") {
       clearWaveDelayTimeout();
       return undefined;
     }
@@ -86,10 +123,10 @@ export default function HomePage() {
     return () => {
       clearWaveDelayTimeout();
     };
-  }, [clearWaveDelayTimeout, isMissionVisible, wavePhase]);
+  }, [clearWaveDelayTimeout, isMissionReady, wavePhase]);
 
   useEffect(() => {
-    if (!isMissionVisible || wavePhase !== "idle") {
+    if (!isMissionReady || wavePhase !== "idle") {
       return undefined;
     }
 
@@ -166,7 +203,7 @@ export default function HomePage() {
       window.removeEventListener("keydown", handleKeyDown);
       touchStartYRef.current = null;
     };
-  }, [canTriggerWave, clearWaveDelayTimeout, isMissionVisible, wavePhase]);
+  }, [canTriggerWave, clearWaveDelayTimeout, isMissionReady, wavePhase]);
 
   useEffect(() => {
     const shouldLockScroll = wavePhase === "covering" || wavePhase === "revealing";
@@ -196,7 +233,7 @@ export default function HomePage() {
 
   return (
     <main className="home-page">
-      <section className="hero-section">
+      <section className="hero-section" ref={heroSectionRef}>
         <div className="hero-content">
           <AppCardNav />
           <h1 className="hero-title" data-text={HERO_TITLE}>
