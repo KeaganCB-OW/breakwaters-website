@@ -23,6 +23,12 @@ const STEP_FIELDS = {
   3: ['education', 'linkedinUrl'],
 };
 
+const STEP_TITLES = {
+  1: 'Submit your resume',
+  2: 'Professional snapshot',
+  3: 'Education & links',
+};
+
 const validators = {
   fullName: value => {
     const trimmed = String(value ?? '').trim();
@@ -160,6 +166,21 @@ function ResumeFormField({
         className="resume-form-field__control"
       />
       {error && <p className="resume-form-field__feedback">{error}</p>}
+    </div>
+  );
+}
+
+function StepperBody({ children, className = '', role }) {
+  const innerProps = role ? { role } : {};
+  return (
+    <div className="outer-container resume-modal__shell">
+      <div className="step-circle-container">
+        <div className="step-content-default">
+          <div className={["step-default", className].filter(Boolean).join(' ')} {...innerProps}>
+            {children}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -355,26 +376,26 @@ export default function ResumeSubmissionModal() {
 
   if (isCheckingStatus) {
     bodyContent = (
-      <div className="resume-modal__status" role="status">
-        <h2 id="resume-modal-title" className="resume-modal__heading">Checking your submission status</h2>
+      <StepperBody className="resume-modal__status" role="status">
+        <h2 className="resume-modal__heading">Checking your submission status</h2>
         <p className="resume-modal__status-text">Hang tight while we load your details.</p>
-      </div>
+      </StepperBody>
     );
   } else if (statusError) {
     bodyContent = (
-      <div className="resume-modal__message">
-        <h2 id="resume-modal-title" className="resume-modal__heading">Something went wrong</h2>
+      <StepperBody className="resume-modal__message">
+        <h2 className="resume-modal__heading">Something went wrong</h2>
         <p>{statusError}</p>
         <button type="button" className="resume-modal__primary" onClick={handleClose}>
           Close
         </button>
-      </div>
+      </StepperBody>
     );
   } else if (showSuccess || hasSubmitted) {
     const record = showSuccess ? successRecord : clientRecord;
     bodyContent = (
-      <div className="resume-modal__message">
-        <h2 id="resume-modal-title" className="resume-modal__heading">Thank you for submitting!</h2>
+      <StepperBody className="resume-modal__message">
+        <h2 className="resume-modal__heading">Thank you for submitting!</h2>
         {record ? (
           <p>
             We have received your details{record.fullName ? `, ${record.fullName}` : ''}. Our team will reach out if a role matches
@@ -400,164 +421,174 @@ export default function ResumeSubmissionModal() {
         <button type="button" className="resume-modal__primary" onClick={handleClose}>
           Close
         </button>
-      </div>
+      </StepperBody>
     );
   } else {
     bodyContent = (
-      <div className="resume-modal__stepper-wrapper">
-        <h2 id="resume-modal-title" className="resume-modal__heading">
-          Submit your resume
-        </h2>
-        <p className="resume-modal__description">
-          Complete the steps below so we can match you with opportunities that fit your goals.
-        </p>
-        <Stepper
-          initialStep={1}
-          onStepChange={handleStepChange}
-          onNext={handleNext}
-          onBack={handleBack}
-          onComplete={handleSubmitStepper}
-          backButtonProps={{ disabled: isSubmitting }}
-          nextButtonProps={{ disabled: isSubmitting || !isCurrentStepValid }}
-          disableStepIndicators={isSubmitting}
-          nextButtonText="Next"
-          completeButtonText="Submit"
-          className="resume-modal__stepper"
-        >
-          <Step>
-            <div className="resume-step">
-              <h3 className="resume-step__title">Personal details</h3>
-              <p className="resume-step__subtitle">Tell us how we can reach you.</p>
-              <div className="resume-form-grid">
-                <ResumeFormField
-                  label="Full name"
-                  name="fullName"
-                  value={values.fullName}
-                  onChange={handleInputChange('fullName')}
-                  onBlur={() => handleInputBlur('fullName')}
-                  error={touched.fullName ? errors.fullName : null}
-                  required
-                  autoComplete="name"
-                  placeholder="Jane Doe"
-                />
-                <ResumeFormField
-                  label="Email"
-                  name="email"
-                  type="email"
-                  value={values.email}
-                  onChange={handleInputChange('email')}
-                  onBlur={() => handleInputBlur('email')}
-                  error={touched.email ? errors.email : null}
-                  required
-                  autoComplete="email"
-                  placeholder="jane@example.com"
-                />
-                <ResumeFormField
-                  label="Phone number"
-                  name="phoneNumber"
-                  value={values.phoneNumber}
-                  onChange={handleInputChange('phoneNumber')}
-                  onBlur={() => handleInputBlur('phoneNumber')}
-                  error={touched.phoneNumber ? errors.phoneNumber : null}
-                  required
-                  autoComplete="tel"
-                  placeholder="e.g. +27 82 123 4567"
-                />
-                <ResumeFormField
-                  label="Location"
-                  name="location"
-                  value={values.location}
-                  onChange={handleInputChange('location')}
-                  onBlur={() => handleInputBlur('location')}
-                  error={touched.location ? errors.location : null}
-                  required
-                  autoComplete="address-level2"
-                  placeholder="Cape Town, South Africa"
-                />
-              </div>
+      <Stepper
+        initialStep={1}
+        onStepChange={handleStepChange}
+        onNext={handleNext}
+        onBack={handleBack}
+        onComplete={handleSubmitStepper}
+        backButtonProps={{ disabled: isSubmitting }}
+        nextButtonProps={{ disabled: isSubmitting || !isCurrentStepValid }}
+        disableStepIndicators={isSubmitting}
+        nextButtonText="Next"
+        completeButtonText="Submit"
+        aria-labelledby="resume-modal-title"
+      >
+        <Step>
+          <div className="resume-step">
+            <h2 className="resume-step__title">Submit your resume</h2>
+            <p className="resume-step__subtitle">Tell us how we can reach you.</p>
+            <div className="resume-form-grid">
+              <ResumeFormField
+                label="Full name"
+                name="fullName"
+                value={values.fullName}
+                onChange={handleInputChange('fullName')}
+                onBlur={() => handleInputBlur('fullName')}
+                error={touched.fullName ? errors.fullName : null}
+                required
+                autoComplete="name"
+                placeholder="Jane Doe"
+              />
+              <ResumeFormField
+                label="Email"
+                name="email"
+                type="email"
+                value={values.email}
+                onChange={handleInputChange('email')}
+                onBlur={() => handleInputBlur('email')}
+                error={touched.email ? errors.email : null}
+                required
+                autoComplete="email"
+                placeholder="jane@example.com"
+              />
+              <ResumeFormField
+                label="Phone number"
+                name="phoneNumber"
+                value={values.phoneNumber}
+                onChange={handleInputChange('phoneNumber')}
+                onBlur={() => handleInputBlur('phoneNumber')}
+                error={touched.phoneNumber ? errors.phoneNumber : null}
+                required
+                autoComplete="tel"
+                placeholder="e.g. +27 82 123 4567"
+              />
+              <ResumeFormField
+                label="Location"
+                name="location"
+                value={values.location}
+                onChange={handleInputChange('location')}
+                onBlur={() => handleInputBlur('location')}
+                error={touched.location ? errors.location : null}
+                required
+                autoComplete="address-level2"
+                placeholder="Cape Town, South Africa"
+              />
             </div>
-          </Step>
-          <Step>
-            <div className="resume-step">
-              <h3 className="resume-step__title">Professional snapshot</h3>
-              <p className="resume-step__subtitle">Highlight what you do best.</p>
-              <div className="resume-form-grid">
-                <ResumeFormField
-                  label="Key skills"
-                  name="skills"
-                  value={values.skills}
-                  onChange={handleInputChange('skills')}
-                  onBlur={() => handleInputBlur('skills')}
-                  error={touched.skills ? errors.skills : null}
-                  required
-                  multiline
-                  rows={3}
-                  placeholder="React, Node.js, UI Design"
-                />
-                <ResumeFormField
-                  label="Preferred role"
-                  name="preferredRole"
-                  value={values.preferredRole}
-                  onChange={handleInputChange('preferredRole')}
-                  onBlur={() => handleInputBlur('preferredRole')}
-                  error={touched.preferredRole ? errors.preferredRole : null}
-                  required
-                  placeholder="Frontend Engineer"
-                />
-                <ResumeFormField
-                  label="Experience summary"
-                  name="experience"
-                  value={values.experience}
-                  onChange={handleInputChange('experience')}
-                  onBlur={() => handleInputBlur('experience')}
-                  error={touched.experience ? errors.experience : null}
-                  required
-                  multiline
-                  rows={4}
-                  placeholder="3 years building responsive web applications..."
-                />
-              </div>
+          </div>
+        </Step>
+        <Step>
+          <div className="resume-step">
+            <h2 className="resume-step__title">Professional snapshot</h2>
+            <p className="resume-step__subtitle">Highlight what you do best.</p>
+            <div className="resume-form-grid">
+              <ResumeFormField
+                label="Key skills"
+                name="skills"
+                value={values.skills}
+                onChange={handleInputChange('skills')}
+                onBlur={() => handleInputBlur('skills')}
+                error={touched.skills ? errors.skills : null}
+                required
+                multiline
+                rows={3}
+                placeholder="React, Node.js, UI Design"
+              />
+              <ResumeFormField
+                label="Preferred role"
+                name="preferredRole"
+                value={values.preferredRole}
+                onChange={handleInputChange('preferredRole')}
+                onBlur={() => handleInputBlur('preferredRole')}
+                error={touched.preferredRole ? errors.preferredRole : null}
+                required
+                placeholder="Frontend Engineer"
+              />
+              <ResumeFormField
+                label="Experience summary"
+                name="experience"
+                value={values.experience}
+                onChange={handleInputChange('experience')}
+                onBlur={() => handleInputBlur('experience')}
+                error={touched.experience ? errors.experience : null}
+                required
+                multiline
+                rows={4}
+                placeholder="3 years building responsive web applications..."
+              />
             </div>
-          </Step>
-          <Step>
-            <div className="resume-step">
-              <h3 className="resume-step__title">Education & links</h3>
-              <p className="resume-step__subtitle">Share your background and where we can learn more.</p>
-              <div className="resume-form-grid">
-                <ResumeFormField
-                  label="Education"
-                  name="education"
-                  value={values.education}
-                  onChange={handleInputChange('education')}
-                  onBlur={() => handleInputBlur('education')}
-                  error={touched.education ? errors.education : null}
-                  required
-                  multiline
-                  rows={3}
-                  placeholder="BSc Computer Science, University of..."
-                />
-                <ResumeFormField
-                  label="LinkedIn URL"
-                  name="linkedinUrl"
-                  value={values.linkedinUrl}
-                  onChange={handleInputChange('linkedinUrl')}
-                  onBlur={() => handleInputBlur('linkedinUrl')}
-                  error={touched.linkedinUrl ? errors.linkedinUrl : null}
-                  placeholder="https://www.linkedin.com/in/username"
-                />
-              </div>
+          </div>
+        </Step>
+        <Step>
+          <div className="resume-step">
+            <h2 className="resume-step__title">Education & links</h2>
+            <p className="resume-step__subtitle">Share your background and where we can learn more.</p>
+            <div className="resume-form-grid">
+              <ResumeFormField
+                label="Education"
+                name="education"
+                value={values.education}
+                onChange={handleInputChange('education')}
+                onBlur={() => handleInputBlur('education')}
+                error={touched.education ? errors.education : null}
+                required
+                multiline
+                rows={3}
+                placeholder="BSc Computer Science, University of..."
+              />
+              <ResumeFormField
+                label="LinkedIn URL"
+                name="linkedinUrl"
+                value={values.linkedinUrl}
+                onChange={handleInputChange('linkedinUrl')}
+                onBlur={() => handleInputBlur('linkedinUrl')}
+                error={touched.linkedinUrl ? errors.linkedinUrl : null}
+                placeholder="https://www.linkedin.com/in/username"
+              />
             </div>
-          </Step>
-        </Stepper>
-        {submissionError && <p className="resume-modal__error">{submissionError}</p>}
-      </div>
+          </div>
+        </Step>
+      </Stepper>
     );
   }
 
+  const dialogTitle = useMemo(() => {
+    if (isCheckingStatus) {
+      return 'Checking your submission status';
+    }
+
+    if (statusError) {
+      return 'Something went wrong';
+    }
+
+    if (showSuccess || hasSubmitted) {
+      return 'Thank you for submitting!';
+    }
+
+    return STEP_TITLES[currentStep] || STEP_TITLES[1];
+  }, [currentStep, hasSubmitted, isCheckingStatus, showSuccess, statusError]);
+
   return (
-    <div className="resume-modal" role="presentation">
+    <div className="resume-modal" role="dialog" aria-modal="true" aria-labelledby="resume-modal-title">
       <div className="resume-modal__backdrop" onClick={handleClose} />
-      <div className="resume-modal__panel" role="dialog" aria-modal="true" aria-labelledby="resume-modal-title">
+      <div className="resume-modal__stage">
+        <span id="resume-modal-title" className="resume-modal__sr-only">
+          {dialogTitle}
+        </span>
         <button
           type="button"
           className="resume-modal__close"
@@ -568,6 +599,9 @@ export default function ResumeSubmissionModal() {
           ×
         </button>
         {bodyContent}
+        {submissionError && !isCheckingStatus && !showSuccess && !hasSubmitted && (
+          <p className="resume-modal__error">{submissionError}</p>
+        )}
       </div>
     </div>
   );
