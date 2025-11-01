@@ -368,6 +368,22 @@ export default function ResumeSubmissionModal() {
     setCurrentStep(step);
   }, []);
 
+  const dialogTitle = useMemo(() => {
+    if (isCheckingStatus) {
+      return 'Checking your submission status';
+    }
+
+    if (statusError) {
+      return 'Something went wrong';
+    }
+
+    if (showSuccess || hasSubmitted) {
+      return 'Thank you for submitting!';
+    }
+
+    return STEP_TITLES[currentStep] || STEP_TITLES[1];
+  }, [currentStep, hasSubmitted, isCheckingStatus, showSuccess, statusError]);
+
   if (!isOpen) {
     return null;
   }
@@ -565,22 +581,6 @@ export default function ResumeSubmissionModal() {
       </Stepper>
     );
   }
-
-  const dialogTitle = useMemo(() => {
-    if (isCheckingStatus) {
-      return 'Checking your submission status';
-    }
-
-    if (statusError) {
-      return 'Something went wrong';
-    }
-
-    if (showSuccess || hasSubmitted) {
-      return 'Thank you for submitting!';
-    }
-
-    return STEP_TITLES[currentStep] || STEP_TITLES[1];
-  }, [currentStep, hasSubmitted, isCheckingStatus, showSuccess, statusError]);
 
   return (
     <div className="resume-modal" role="dialog" aria-modal="true" aria-labelledby="resume-modal-title">
