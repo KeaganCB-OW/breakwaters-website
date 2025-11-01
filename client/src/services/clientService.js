@@ -36,6 +36,17 @@ export async function fetchClients() {
   return response.json();
 }
 
+const parseErrorResponse = async (response) => {
+  const data = await parseJson(response);
+  const message = data?.message || 'Unexpected error';
+  const error = new Error(message);
+  error.status = response.status;
+  if (data) {
+    error.details = data;
+  }
+  return error;
+};
+
 export async function updateClient(clientId, payload, token) {
   const response = await fetch(`${API_URL}/clients/${clientId}`, {
     method: 'PATCH',
@@ -72,4 +83,40 @@ export async function deleteClient(clientId, token) {
   }
 
   return data;
+}
+
+export async function fetchCurrentClientProfile(token) {
+  const response = await fetch(`${API_URL}/clients/me`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...buildAuthHeaders(token),
+    },
+  });
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw await parseErrorResponse(response);
+  }
+
+  return response.json();
+}
+
+export async function createClientProfile(payload, token) {
+  const response = await fetch(`${API_URL}/clients`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...buildAuthHeaders(token),
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw await parseErrorResponse(response);
+  }
+
+  return response.json();
 }

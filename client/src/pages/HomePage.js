@@ -1,7 +1,11 @@
+import { useContext, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styling/home.css";
 import MissionSection from "../components/sections/MissionSection";
 import AppCardNav from "../components/ui/layout/AppCardNav";
 import heroWave from "../assets/svgs/Hero-wave.svg";
+import { AuthContext } from "../context/AuthContext";
+import { useResumeSubmission } from "../context/ResumeSubmissionContext";
 
 const HERO_TITLE = "We Break Barriers\nfor your success.";
 const INITIAL_MISSION_LINES = ["What we do", "and why we do it."];
@@ -49,11 +53,44 @@ const MISSION_ENTRIES = [
 ];
 
 export default function HomePage() {
+  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+  const { open: openResumeModal } = useResumeSubmission();
+
+  const handleResumeClick = () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    openResumeModal();
+  };
+
+  const navActionButton = useMemo(() => {
+    const label = user ? "Get Started" : "Sign In/Sign Up";
+    const handleClick = () => {
+      if (!user) {
+        navigate("/login");
+        return;
+      }
+      openResumeModal();
+    };
+
+    return (
+      <button
+        type="button"
+        className="card-nav-cta-button"
+        onClick={handleClick}
+      >
+        {label}
+      </button>
+    );
+  }, [navigate, openResumeModal, user]);
+
   return (
     <main className="home-page">
       <section className="hero-section">
         <div className="hero-content">
-          <AppCardNav />
+          <AppCardNav rightContent={navActionButton} />
           <h1 className="hero-title" data-text={HERO_TITLE}>
             <span>We Break Barriers</span>
             <span>for your success.</span>
@@ -64,7 +101,7 @@ export default function HomePage() {
           </p>
 
           <div className="hero-cta-container">
-            <button type="button" className="hero-cta">
+            <button type="button" className="hero-cta" onClick={handleResumeClick}>
               Submit your resume
             </button>
             <button type="button" className="hero-cta hero-cta--white">

@@ -1,0 +1,160 @@
+.resume-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 22, 45, 0.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1.5rem, 3vw, 3rem);
+  z-index: 1000;
+}
+
+.resume-modal-dialog {
+  width: min(960px, 100%);
+  max-height: min(90vh, 840px);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.98), rgba(236, 242, 255, 0.96));
+  border-radius: 1.5rem;
+  box-shadow: 0 35px 80px rgba(8, 38, 88, 0.35);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.resume-modal-header {
+  padding: 1.5rem 2rem 1rem;
+  border-bottom: 1px solid rgba(16, 56, 127, 0.12);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.resume-modal-heading {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.4vw, 2.1rem);
+  font-weight: 700;
+  color: #082658;
+}
+
+.resume-modal-subheading {
+  margin: 0.35rem 0 0;
+  font-size: 0.95rem;
+  color: #425372;
+}
+
+.resume-modal-close {
+  background: rgba(8, 38, 88, 0.08);
+  border: none;
+  color: #082658;
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+  align-self: flex-start;
+}
+
+.resume-modal-close:hover {
+  background: rgba(8, 38, 88, 0.16);
+  transform: translateY(-1px);
+}
+
+.resume-modal-body {
+  padding: 1.5rem 2rem 2rem;
+  overflow-y: auto;
+}
+
+.resume-modal-loading,
+.resume-modal-success,
+.resume-modal-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1rem;
+  padding: 2rem 1rem;
+}
+
+.resume-modal-success h3 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0b3173ff;
+}
+
+.resume-modal-success p {
+  margin: 0;
+  color: #425372;
+  max-width: 460px;
+}
+
+.resume-modal-success-details {
+  background: rgba(8, 38, 88, 0.05);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  margin-top: 1.5rem;
+  width: 100%;
+  text-align: left;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.resume-modal-success-details dt {
+  font-weight: 600;
+  color: #082658;
+}
+
+.resume-modal-success-details dd {
+  margin: 0;
+  color: #425372;
+  font-size: 0.95rem;
+}
+
+.resume-modal-secondary-action {
+  margin-top: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #082658;
+  text-decoration: none;
+}
+
+.resume-modal-error {
+  color: #8f1d1d;
+}
+
+.resume-modal-error p {
+  margin: 0;
+  max-width: 420px;
+}
+
+.resume-modal-spinner {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 4px solid rgba(16, 56, 127, 0.15);
+  border-top-color: #10387fff;
+  animation: resume-modal-spin 1s linear infinite;
+}
+
+@keyframes resume-modal-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .resume-modal-dialog {
+    border-radius: 1rem;
+  }
+
+  .resume-modal-header,
+  .resume-modal-body {
+    padding: 1.25rem;
+  }
+}
