@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import "../styling/home.css";
 import MissionSection from "../components/sections/MissionSection";
 import AppCardNav from "../components/ui/layout/AppCardNav";
@@ -64,12 +65,12 @@ export default function HomePage() {
           </p>
 
           <div className="hero-cta-container">
-            <button type="button" className="hero-cta">
+            <Link to="/become-client" className="hero-cta">
               Submit your resume
-            </button>
-            <button type="button" className="hero-cta hero-cta--white">
+            </Link>
+            <Link to="/signup" className="hero-cta hero-cta--white">
               Register your business
-            </button>
+            </Link>
           </div>
         </div>
         <div className="hero-wave-accent" aria-hidden="true" />

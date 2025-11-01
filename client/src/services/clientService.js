@@ -26,6 +26,25 @@ function buildError(message, data) {
   return error;
 }
 
+export async function createClient(payload) {
+  const response = await fetch(`${API_URL}/clients`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await parseJson(response);
+
+  if (!response.ok) {
+    const message = data?.message || 'Failed to submit client information';
+    throw buildError(message, data);
+  }
+
+  return data;
+}
+
 export async function fetchClients() {
   const response = await fetch(`${API_URL}/clients`);
 

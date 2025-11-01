@@ -1,0 +1,228 @@
+.stepper {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(8, 38, 88, 0.1);
+  padding: clamp(24px, 3vw, 40px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(20px, 2.5vw, 32px);
+  box-sizing: border-box;
+  color: #082658;
+}
+
+.stepper__indicators {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.stepper__indicator {
+  position: relative;
+}
+
+.stepper__indicator-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(8, 38, 88, 0.15);
+  background: rgba(255, 255, 255, 0.65);
+  padding: 14px 18px;
+  color: #082658;
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  text-align: left;
+}
+
+.stepper__indicator-button:disabled {
+  cursor: default;
+  opacity: 0.7;
+  transform: none;
+}
+
+.stepper__indicator-button:not(:disabled):hover {
+  border-color: rgba(8, 38, 88, 0.4);
+  box-shadow: 0 12px 24px rgba(8, 38, 88, 0.12);
+}
+
+.stepper__indicator-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(8, 38, 88, 0.08);
+  color: #082658;
+  font-weight: 600;
+}
+
+.stepper__indicator-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stepper__indicator-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+}
+
+.stepper__indicator-description {
+  font-size: 0.85rem;
+  color: rgba(8, 38, 88, 0.65);
+}
+
+.stepper__indicator--active .stepper__indicator-button {
+  border-color: #082658;
+  background: rgba(8, 38, 88, 0.1);
+  transform: translateY(-2px);
+}
+
+.stepper__indicator--active .stepper__indicator-index {
+  background: #082658;
+  color: #ffffff;
+}
+
+.stepper__indicator--completed .stepper__indicator-button {
+  border-color: rgba(8, 38, 88, 0.35);
+  background: rgba(8, 38, 88, 0.06);
+}
+
+.stepper__indicator--completed .stepper__indicator-index {
+  background: rgba(8, 38, 88, 0.85);
+  color: #ffffff;
+}
+
+.stepper__indicator--upcoming .stepper__indicator-button:disabled {
+  opacity: 0.5;
+}
+
+.stepper__content {
+  border-radius: 16px;
+  border: 1px solid rgba(8, 38, 88, 0.12);
+  background: rgba(255, 255, 255, 0.85);
+  padding: clamp(20px, 2.5vw, 34px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  box-sizing: border-box;
+}
+
+.stepper__content > * {
+  width: 100%;
+}
+
+.stepper__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stepper__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stepper__button {
+  min-width: 130px;
+  min-height: 46px;
+  border-radius: 14px;
+  border: none;
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.stepper__button--primary {
+  background: #082658;
+  color: #ffffff;
+  box-shadow: 0 14px 24px rgba(8, 38, 88, 0.18);
+}
+
+.stepper__button--primary:hover:not(:disabled) {
+  background: #10387f;
+  transform: translateY(-2px);
+  box-shadow: 0 18px 30px rgba(8, 38, 88, 0.22);
+}
+
+.stepper__button--primary:disabled {
+  background: rgba(8, 38, 88, 0.4);
+  color: rgba(255, 255, 255, 0.8);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.stepper__button--secondary {
+  background: rgba(255, 255, 255, 0.88);
+  color: #082658;
+  border: 1px solid rgba(8, 38, 88, 0.4);
+  box-shadow: 0 12px 24px rgba(8, 38, 88, 0.08);
+}
+
+.stepper__button--secondary:hover:not(:disabled) {
+  background: rgba(8, 38, 88, 0.08);
+}
+
+.stepper__button--secondary:disabled {
+  color: rgba(8, 38, 88, 0.4);
+  border-color: rgba(8, 38, 88, 0.18);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.stepper__completion-message {
+  border-radius: 14px;
+  background: rgba(8, 38, 88, 0.06);
+  padding: 16px 18px;
+  color: rgba(8, 38, 88, 0.85);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .stepper {
+    padding: 22px;
+    gap: 20px;
+  }
+
+  .stepper__indicators {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+
+  .stepper__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .stepper__button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .stepper {
+    padding: 18px;
+  }
+
+  .stepper__indicator-button {
+    gap: 10px;
+    padding: 12px 14px;
+  }
+
+  .stepper__indicator-index {
+    width: 34px;
+    height: 34px;
+  }
+}
