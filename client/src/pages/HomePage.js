@@ -1,7 +1,11 @@
+import { useCallback, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styling/home.css";
 import MissionSection from "../components/sections/MissionSection";
 import AppCardNav from "../components/ui/layout/AppCardNav";
 import heroWave from "../assets/svgs/Hero-wave.svg";
+import { AuthContext } from "../context/AuthContext";
+import useResumeModal from "../hooks/useResumeModal";
 
 const HERO_TITLE = "We Break Barriers\nfor your success.";
 const INITIAL_MISSION_LINES = ["What we do", "and why we do it."];
@@ -49,6 +53,19 @@ const MISSION_ENTRIES = [
 ];
 
 export default function HomePage() {
+  const { user } = useContext(AuthContext);
+  const { open } = useResumeModal();
+  const navigate = useNavigate();
+
+  const handleResumeClick = useCallback(() => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    open();
+  }, [navigate, open, user]);
+
   return (
     <main className="home-page">
       <section className="hero-section">
@@ -64,7 +81,7 @@ export default function HomePage() {
           </p>
 
           <div className="hero-cta-container">
-            <button type="button" className="hero-cta">
+            <button type="button" className="hero-cta" onClick={handleResumeClick}>
               Submit your resume
             </button>
             <button type="button" className="hero-cta hero-cta--white">

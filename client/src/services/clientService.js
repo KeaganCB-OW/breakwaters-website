@@ -18,12 +18,57 @@ async function parseJson(response) {
   }
 }
 
-function buildError(message, data) {
+function buildError(message, data, status) {
   const error = new Error(message);
   if (data) {
     error.details = data;
   }
+  if (typeof status === 'number') {
+    error.status = status;
+  }
   return error;
+}
+
+export async function fetchCurrentClient(token) {
+  const response = await fetch(`${API_URL}/clients/me`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...buildAuthHeaders(token),
+    },
+  });
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  const data = await parseJson(response);
+
+  if (!response.ok) {
+    const message = data?.message || 'Failed to load client profile';
+    throw buildError(message, data, response.status);
+  }
+
+  return data;
+}
+
+export async function createClient(payload, token) {
+  const response = await fetch(`${API_URL}/clients`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...buildAuthHeaders(token),
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await parseJson(response);
+
+  if (!response.ok) {
+    const message = data?.message || 'Failed to submit client profile';
+    throw buildError(message, data, response.status);
+  }
+
+  return data;
 }
 
 export async function fetchClients() {

@@ -1,5 +1,9 @@
+import { useCallback, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CardNav from './CardNav';
 import defaultLogo from '../../../assets/logos/Logo-full.svg';
+import { AuthContext } from '../../../context/AuthContext';
+import useResumeModal from '../../../hooks/useResumeModal';
 
 const defaultItems = [
   {
@@ -42,20 +46,48 @@ const AppCardNav = ({
   buttonBgColor = '#082658',
   buttonTextColor = '#fff',
   ease = 'power3.out',
+  rightContent,
   ...rest
-}) => (
-  <CardNav
-    logo={logo}
-    logoAlt={logoAlt}
-    items={items}
-    baseColor={baseColor}
-    menuColor={menuColor}
-    buttonBgColor={buttonBgColor}
-    buttonTextColor={buttonTextColor}
-    ease={ease}
-    {...rest}
-  />
-);
+}) => {
+  const { user } = useContext(AuthContext);
+  const { open } = useResumeModal();
+  const navigate = useNavigate();
+
+  const handleCtaClick = useCallback(() => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    open();
+  }, [navigate, open, user]);
+
+  const effectiveRightContent = rightContent ?? (
+    <button
+      type="button"
+      className="card-nav-cta-button"
+      style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
+      onClick={handleCtaClick}
+    >
+      {user ? 'Get Started' : 'Sign In/Sign Up'}
+    </button>
+  );
+
+  return (
+    <CardNav
+      logo={logo}
+      logoAlt={logoAlt}
+      items={items}
+      baseColor={baseColor}
+      menuColor={menuColor}
+      buttonBgColor={buttonBgColor}
+      buttonTextColor={buttonTextColor}
+      ease={ease}
+      rightContent={effectiveRightContent}
+      {...rest}
+    />
+  );
+};
 
 export default AppCardNav;
 
