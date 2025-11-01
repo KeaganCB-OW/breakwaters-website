@@ -61,6 +61,13 @@
 
 .client-intake__stepper {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(18px, 2vw, 28px);
+}
+
+.client-intake__stepper-inner {
+  width: 100%;
 }
 
 .client-intake__grid {

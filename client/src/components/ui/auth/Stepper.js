@@ -72,6 +72,7 @@ function Stepper({
   backButtonText = 'Back',
   nextButtonText = 'Next',
   finishButtonText = 'Finish',
+  headerContent = null,
   className = '',
   allowStepClick = false,
 }) {
@@ -303,6 +304,10 @@ function Stepper({
         </ol>
       )}
 
+      {headerContent ? (
+        <div className="stepper__header">{headerContent}</div>
+      ) : null}
+
       <div className="stepper__content">{stepContent}</div>
 
       <div className="stepper__footer">
@@ -342,6 +347,7 @@ Stepper.propTypes = {
   backButtonText: PropTypes.string,
   nextButtonText: PropTypes.string,
   finishButtonText: PropTypes.string,
+  headerContent: PropTypes.node,
   className: PropTypes.string,
   allowStepClick: PropTypes.bool,
 };
@@ -353,6 +359,7 @@ Stepper.defaultProps = {
   backButtonText: 'Back',
   nextButtonText: 'Next',
   finishButtonText: 'Finish',
+  headerContent: null,
   className: '',
   allowStepClick: false,
 };

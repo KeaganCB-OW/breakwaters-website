@@ -20,6 +20,17 @@
   padding: 0;
 }
 
+.stepper__header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px clamp(6px, 1.5vw, 12px);
+}
+
+.stepper__header > * {
+  margin: 0;
+}
+
 .stepper__indicator {
   position: relative;
 }

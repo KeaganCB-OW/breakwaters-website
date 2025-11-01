@@ -268,124 +268,129 @@ function ClientIntakeStepper({ onSuccess }) {
     );
   };
 
+  const stepperHeader = (
+    <header className="client-intake__intro">
+      <span className="client-intake__eyebrow">Become a client</span>
+      <h1 className="client-intake__headline">
+        Share your story and join the Breakwaters talent network
+      </h1>
+      <p className="client-intake__subtext">
+        Complete the steps below so we can match you with opportunities that
+        fit your goals. It only takes a few minutes.
+      </p>
+      <span className="client-intake__step-count">
+        Step {activeStep} of 4
+      </span>
+    </header>
+  );
+
   return (
     <section className="client-intake">
-      <header className="client-intake__intro">
-        <span className="client-intake__eyebrow">Become a client</span>
-        <h1 className="client-intake__headline">
-          Share your story and join the Breakwaters talent network
-        </h1>
-        <p className="client-intake__subtext">
-          Complete the steps below so we can match you with opportunities that
-          fit your goals. It only takes a few minutes.
-        </p>
-        <span className="client-intake__step-count">
-          Step {activeStep} of 4
-        </span>
-      </header>
-
-      <Stepper
-        className="client-intake__stepper"
-        initialStep={1}
-        onStepChange={(step) => setActiveStep(step)}
-        onFinalStepCompleted={handleSubmit}
-        backButtonText="Back"
-        nextButtonText="Continue"
-        finishButtonText="Submit details"
-        allowStepClick
-      >
-        <Step
-          title="Contact details"
-          description="How can we reach you?"
-          onNext={() => validateStep(1)}
+      <div className="client-intake__stepper">
+        <Stepper
+          className="client-intake__stepper-inner"
+          headerContent={stepperHeader}
+          initialStep={1}
+          onStepChange={(step) => setActiveStep(step)}
+          onFinalStepCompleted={handleSubmit}
+          backButtonText="Back"
+          nextButtonText="Continue"
+          finishButtonText="Submit details"
+          allowStepClick
         >
-          <div className="client-intake__grid">
-            {renderField('fullName')}
-            {renderField('email', { type: 'email', autoComplete: 'email' })}
-            {renderField('phoneNumber', { type: 'tel', autoComplete: 'tel' })}
-            {renderField('location')}
-          </div>
-        </Step>
-
-        <Step
-          title="Your skills"
-          description="Show us what you bring"
-          onNext={() => validateStep(2)}
-        >
-          <div className="client-intake__grid client-intake__grid--single">
-            {renderField('skills', {
-              as: 'textarea',
-              hint: 'Separate skills with commas or short phrases.',
-              rows: 4,
-            })}
-            {renderField('preferredRole')}
-            {renderField('experience', {
-              as: 'textarea',
-              rows: 5,
-              hint: 'Give a snapshot of your current or most recent role.',
-            })}
-          </div>
-        </Step>
-
-        <Step
-          title="Education & links"
-          description="Round out your profile"
-          onNext={() => validateStep(3)}
-        >
-          <div className="client-intake__grid client-intake__grid--single">
-            {renderField('education')}
-            {renderField('linkedinUrl', {
-              type: 'url',
-              autoComplete: 'url',
-              hint: 'Optional, but helps us connect quicker.',
-            })}
-          </div>
-        </Step>
-
-        <Step
-          title="Review & submit"
-          description="Confirm everything looks right"
-          onNext={validateAll}
-          pendingText="Submitting..."
-          isNextDisabled={submissionState.status === 'pending'}
-        >
-          {({ isCompleted }) => (
-            <div className="client-intake__review">
-              <h2 className="client-intake__review-title">
-                {isCompleted
-                  ? 'Thanks for sharing your details!'
-                  : 'Here is what we will send to our team'}
-              </h2>
-              <dl className="client-intake__summary">
-                {summaryItems.map((item) => (
-                  <div className="client-intake__summary-item" key={item.key}>
-                    <dt>{item.label}</dt>
-                    <dd>{item.value || '—'}</dd>
-                  </div>
-                ))}
-              </dl>
-
-              {submissionState.status === 'pending' ? (
-                <div className="client-intake__alert client-intake__alert--info">
-                  Submitting your details…
-                </div>
-              ) : null}
-
-              {submissionState.status === 'error' ? (
-                <div className="client-intake__alert client-intake__alert--error">
-                  {submissionState.message}
-                </div>
-              ) : null}
-
-              {submissionState.status === 'success' ? (
-                <div className="client-intake__alert client-intake__alert--success">
-                  {submissionState.message}
-                </div>
-              ) : null}
+          <Step
+            title="Contact details"
+            description="How can we reach you?"
+            onNext={() => validateStep(1)}
+          >
+            <div className="client-intake__grid">
+              {renderField('fullName')}
+              {renderField('email', { type: 'email', autoComplete: 'email' })}
+              {renderField('phoneNumber', { type: 'tel', autoComplete: 'tel' })}
+              {renderField('location')}
             </div>
-          )}
-        </Step>
-      </Stepper>
+          </Step>
+
+          <Step
+            title="Your skills"
+            description="Show us what you bring"
+            onNext={() => validateStep(2)}
+          >
+            <div className="client-intake__grid client-intake__grid--single">
+              {renderField('skills', {
+                as: 'textarea',
+                hint: 'Separate skills with commas or short phrases.',
+                rows: 4,
+              })}
+              {renderField('preferredRole')}
+              {renderField('experience', {
+                as: 'textarea',
+                rows: 5,
+                hint: 'Give a snapshot of your current or most recent role.',
+              })}
+            </div>
+          </Step>
+
+          <Step
+            title="Education & links"
+            description="Round out your profile"
+            onNext={() => validateStep(3)}
+          >
+            <div className="client-intake__grid client-intake__grid--single">
+              {renderField('education')}
+              {renderField('linkedinUrl', {
+                type: 'url',
+                autoComplete: 'url',
+                hint: 'Optional, but helps us connect quicker.',
+              })}
+            </div>
+          </Step>
+
+          <Step
+            title="Review & submit"
+            description="Confirm everything looks right"
+            onNext={validateAll}
+            pendingText="Submitting..."
+            isNextDisabled={submissionState.status === 'pending'}
+          >
+            {({ isCompleted }) => (
+              <div className="client-intake__review">
+                <h2 className="client-intake__review-title">
+                  {isCompleted
+                    ? 'Thanks for sharing your details!'
+                    : 'Here is what we will send to our team'}
+                </h2>
+                <dl className="client-intake__summary">
+                  {summaryItems.map((item) => (
+                    <div className="client-intake__summary-item" key={item.key}>
+                      <dt>{item.label}</dt>
+                      <dd>{item.value || '\u2014'}</dd>
+                    </div>
+                  ))}
+                </dl>
+
+                {submissionState.status === 'pending' ? (
+                  <div className="client-intake__alert client-intake__alert--info">
+                    {'Submitting your details\u2026'}
+                  </div>
+                ) : null}
+
+                {submissionState.status === 'error' ? (
+                  <div className="client-intake__alert client-intake__alert--error">
+                    {submissionState.message}
+                  </div>
+                ) : null}
+
+                {submissionState.status === 'success' ? (
+                  <div className="client-intake__alert client-intake__alert--success">
+                    {submissionState.message}
+                  </div>
+                ) : null}
+              </div>
+            )}
+          </Step>
+        </Stepper>
+      </div>
     </section>
   );
 }
