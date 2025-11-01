@@ -1,4 +1,4 @@
-.resume-stepper__outer {
+.outer-container {
   display: flex;
   min-height: 100%;
   flex: 1 1 0%;
@@ -9,18 +9,18 @@
 }
 
 @media (min-width: 640px) {
-  .resume-stepper__outer {
+  .outer-container {
     aspect-ratio: 4 / 3;
   }
 }
 
 @media (min-width: 768px) {
-  .resume-stepper__outer {
+  .outer-container {
     aspect-ratio: 2 / 1;
   }
 }
 
-.resume-stepper__container {
+.step-circle-container {
   margin-left: auto;
   margin-right: auto;
   width: 100%;
@@ -29,70 +29,69 @@
   box-shadow:
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  background-color: #0d1224;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: #0d1224;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.resume-stepper__indicator-row {
+.step-indicator-row {
   display: flex;
   width: 100%;
   align-items: center;
   padding: 2rem;
 }
 
-.resume-stepper__content {
+.step-content-default {
   position: relative;
   overflow: hidden;
-  padding-bottom: 0.5rem;
 }
 
-.resume-stepper__step {
+.step-default {
   padding-left: 2rem;
   padding-right: 2rem;
   padding-bottom: 1rem;
 }
 
-.resume-stepper__footer {
+.footer-container {
   padding-left: 2rem;
   padding-right: 2rem;
   padding-bottom: 2rem;
 }
 
-.resume-stepper__footer-nav {
+.footer-nav {
   margin-top: 2.5rem;
   display: flex;
 }
 
-.resume-stepper__footer-nav.spread {
+.footer-nav.spread {
   justify-content: space-between;
 }
 
-.resume-stepper__footer-nav.end {
+.footer-nav.end {
   justify-content: flex-end;
 }
 
-.resume-stepper__back {
+.back-button {
   transition: all 350ms;
   border-radius: 0.5rem;
   padding: 0.5rem 0.75rem;
   color: #a3a3a3;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   cursor: pointer;
 }
 
-.resume-stepper__back:hover {
+.back-button:hover {
   color: #fff;
-  border-color: rgba(255, 255, 255, 0.45);
+  border-color: rgba(255, 255, 255, 0.55);
 }
 
-.resume-stepper__back.inactive {
+.back-button.inactive {
   pointer-events: none;
   opacity: 0.5;
   color: #a3a3a3;
 }
 
-.resume-stepper__next {
+.next-button {
   transition: all 250ms;
   display: flex;
   align-items: center;
@@ -107,29 +106,26 @@
   border: none;
 }
 
-.resume-stepper__next:hover:not(:disabled) {
+.next-button:hover:not(:disabled) {
   background-color: #6540ff;
 }
 
-.resume-stepper__next:active:not(:disabled) {
+.next-button:active:not(:disabled) {
   background-color: #4620ff;
 }
 
-.resume-stepper__next:disabled {
+.next-button:disabled {
   cursor: not-allowed;
   opacity: 0.6;
 }
 
-.resume-stepper__indicator {
+.step-indicator {
   position: relative;
   cursor: pointer;
   outline: none;
-  background: transparent;
-  border: none;
-  padding: 0;
 }
 
-.resume-stepper__indicator-inner {
+.step-indicator-inner {
   display: flex;
   height: 2rem;
   width: 2rem;
@@ -139,19 +135,19 @@
   font-weight: 600;
 }
 
-.resume-stepper__active-dot {
+.active-dot {
   height: 0.75rem;
   width: 0.75rem;
   border-radius: 9999px;
   background-color: #fff;
 }
 
-.resume-stepper__number {
+.step-number {
   font-size: 0.875rem;
   color: inherit;
 }
 
-.resume-stepper__connector {
+.step-connector {
   position: relative;
   margin-left: 0.5rem;
   margin-right: 0.5rem;
@@ -159,17 +155,17 @@
   flex: 1;
   overflow: hidden;
   border-radius: 0.25rem;
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.25);
 }
 
-.resume-stepper__connector-inner {
+.step-connector-inner {
   position: absolute;
   left: 0;
   top: 0;
   height: 100%;
 }
 
-.resume-stepper__check-icon {
+.check-icon {
   height: 1rem;
   width: 1rem;
   color: #fff;

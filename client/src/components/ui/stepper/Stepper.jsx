@@ -2,7 +2,18 @@ import React, { Children, useLayoutEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import './Stepper.css';
 
-const noop = () => true;
+const asyncGuard = async (guard, step) => {
+  if (typeof guard !== 'function') {
+    return true;
+  }
+
+  try {
+    const result = await guard(step);
+    return result !== false;
+  } catch (error) {
+    return false;
+  }
+};
 
 export default function Stepper({
   children,
@@ -18,12 +29,12 @@ export default function Stepper({
   nextButtonProps = {},
   backButtonText = 'Back',
   nextButtonText = 'Continue',
+  completeButtonText = 'Complete',
   disableStepIndicators = false,
   renderStepIndicator,
-  onNext = noop,
-  onBack = noop,
-  onComplete = noop,
-  renderCompletion,
+  onNext,
+  onBack,
+  onComplete,
   ...rest
 }) {
   const stepsArray = Children.toArray(children);
@@ -57,8 +68,8 @@ export default function Stepper({
       return;
     }
 
-    const canGoBack = await onBack(currentStep);
-    if (canGoBack === false) {
+    const canGoBack = await asyncGuard(onBack, currentStep);
+    if (!canGoBack) {
       return;
     }
 
@@ -71,8 +82,8 @@ export default function Stepper({
       return handleComplete();
     }
 
-    const canProceed = await onNext(currentStep);
-    if (canProceed === false) {
+    const canProceed = await asyncGuard(onNext, currentStep);
+    if (!canProceed) {
       return;
     }
 
@@ -81,8 +92,8 @@ export default function Stepper({
   };
 
   const handleComplete = async () => {
-    const shouldComplete = await onComplete(currentStep);
-    if (shouldComplete === false) {
+    const shouldComplete = await asyncGuard(onComplete, currentStep);
+    if (!shouldComplete) {
       return;
     }
 
@@ -90,12 +101,36 @@ export default function Stepper({
     updateStep(totalSteps + 1);
   };
 
-  const outerClassName = ['resume-stepper__outer', className].filter(Boolean).join(' ');
+  const handleIndicatorClick = async clicked => {
+    if (disableStepIndicators || clicked === currentStep) {
+      return;
+    }
+
+    const isForward = clicked > currentStep;
+
+    if (isForward) {
+      const canProceed = await asyncGuard(onNext, currentStep);
+      if (!canProceed) {
+        return;
+      }
+      setDirection(1);
+    } else {
+      const canGoBack = await asyncGuard(onBack, currentStep);
+      if (!canGoBack) {
+        return;
+      }
+      setDirection(-1);
+    }
+
+    updateStep(clicked);
+  };
+
+  const outerClassName = ['outer-container', className].filter(Boolean).join(' ');
 
   return (
     <div className={outerClassName} {...rest}>
-      <div className={`resume-stepper__container ${stepCircleContainerClassName}`}>
-        <div className={`resume-stepper__indicator-row ${stepContainerClassName}`}>
+      <div className={`step-circle-container ${stepCircleContainerClassName}`}>
+        <div className={`step-indicator-row ${stepContainerClassName}`}>
           {stepsArray.map((_, index) => {
             const stepNumber = index + 1;
             const isNotLastStep = index < totalSteps - 1;
@@ -105,23 +140,14 @@ export default function Stepper({
                   renderStepIndicator({
                     step: stepNumber,
                     currentStep,
-                    onStepClick: clicked => {
-                      if (disableStepIndicators) {
-                        return;
-                      }
-                      setDirection(clicked > currentStep ? 1 : -1);
-                      updateStep(clicked);
-                    }
+                    onStepClick: handleIndicatorClick,
                   })
                 ) : (
                   <StepIndicator
                     step={stepNumber}
                     disableStepIndicators={disableStepIndicators}
                     currentStep={currentStep}
-                    onClickStep={clicked => {
-                      setDirection(clicked > currentStep ? 1 : -1);
-                      updateStep(clicked);
-                    }}
+                    onClickStep={handleIndicatorClick}
                   />
                 )}
                 {isNotLastStep && <StepConnector isComplete={currentStep > stepNumber} />}
@@ -134,20 +160,19 @@ export default function Stepper({
           isCompleted={isCompleted}
           currentStep={currentStep}
           direction={direction}
-          className={`resume-stepper__content ${contentClassName}`}
-          renderCompletion={renderCompletion}
+          className={`step-content-default ${contentClassName}`.trim()}
         >
           {stepsArray[currentStep - 1]}
         </StepContentWrapper>
 
         {!isCompleted && (
-          <div className={`resume-stepper__footer ${footerClassName}`}>
-            <div className={`resume-stepper__footer-nav ${currentStep !== 1 ? 'spread' : 'end'}`}>
+          <div className={`footer-container ${footerClassName}`}>
+            <div className={`footer-nav ${currentStep !== 1 ? 'spread' : 'end'}`}>
               {currentStep !== 1 && (
                 <button
                   type="button"
                   onClick={handleBack}
-                  className={`resume-stepper__back ${currentStep === 1 ? 'inactive' : ''}`}
+                  className={`back-button ${currentStep === 1 ? 'inactive' : ''}`}
                   {...backButtonProps}
                 >
                   {backButtonText}
@@ -156,10 +181,10 @@ export default function Stepper({
               <button
                 type="button"
                 onClick={handleNext}
-                className="resume-stepper__next"
+                className="next-button"
                 {...nextButtonProps}
               >
-                {isLastStep ? 'Submit' : nextButtonText}
+                {isLastStep ? completeButtonText : nextButtonText}
               </button>
             </div>
           </div>
@@ -169,22 +194,20 @@ export default function Stepper({
   );
 }
 
-function StepContentWrapper({ isCompleted, currentStep, direction, children, className, renderCompletion }) {
+function StepContentWrapper({ isCompleted, currentStep, direction, children, className }) {
   const [parentHeight, setParentHeight] = useState(0);
-  const contentKey = isCompleted ? 'completed' : currentStep;
-  const content = isCompleted ? renderCompletion?.() ?? null : children;
 
   return (
     <motion.div
       className={className}
       style={{ position: 'relative', overflow: 'hidden' }}
-      animate={{ height: content ? parentHeight : 0 }}
+      animate={{ height: isCompleted ? 0 : parentHeight }}
       transition={{ type: 'spring', duration: 0.4 }}
     >
-      <AnimatePresence initial={false} mode="wait" custom={direction}>
-        {content && (
-          <SlideTransition key={contentKey} direction={direction} onHeightReady={h => setParentHeight(h)}>
-            {content}
+      <AnimatePresence initial={false} mode="sync" custom={direction}>
+        {!isCompleted && (
+          <SlideTransition key={currentStep} direction={direction} onHeightReady={h => setParentHeight(h)}>
+            {children}
           </SlideTransition>
         )}
       </AnimatePresence>
@@ -233,7 +256,7 @@ const stepVariants = {
 };
 
 export function Step({ children }) {
-  return <div className="resume-stepper__step">{children}</div>;
+  return <div className="step-default">{children}</div>;
 }
 
 function StepIndicator({ step, currentStep, onClickStep, disableStepIndicators }) {
@@ -246,15 +269,7 @@ function StepIndicator({ step, currentStep, onClickStep, disableStepIndicators }
   };
 
   return (
-    <motion.button
-      type="button"
-      onClick={handleClick}
-      className="resume-stepper__indicator"
-      animate={status}
-      initial={false}
-      whileTap={{ scale: disableStepIndicators ? 1 : 0.98 }}
-      disabled={disableStepIndicators}
-    >
+    <motion.div onClick={handleClick} className="step-indicator" animate={status} initial={false}>
       <motion.div
         variants={{
           inactive: { scale: 1, backgroundColor: '#222', color: '#a3a3a3' },
@@ -262,17 +277,17 @@ function StepIndicator({ step, currentStep, onClickStep, disableStepIndicators }
           complete: { scale: 1, backgroundColor: '#5227FF', color: '#3b82f6' }
         }}
         transition={{ duration: 0.3 }}
-        className="resume-stepper__indicator-inner"
+        className="step-indicator-inner"
       >
         {status === 'complete' ? (
-          <CheckIcon className="resume-stepper__check-icon" />
+          <CheckIcon className="check-icon" />
         ) : status === 'active' ? (
-          <div className="resume-stepper__active-dot" />
+          <div className="active-dot" />
         ) : (
-          <span className="resume-stepper__number">{step}</span>
+          <span className="step-number">{step}</span>
         )}
       </motion.div>
-    </motion.button>
+    </motion.div>
   );
 }
 
@@ -283,9 +298,9 @@ function StepConnector({ isComplete }) {
   };
 
   return (
-    <div className="resume-stepper__connector">
+    <div className="step-connector">
       <motion.div
-        className="resume-stepper__connector-inner"
+        className="step-connector-inner"
         variants={lineVariants}
         initial={false}
         animate={isComplete ? 'complete' : 'incomplete'}

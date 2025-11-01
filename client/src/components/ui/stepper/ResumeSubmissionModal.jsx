@@ -420,6 +420,8 @@ export default function ResumeSubmissionModal() {
           backButtonProps={{ disabled: isSubmitting }}
           nextButtonProps={{ disabled: isSubmitting || !isCurrentStepValid }}
           disableStepIndicators={isSubmitting}
+          nextButtonText="Next"
+          completeButtonText="Submit"
           className="resume-modal__stepper"
         >
           <Step>
