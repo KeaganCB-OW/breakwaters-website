@@ -257,6 +257,10 @@ function Stepper({
 
   return (
     <div className={`stepper ${className}`.trim()}>
+      {headerContent ? (
+        <div className="stepper__header">{headerContent}</div>
+      ) : null}
+
       {steps.length > 1 && (
         <ol className="stepper__indicators">
           {steps.map((step, index) => {
@@ -303,10 +307,6 @@ function Stepper({
           })}
         </ol>
       )}
-
-      {headerContent ? (
-        <div className="stepper__header">{headerContent}</div>
-      ) : null}
 
       <div className="stepper__content">{stepContent}</div>
 
