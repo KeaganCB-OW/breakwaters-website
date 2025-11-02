@@ -68,8 +68,12 @@ export async function fetchCurrentClient(token) {
   return data;
 }
 
-export async function fetchClients() {
-  const response = await fetch(`${API_URL}/clients`);
+export async function fetchClients(token) {
+  const response = await fetch(`${API_URL}/clients`, {
+    headers: {
+      ...buildAuthHeaders(token),
+    },
+  });
 
   if (!response.ok) {
     throw new Error('Failed to load clients');

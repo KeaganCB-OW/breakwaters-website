@@ -13,7 +13,7 @@ import '../../../styling/dashboard.css';
 
 export function Dashboard() {
   const navigate = useNavigate();
-  const { logout } = useContext(AuthContext);
+  const { logout, token, user } = useContext(AuthContext);
   const [candidates, setCandidates] = useState([]);
   const [isLoadingCandidates, setIsLoadingCandidates] = useState(true);
   const [candidateError, setCandidateError] = useState(null);
@@ -27,11 +27,29 @@ export function Dashboard() {
   const [assignmentError, setAssignmentError] = useState(null);
 
   useEffect(() => {
+    if (!user) {
+      navigate('/login', { replace: true });
+      return;
+    }
+
+    if (user.role !== 'company_rep') {
+      navigate('/', { replace: true });
+    }
+  }, [navigate, user]);
+
+  useEffect(() => {
     let isMounted = true;
 
+    if (!token) {
+      return () => {
+        isMounted = false;
+      };
+    }
+
     const loadCandidates = async () => {
+      setIsLoadingCandidates(true);
       try {
-        const data = await fetchClients();
+        const data = await fetchClients(token);
         if (isMounted) {
           setCandidates(Array.isArray(data) ? data : []);
           setCandidateError(null);
@@ -53,14 +71,21 @@ export function Dashboard() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     let isMounted = true;
 
+    if (!token) {
+      return () => {
+        isMounted = false;
+      };
+    }
+
     const loadCompanyStats = async () => {
+      setIsLoadingCompanies(true);
       try {
-        const data = await fetchCompanyStats();
+        const data = await fetchCompanyStats(token);
         if (isMounted) {
           const total = Number(data?.total ?? 0);
           const newThisWeek = Number(data?.newThisWeek ?? 0);
@@ -90,14 +115,21 @@ export function Dashboard() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     let isMounted = true;
 
+    if (!token) {
+      return () => {
+        isMounted = false;
+      };
+    }
+
     const loadAssignments = async () => {
+      setIsLoadingAssignments(true);
       try {
-        const data = await fetchAssignments();
+        const data = await fetchAssignments(token);
         if (isMounted) {
           setAssignments(Array.isArray(data) ? data : []);
           setAssignmentError(null);
@@ -119,7 +151,7 @@ export function Dashboard() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [token]);
 
   const startOfWeek = useMemo(() => {
     const now = new Date();

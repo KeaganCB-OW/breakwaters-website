@@ -93,7 +93,13 @@ export default function LoginForm() {
     try {
       const result = await loginRequest(formData.email.trim(), formData.password);
       setAuthState(result.user, result.token);
-      navigate('/dashboard');
+
+      const role = result?.user?.role;
+      if (role === 'company_rep') {
+        navigate('/dashboard', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
     } catch (error) {
       const field = error.field;
       if (field === 'email' || field === 'password') {

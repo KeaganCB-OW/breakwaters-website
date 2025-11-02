@@ -8,6 +8,7 @@ import SignUpPage from './pages/SignUpPage';
 import BecomeClientPage from './pages/BecomeClientPage';
 import { AuthProvider } from './context/AuthContext';
 import { ClientIntakeProvider } from './context/ClientIntakeContext';
+import RequireAuth from './components/routing/RequireAuth';
 
 function App() {
   return (
@@ -20,9 +21,30 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/become-client" element={<BecomeClientPage />} />
             <Route path="/signup" element={<SignUpPage />} />
-            <Route path="/dashboard" element={<RODashboard />} />
-            <Route path="/client-details" element={<ClientDetailsPage />} />
-            <Route path="/client-details/:clientId" element={<ClientDetailsPage />} />
+            <Route
+              path="/dashboard"
+              element={(
+                <RequireAuth allowedRoles={['company_rep']}>
+                  <RODashboard />
+                </RequireAuth>
+              )}
+            />
+            <Route
+              path="/client-details"
+              element={(
+                <RequireAuth allowedRoles={['company_rep']}>
+                  <ClientDetailsPage />
+                </RequireAuth>
+              )}
+            />
+            <Route
+              path="/client-details/:clientId"
+              element={(
+                <RequireAuth allowedRoles={['company_rep']}>
+                  <ClientDetailsPage />
+                </RequireAuth>
+              )}
+            />
           </Routes>
         </ClientIntakeProvider>
       </Router>

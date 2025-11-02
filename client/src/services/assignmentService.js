@@ -10,8 +10,12 @@ const buildAuthHeaders = (token) => {
   };
 };
 
-export async function fetchAssignments() {
-  const response = await fetch(`${API_URL}/assignments`);
+export async function fetchAssignments(token) {
+  const response = await fetch(`${API_URL}/assignments`, {
+    headers: {
+      ...buildAuthHeaders(token),
+    },
+  });
 
   if (!response.ok) {
     throw new Error('Failed to load assignments');

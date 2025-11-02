@@ -5,7 +5,7 @@ import { authorize } from '../middleware/roleMiddleware.js';
 
 const router = Router();
 
-router.get('/', listAssignments);
+router.get('/', authenticate, authorize('company_rep'), listAssignments);
 router.post('/', authenticate, authorize('recruitment_officer'), assignCandidate);
 router.post('/suggest', authenticate, authorize('recruitment_officer'), suggestAssignment);
 

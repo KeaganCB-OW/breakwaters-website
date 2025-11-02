@@ -1,4 +1,4 @@
-import { useCallback, useContext } from "react";
+import { Component, useCallback, useContext } from "react";
 import "../styling/about.css";
 import AppCardNav from "../components/ui/layout/AppCardNav";
 import MissionSection from "../components/sections/MissionSection";
@@ -25,11 +25,18 @@ const MISSION_ENTRIES = [
     lines: TEAM_INTRO_LINES,
     subtext: TEAM_INTRO_SUBTEXT,
   },
+    {
+    id: "team-intro",
+    component: <TeamMembers />,
+  },
 ];
 
-const ABOUT_INTRO_HEADING = "Breakwaters: charting the course to meaningful work.";
-const ABOUT_INTRO_SUBTEXT =
-  "We are a talent collective that clears the path between skilled professionals and the organisations that need them. Our team combines human insight with smart tools to help candidates get noticed faster and help companies hire with confidence.";
+function TeamMembers() {
+  return (
+    <div className="">
+    </div>
+  );
+}
 
 export default function AboutUsPage() {
   const { user } = useContext(AuthContext);

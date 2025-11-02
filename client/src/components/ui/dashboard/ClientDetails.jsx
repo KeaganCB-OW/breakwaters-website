@@ -215,9 +215,18 @@ export function ClientDetails() {
   useEffect(() => {
     let isMounted = true;
 
+    if (!token) {
+      setCandidates([]);
+      setIsLoadingCandidates(false);
+      return () => {
+        isMounted = false;
+      };
+    }
+
     const loadCandidates = async () => {
+      setIsLoadingCandidates(true);
       try {
-        const data = await fetchClients();
+        const data = await fetchClients(token);
         if (isMounted) {
           setCandidates(Array.isArray(data) ? data : []);
         }
@@ -237,14 +246,21 @@ export function ClientDetails() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     let isMounted = true;
 
+    if (!token) {
+      setAssignments([]);
+      return () => {
+        isMounted = false;
+      };
+    }
+
     const loadAssignments = async () => {
       try {
-        const data = await fetchAssignments();
+        const data = await fetchAssignments(token);
         if (isMounted) {
           setAssignments(Array.isArray(data) ? data : []);
         }
@@ -263,14 +279,24 @@ export function ClientDetails() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     let isMounted = true;
 
+    if (!token) {
+      setCompanies([]);
+      setCompanyListError(null);
+      setIsLoadingCompanyList(false);
+      return () => {
+        isMounted = false;
+      };
+    }
+
     const loadCompanies = async () => {
+      setIsLoadingCompanyList(true);
       try {
-        const data = await fetchCompanies();
+        const data = await fetchCompanies(token);
         if (isMounted) {
           setCompanies(Array.isArray(data) ? data : []);
           setCompanyListError(null);
@@ -292,7 +318,7 @@ export function ClientDetails() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     setSuggestionStatusByCompany({});
