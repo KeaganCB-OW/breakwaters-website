@@ -45,7 +45,7 @@ export default function HomePage() {
 
   const navCtaLabel = user
     ? hasSubmitted
-      ? "Submission Sent"
+      ? "Resume Sent"
       : "Get Started"
     : "Sign Up / Sign In";
 
@@ -89,77 +89,79 @@ export default function HomePage() {
         />
       </section>
 
-      <section className="home-section how-it-works noise">
-        <div className="home-section__inner">
-          <h2 className="section-title">
-            Human-led matches in three simple steps
-          </h2>
-          <p className="section-lead">
-            From the first hello to the final interview, every connection is
-            guided by experienced recruiters who know people matter most.
-          </p>
-
-          <div className="how-it-works__grid">
-            {HOW_IT_WORKS_STEPS.map(({ step, client, company }) => (
-              <article className="how-it-works__item" key={step}>
-                <header className="how-it-works__item-header">
-                  <span className="how-it-works__badge">{step}</span>
-                </header>
-                <div className="how-it-works__roles">
-                  <div className="how-it-works__role">
-                    <h3>Client</h3>
-                    <p>{client}</p>
-                  </div>
-                  <div className="how-it-works__role">
-                    <h3>Company</h3>
-                    <p>{company}</p>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="home-section about-breakwaters">
-        <div className="home-section__inner">
-          <h2 className="section-title">
-            Recruitment with heart, precision, and trust
-          </h2>
-          <div className="about-breakwaters__content">
-            <p>
-              At Breakwaters, we believe in people before algorithms. Every CV
-              is personally reviewed by our recruitment officers, ensuring every
-              match benefits both sides.
+      <div className="home-gradient-flow noise">
+        <section className="home-section how-it-works">
+          <div className="home-section__inner">
+            <h2 className="section-title">
+              Human-led matches in three simple steps
+            </h2>
+            <p className="section-lead">
+              From the first hello to the final interview, every connection is
+              guided by experienced recruiters who know people matter most.
             </p>
-            <p>
-              With secure data handling and verified partners, we&apos;re
-              redefining recruitment for trust and transparency.
-            </p>
-          </div>
 
-          <div className="career-journey-panel">
-            <div className="career-journey-panel__copy">
-              <h3>Take the first step in your career journey.</h3>
+            <div className="how-it-works__grid">
+              {HOW_IT_WORKS_STEPS.map(({ step, client, company }) => (
+                <article className="how-it-works__item" key={step}>
+                  <header className="how-it-works__item-header">
+                    <span className="how-it-works__badge">{step}</span>
+                  </header>
+                  <div className="how-it-works__roles">
+                    <div className="how-it-works__role">
+                      <h3>Client</h3>
+                      <p>{client}</p>
+                    </div>
+                    <div className="how-it-works__role">
+                      <h3>Company</h3>
+                      <p>{company}</p>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="home-section about-breakwaters">
+          <div className="home-section__inner">
+            <h2 className="section-title">
+              Recruitment with heart, precision, and trust
+            </h2>
+            <div className="about-breakwaters__content">
               <p>
-                Upload your CV, and let our recruitment team do the heavy
-                lifting. We connect you with verified companies that match your
-                goals and expertise.
+                At Breakwaters, we believe in people before algorithms. Every CV
+                is personally reviewed by our recruitment officers, ensuring
+                every match benefits both sides.
               </p>
-              <button
-                type="button"
-                className="panel-cta"
-                onClick={handleResumeClick}
-              >
-                Submit Your CV
-              </button>
+              <p>
+                With secure data handling and verified partners, we&apos;re
+                redefining recruitment for trust and transparency.
+              </p>
             </div>
-            <div className="career-journey-panel__accent" aria-hidden="true">
-              <div className="career-journey-panel__texture" />
+
+            <div className="career-journey-panel">
+              <div className="career-journey-panel__copy">
+                <h3>Take the first step in your career journey.</h3>
+                <p>
+                  Upload your CV, and let our recruitment team do the heavy
+                  lifting. We connect you with verified companies that match
+                  your goals and expertise.
+                </p>
+                <button
+                  type="button"
+                  className="panel-cta"
+                  onClick={handleResumeClick}
+                >
+                  Submit Your CV
+                </button>
+              </div>
+              <div className="career-journey-panel__accent" aria-hidden="true">
+                <div className="career-journey-panel__texture" />
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
       <Footer />
     </main>

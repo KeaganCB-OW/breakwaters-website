@@ -41,7 +41,7 @@ export default function AboutUsPage() {
 
   const navCtaLabel = user
     ? hasSubmitted
-      ? "Submission Sent"
+      ? "Resume Sent"
       : "Get Started"
     : "Sign Up / Sign In";
 
