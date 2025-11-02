@@ -13,7 +13,8 @@ const CardNav = ({
   menuColor,
   buttonBgColor,
   buttonTextColor,
-  rightContent
+  rightContent,
+  onCtaClick = undefined,
 }) => {
   const [isHamburgerOpen, setIsHamburgerOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -236,6 +237,7 @@ const CardNav = ({
         type="button"
         className="card-nav-cta-button"
         style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
+        onClick={onCtaClick}
       >
         Get Started
       </button>

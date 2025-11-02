@@ -28,6 +28,12 @@ export const listClients = async (req, res) => {
 };
 
 export const createClient = async (req, res) => {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    return res.status(401).json({ message: 'Authentication required.' });
+  }
+
   const payload = req.body ?? {};
 
   const getTrimmed = (key) =>
@@ -96,6 +102,7 @@ export const createClient = async (req, res) => {
   }
 
   const insertValues = [
+    userId,
     candidate.fullName,
     candidate.email,
     candidate.phoneNumber,
@@ -105,11 +112,26 @@ export const createClient = async (req, res) => {
     candidate.education,
     candidate.linkedinUrl || null,
     candidate.experience,
+    'pending',
   ];
 
   try {
+    const [[existing]] = await pool.query(
+      'SELECT id, status FROM clients WHERE user_id = ? LIMIT 1',
+      [userId]
+    );
+
+    if (existing) {
+      return res.status(409).json({
+        message:
+          'You have already submitted your information. Please contact support if you need to make changes.',
+        client: existing,
+      });
+    }
+
     const [insertResult] = await pool.query(
       `INSERT INTO clients (
+        user_id,
         full_name,
         email,
         phone_number,
@@ -118,8 +140,9 @@ export const createClient = async (req, res) => {
         preferred_role,
         education,
         linkedin_url,
-        experience
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        experience,
+        status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       insertValues
     );
 
@@ -128,6 +151,7 @@ export const createClient = async (req, res) => {
     const [rows] = await pool.query(
       `SELECT
         id,
+        user_id AS userId,
         full_name AS fullName,
         email,
         phone_number AS phoneNumber,
@@ -151,6 +175,7 @@ export const createClient = async (req, res) => {
 
     return res.status(201).json({
       id: insertedId,
+      userId,
       fullName: candidate.fullName,
       email: candidate.email,
       phoneNumber: candidate.phoneNumber,
@@ -171,6 +196,50 @@ export const createClient = async (req, res) => {
 
     console.error('Failed to create client', error);
     return res.status(500).json({ message: 'Failed to create client' });
+  }
+};
+
+export const getCurrentClient = async (req, res) => {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    return res.status(401).json({ message: 'Authentication required.' });
+  }
+
+  try {
+    const [rows] = await pool.query(
+      `SELECT
+        id,
+        user_id AS userId,
+        full_name AS fullName,
+        email,
+        phone_number AS phoneNumber,
+        location,
+        skills,
+        preferred_role AS preferredRole,
+        education,
+        linkedin_url AS linkedinUrl,
+        experience,
+        status,
+        created_at AS createdAt
+      FROM clients
+      WHERE user_id = ?
+      LIMIT 1`,
+      [userId]
+    );
+
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return res
+        .status(404)
+        .json({ message: 'No client intake submission found for this user.' });
+    }
+
+    return res.json(rows[0]);
+  } catch (error) {
+    console.error('Failed to load current client submission', error);
+    return res
+      .status(500)
+      .json({ message: 'Failed to load client submission' });
   }
 };
 

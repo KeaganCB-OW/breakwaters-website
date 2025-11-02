@@ -26,11 +26,12 @@ function buildError(message, data) {
   return error;
 }
 
-export async function createClient(payload) {
+export async function createClient(payload, token) {
   const response = await fetch(`${API_URL}/clients`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      ...buildAuthHeaders(token),
     },
     body: JSON.stringify(payload),
   });
@@ -39,6 +40,28 @@ export async function createClient(payload) {
 
   if (!response.ok) {
     const message = data?.message || 'Failed to submit client information';
+    throw buildError(message, data);
+  }
+
+  return data;
+}
+
+export async function fetchCurrentClient(token) {
+  const response = await fetch(`${API_URL}/clients/me`, {
+    headers: {
+      ...buildAuthHeaders(token),
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await parseJson(response);
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    const message = data?.message || 'Failed to load client submission';
     throw buildError(message, data);
   }
 

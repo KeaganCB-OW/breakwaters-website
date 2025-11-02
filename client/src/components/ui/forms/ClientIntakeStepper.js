@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import Stepper, { Step } from '../auth/Stepper';
 import '../../../styling/ClientIntakeStepper.css';
 import { createClient } from '../../../services/clientService';
+import { AuthContext } from '../../../context/AuthContext';
 
 const INITIAL_FORM_DATA = {
   fullName: '',
@@ -102,6 +103,7 @@ const sanitizePayload = (data) => ({
 });
 
 function ClientIntakeStepper({ onSuccess }) {
+  const { token } = useContext(AuthContext);
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState(() => buildEmptyErrors());
   const [submissionState, setSubmissionState] = useState({
@@ -191,11 +193,20 @@ function ClientIntakeStepper({ onSuccess }) {
       return { completed: false };
     }
 
+    if (!token) {
+      setSubmissionState({
+        status: 'error',
+        message:
+          'Please sign in to submit your details. Once signed in, you can complete the intake form.',
+      });
+      return { completed: false };
+    }
+
     setSubmissionState({ status: 'pending', message: '' });
 
     try {
       const payload = sanitizePayload(formData);
-      const response = await createClient(payload);
+      const response = await createClient(payload, token);
 
       setSubmissionState({
         status: 'success',
@@ -213,6 +224,13 @@ function ClientIntakeStepper({ onSuccess }) {
         error?.details?.message ||
         error?.message ||
         'We could not submit your details. Please try again.';
+
+      if (error?.details?.errors && typeof error.details.errors === 'object') {
+        setErrors((previous) => ({
+          ...previous,
+          ...error.details.errors,
+        }));
+      }
 
       setSubmissionState({
         status: 'error',

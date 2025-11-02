@@ -1,5 +1,6 @@
 import CardNav from './CardNav';
 import defaultLogo from '../../../assets/logos/Logo-full.svg';
+import { useClientIntake } from '../../../context/ClientIntakeContext';
 
 const defaultItems = [
   {
@@ -42,20 +43,27 @@ const AppCardNav = ({
   buttonBgColor = '#082658',
   buttonTextColor = '#fff',
   ease = 'power3.out',
+  onGetStarted,
   ...rest
-}) => (
-  <CardNav
-    logo={logo}
-    logoAlt={logoAlt}
-    items={items}
-    baseColor={baseColor}
-    menuColor={menuColor}
-    buttonBgColor={buttonBgColor}
-    buttonTextColor={buttonTextColor}
-    ease={ease}
-    {...rest}
-  />
-);
+}) => {
+  const { openClientIntake } = useClientIntake();
+  const handleGetStarted = onGetStarted ?? openClientIntake;
+
+  return (
+    <CardNav
+      logo={logo}
+      logoAlt={logoAlt}
+      items={items}
+      baseColor={baseColor}
+      menuColor={menuColor}
+      buttonBgColor={buttonBgColor}
+      buttonTextColor={buttonTextColor}
+      ease={ease}
+      onCtaClick={handleGetStarted}
+      {...rest}
+    />
+  );
+};
 
 export default AppCardNav;
 
