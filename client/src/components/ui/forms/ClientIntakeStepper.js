@@ -348,7 +348,7 @@ function ClientIntakeStepper({ onSuccess }) {
 
           <Step
             title="Review & submit"
-            description="Confirm everything looks right"
+            description="Everything look good?"
             onNext={validateAll}
             pendingText="Submitting..."
             isNextDisabled={submissionState.status === 'pending'}

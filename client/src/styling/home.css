@@ -10,6 +10,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
+  background-image: url('../assets/images/noise-texture.png');
+   background-repeat: repeat-y, repeat-x;
   background: linear-gradient(135deg, #a79b87 0%, #D5C8B1 50%, #D5C8B1 100%);
   overflow: hidden;
 }
@@ -18,7 +20,7 @@
   position: relative;
   z-index: 2;
   width: 100%;
-  padding-top: 250px;
+  padding-top: 15%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -72,6 +74,23 @@
   display: block;
   pointer-events: none;
   z-index: 1;
+}
+
+.noise,
+.hero-section.noise {
+  position: relative; /* hero-section already has this, kept for safety */
+}
+
+.noise::before,
+.hero-section.noise::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.3'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1; /* sits beneath .hero-content (z-index:2) but above decorative waves */
+  mix-blend-mode: multiply; /* optional: try 'multiply' or remove for different looks */
+  opacity: 1; /* tweak to taste */
 }
 
 
@@ -159,9 +178,9 @@
 }
 
 .hero-cta {
-  height: 60px;
+  height: 48px;
   width: fit-content;
-  padding: 2vh 20px;
+  padding:  8px 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -379,7 +398,7 @@
 .home-overlay__backdrop {
   position: absolute;
   inset: 0;
-  background: linear-gradient(140deg, rgba(6, 22, 47, 0.84), rgba(8, 38, 88, 0.78));
+  background: linear-gradient(140deg, rgba(6, 22, 47, 0.50), rgba(8, 38, 88, 0.50));
   backdrop-filter: blur(6px);
   pointer-events: auto;
 }
@@ -411,8 +430,8 @@
 
 .home-overlay__close {
   position: absolute;
-  top: clamp(12px, 1.5vw, 22px);
-  right: clamp(12px, 1.5vw, 22px);
+  top: clamp(40px, 2vw, 40px);
+  right: clamp(40px, 2vw, 40px);
   width: 40px;
   height: 40px;
   border-radius: 50%;

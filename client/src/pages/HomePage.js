@@ -204,7 +204,7 @@ export default function HomePage() {
           </div>
         </div>
       )}
-      <section className="hero-section">
+      <section className="hero-section noise">
         <div className="hero-content">
           <AppCardNav
             rightContent={(
