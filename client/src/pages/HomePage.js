@@ -70,7 +70,7 @@ export default function HomePage() {
 
   const navCtaLabel = user
     ? hasSubmitted
-      ? "Submission sent"
+      ? "Submission Sent"
       : "Get Started"
     : "Sign Up / Sign In";
 
