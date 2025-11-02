@@ -1,6 +1,9 @@
+import { useCallback, useContext, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CardNav from './CardNav';
 import defaultLogo from '../../../assets/logos/Logo-full.svg';
 import { useClientIntake } from '../../../context/ClientIntakeContext';
+import { AuthContext } from '../../../context/AuthContext';
 
 const defaultItems = [
   {
@@ -44,10 +47,68 @@ const AppCardNav = ({
   buttonTextColor = '#fff',
   ease = 'power3.out',
   onGetStarted,
+  ctaLabel = 'Get Started',
+  rightContent,
   ...rest
 }) => {
   const { openClientIntake } = useClientIntake();
-  const handleGetStarted = onGetStarted ?? openClientIntake;
+  const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const handleGetStarted = useCallback(() => {
+    if (typeof onGetStarted === 'function') {
+      onGetStarted();
+    } else {
+      openClientIntake();
+    }
+  }, [onGetStarted, openClientIntake]);
+
+  const handleLogout = useCallback(() => {
+    logout();
+    navigate('/');
+  }, [logout, navigate]);
+
+  const computedRightContent = useMemo(() => {
+    if (rightContent) {
+      return rightContent;
+    }
+
+    const primaryButton = (
+      <button
+        type="button"
+        className="card-nav-cta-button"
+        style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
+        onClick={handleGetStarted}
+      >
+        {ctaLabel}
+      </button>
+    );
+
+    if (!user) {
+      return primaryButton;
+    }
+
+    return (
+      <div className="card-nav-action-group">
+        {primaryButton}
+        <button
+          type="button"
+          className="card-nav-secondary-button"
+          onClick={handleLogout}
+        >
+          Logout
+        </button>
+      </div>
+    );
+  }, [
+    rightContent,
+    user,
+    buttonBgColor,
+    buttonTextColor,
+    handleGetStarted,
+    ctaLabel,
+    handleLogout,
+  ]);
 
   return (
     <CardNav
@@ -60,10 +121,10 @@ const AppCardNav = ({
       buttonTextColor={buttonTextColor}
       ease={ease}
       onCtaClick={handleGetStarted}
+      rightContent={computedRightContent}
       {...rest}
     />
   );
 };
 
 export default AppCardNav;
-

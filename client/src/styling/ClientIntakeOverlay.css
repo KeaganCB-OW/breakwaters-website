@@ -131,7 +131,7 @@
 }
 
 .home-auth__button--secondary {
-  background: rgba(8, 38, 88, 0.08);
+  background: #082658(8, 37, 88, 0.50);
   color: #082658;
   box-shadow: 0 12px 24px rgba(8, 38, 88, 0.1);
 }

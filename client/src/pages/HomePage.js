@@ -79,15 +79,8 @@ export default function HomePage() {
       <section className="hero-section noise">
         <div className="hero-content">
           <AppCardNav
-            rightContent={(
-              <button
-                type="button"
-                className="card-nav-cta-button"
-                onClick={handleNavCtaClick}
-              >
-                {navCtaLabel}
-              </button>
-            )}
+            ctaLabel={navCtaLabel}
+            onGetStarted={handleNavCtaClick}
           />
           <h1 className="hero-title" data-text={HERO_TITLE}>
             <span>We Break Barriers</span>
