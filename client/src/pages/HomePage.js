@@ -1,4 +1,4 @@
-import { useCallback, useContext } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import "../styling/home.css";
 import AppCardNav from "../components/ui/layout/AppCardNav";
@@ -30,6 +30,10 @@ const HOW_IT_WORKS_STEPS = [
 export default function HomePage() {
   const { user } = useContext(AuthContext);
   const { openClientIntake, hasSubmitted } = useClientIntake();
+  const howItWorksRef = useRef(null);
+  const aboutBreakwatersRef = useRef(null);
+  const [howItWorksVisible, setHowItWorksVisible] = useState(false);
+  const [aboutVisible, setAboutVisible] = useState(false);
 
   const handleNavCtaClick = useCallback(() => {
     openClientIntake();
@@ -48,6 +52,35 @@ export default function HomePage() {
       ? "Resume Sent"
       : "Get Started"
     : "Sign Up / Sign In";
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof IntersectionObserver === "undefined") {
+      setHowItWorksVisible(true);
+      setAboutVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.target === howItWorksRef.current) {
+            setHowItWorksVisible(entry.isIntersecting);
+          } else if (entry.target === aboutBreakwatersRef.current) {
+            setAboutVisible(entry.isIntersecting);
+          }
+        });
+      },
+      {
+        threshold: 0.25,
+        rootMargin: "0px 0px -10%",
+      }
+    );
+
+    const targets = [howItWorksRef.current, aboutBreakwatersRef.current].filter(Boolean);
+    targets.forEach((element) => observer.observe(element));
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <main className="home-page">
@@ -90,7 +123,12 @@ export default function HomePage() {
       </section>
 
       <div className="home-gradient-flow noise">
-        <section className="home-section how-it-works">
+        <section
+          ref={howItWorksRef}
+          className={`home-section how-it-works ${
+            howItWorksVisible ? "home-section--visible" : ""
+          }`}
+        >
           <div className="home-section__inner">
             <h2 className="section-title">
               Human-led matches in three simple steps
@@ -122,7 +160,14 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="home-section about-breakwaters">
+        <div className="home-section-divider" aria-hidden="true" />
+
+        <section
+          ref={aboutBreakwatersRef}
+          className={`home-section about-breakwaters ${
+            aboutVisible ? "home-section--visible" : ""
+          }`}
+        >
           <div className="home-section__inner">
             <h2 className="section-title">
               Recruitment with heart, precision, and trust

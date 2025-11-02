@@ -47,14 +47,8 @@ export default function AboutUsPage() {
 
   return (
     <main className="about-page">
-      <header className="about-page__header">
         <AppCardNav ctaLabel={navCtaLabel} onGetStarted={handleNavCtaClick} />
-      </header>
-
-      <section className="about-page__intro">
-        <h1>{ABOUT_INTRO_HEADING}</h1>
-        <p>{ABOUT_INTRO_SUBTEXT}</p>
-      </section>
+ 
 
       <MissionSection id="about-mission" entries={MISSION_ENTRIES} />
 
