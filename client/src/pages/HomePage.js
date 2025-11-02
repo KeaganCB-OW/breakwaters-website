@@ -1,56 +1,31 @@
 import { useCallback, useContext } from "react";
 import { Link } from "react-router-dom";
 import "../styling/home.css";
-import MissionSection from "../components/sections/MissionSection";
 import AppCardNav from "../components/ui/layout/AppCardNav";
 import heroWave from "../assets/svgs/Hero-wave.svg";
 import { AuthContext } from "../context/AuthContext";
 import { useClientIntake } from "../context/ClientIntakeContext";
+import Footer from "../components/ui/layout/Footer";
 
 const HERO_TITLE = "We Break Barriers\nfor your success.";
-const INITIAL_MISSION_LINES = ["What we do", "and why we do it."];
-const UPDATED_MISSION_LINES = ["Its simple.", "We want to get you hired."];
-const UPDATED_MISSION_SUBTEXT =
-  "We connect people to opportunity. By streamlining the job application and recruitment process, we help candidates get noticed and companies find the right fit quickly, simply, and meaningfully.";
-const TEAM_INTRO_LINES = ["Meet the crew."];
-const TEAN_INTRO_SUBTEXT = ["We're here to help you succeed."]
-
-/*function MissionCallToAction() {
-  return (
-    <div className="mission-call-to-action">
-      <h3>Ready to take the next step?</h3>
-      <p>
-        Whether you&apos;re kickstarting your career or scaling your team, our crew is
-        here to clear the path forward.
-      </p>
-      <div className="mission-call-to-action__actions">
-        <button type="button" className="mission-call-to-action__button">
-          Submit your resume
-        </button>
-        <button
-          type="button"
-          className="mission-call-to-action__button mission-call-to-action__button--alt"
-        >
-          Partner with Breakwaters
-        </button>
-      </div>
-    </div>
-  );
-}*/
-
-const MISSION_ENTRIES = [
-  { id: "mission-intro", lines: INITIAL_MISSION_LINES },
+const HOW_IT_WORKS_STEPS = [
   {
-    id: "mission-update",
-    lines: UPDATED_MISSION_LINES,
-    subtext: UPDATED_MISSION_SUBTEXT,
+    step: "1. Submit",
+    client: "Upload your CV and profile.",
+    company: "Create a verified company account.",
   },
   {
-    id: "team-intro",
-    lines: TEAM_INTRO_LINES,
-    subtext: TEAN_INTRO_SUBTEXT,
+    step: "2. Review",
+    client: "Our recruitment officers assess your fit.",
+    company: "Receive shortlisted candidates.",
+  },
+  {
+    step: "3. Connect",
+    client: "Get matched and notified via email.",
+    company: "Review candidates and schedule interviews.",
   },
 ];
+
 
 export default function HomePage() {
   const { user } = useContext(AuthContext);
@@ -114,7 +89,79 @@ export default function HomePage() {
         />
       </section>
 
-      <MissionSection id="mission" entries={MISSION_ENTRIES} />
+      <section className="home-section how-it-works noise">
+        <div className="home-section__inner">
+          <h2 className="section-title">
+            Human-led matches in three simple steps
+          </h2>
+          <p className="section-lead">
+            From the first hello to the final interview, every connection is
+            guided by experienced recruiters who know people matter most.
+          </p>
+
+          <div className="how-it-works__grid">
+            {HOW_IT_WORKS_STEPS.map(({ step, client, company }) => (
+              <article className="how-it-works__item" key={step}>
+                <header className="how-it-works__item-header">
+                  <span className="how-it-works__badge">{step}</span>
+                </header>
+                <div className="how-it-works__roles">
+                  <div className="how-it-works__role">
+                    <h3>Client</h3>
+                    <p>{client}</p>
+                  </div>
+                  <div className="how-it-works__role">
+                    <h3>Company</h3>
+                    <p>{company}</p>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="home-section about-breakwaters">
+        <div className="home-section__inner">
+          <h2 className="section-title">
+            Recruitment with heart, precision, and trust
+          </h2>
+          <div className="about-breakwaters__content">
+            <p>
+              At Breakwaters, we believe in people before algorithms. Every CV
+              is personally reviewed by our recruitment officers, ensuring every
+              match benefits both sides.
+            </p>
+            <p>
+              With secure data handling and verified partners, we&apos;re
+              redefining recruitment for trust and transparency.
+            </p>
+          </div>
+
+          <div className="career-journey-panel">
+            <div className="career-journey-panel__copy">
+              <h3>Take the first step in your career journey.</h3>
+              <p>
+                Upload your CV, and let our recruitment team do the heavy
+                lifting. We connect you with verified companies that match your
+                goals and expertise.
+              </p>
+              <button
+                type="button"
+                className="panel-cta"
+                onClick={handleResumeClick}
+              >
+                Submit Your CV
+              </button>
+            </div>
+            <div className="career-journey-panel__accent" aria-hidden="true">
+              <div className="career-journey-panel__texture" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <Footer />
     </main>
   );
 }

@@ -11,9 +11,9 @@ const defaultItems = [
     bgColor: '#082658',
     textColor: '#fff',
     links: [
-      { label: 'Home', ariaLabel: 'Home Page' },
-      { label: 'About Us', ariaLabel: 'About Us' },
-      { label: 'For Companies', ariaLabel: 'Join the Breakwaters Network' }
+      { label: 'Home', ariaLabel: 'Home Page', href: '/' },
+      { label: 'About Us', ariaLabel: 'About Us', href: '/about' },
+      { label: 'For Companies', ariaLabel: 'Join the Breakwaters Network', href: '/become-client' }
     ]
   },
   {
@@ -21,8 +21,8 @@ const defaultItems = [
     bgColor: '#0b3173ff',
     textColor: '#fff',
     links: [
-      { label: 'Featured Companies', ariaLabel: 'Featured Companies' },
-      { label: 'Testimonials', ariaLabel: 'Our Testimonials' }
+      { label: 'Featured Companies', ariaLabel: 'Featured Companies', href: '/#companies' },
+      { label: 'Testimonials', ariaLabel: 'Our Testimonials', href: '/#testimonials' }
     ]
   },
   {
@@ -30,9 +30,9 @@ const defaultItems = [
     bgColor: '#10387fff',
     textColor: '#fff',
     links: [
-      { label: 'Email', ariaLabel: 'Email us' },
-      { label: 'Twitter', ariaLabel: 'Twitter' },
-      { label: 'LinkedIn', ariaLabel: 'LinkedIn' }
+      { label: 'Email', ariaLabel: 'Email us', href: 'mailto:support@breakwaters.co.za' },
+      { label: 'Twitter', ariaLabel: 'Twitter', href: '#' },
+      { label: 'LinkedIn', ariaLabel: 'LinkedIn', href: '#' }
     ]
   }
 ];

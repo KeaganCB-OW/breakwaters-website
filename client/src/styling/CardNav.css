@@ -14,8 +14,8 @@
   top: clamp(14px, 4vw, 28px);
   left: 50%;
   transform: translateX(-50%);
-  width: min(92vw, 640px);
-  max-width: 640px;
+  width: min(92vw, 800px);
+  max-width: 800px;
   z-index: 999;
   transition: transform 0.35s ease;
 }
@@ -23,7 +23,7 @@
 .card-nav-container--floating .card-nav {
   width: 100%;
   box-shadow: 0 18px 38px rgba(6, 22, 47, 0.22);
-  border-radius: 1.35rem;
+  border-radius: (0.75rem - 0.2rem);
   transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
@@ -326,6 +326,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  color: #ffffff;
 }
 
 .nav-card-link:hover {

@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
+import AboutUsPage from './pages/AboutUsPage';
 import RODashboard from './pages/RODashboard';
 import ClientDetailsPage from './pages/ClientDetails';
 import LoginPage from './pages/LoginPage';
@@ -15,6 +16,7 @@ function App() {
         <ClientIntakeProvider>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/about" element={<AboutUsPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/become-client" element={<BecomeClientPage />} />
             <Route path="/signup" element={<SignUpPage />} />
