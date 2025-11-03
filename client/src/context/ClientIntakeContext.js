@@ -4,12 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from './AuthContext';
 import { fetchCurrentClient } from '../services/clientService';
 import ClientIntakeStepper from '../components/ui/forms/ClientIntakeStepper';
+import BusinessIntakeStepper from '../components/ui/forms/BusinessIntakeStepper';
 import '../styling/ClientIntakeOverlay.css';
 
 const noop = () => {};
 
 export const ClientIntakeContext = createContext({
   openClientIntake: noop,
+  openBusinessIntake: noop,
   closeClientIntake: noop,
   hasSubmitted: false,
   isOverlayOpen: false,
@@ -27,12 +29,14 @@ export function ClientIntakeProvider({ children }) {
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [hasCheckedStatus, setHasCheckedStatus] = useState(false);
   const [statusError, setStatusError] = useState('');
+  const [activeIntakeType, setActiveIntakeType] = useState('client'); // client | business
 
   const isOverlayOpen = mode !== 'closed';
   const hasSubmitted = Boolean(clientSubmission);
 
   const closeClientIntake = useCallback(() => {
     setMode('closed');
+    setActiveIntakeType('client');
   }, []);
 
   const loadClientStatus = useCallback(async () => {
@@ -151,6 +155,7 @@ export function ClientIntakeProvider({ children }) {
   }, [clientSubmission, isCheckingStatus, mode, statusError]);
 
   const openClientIntake = useCallback(() => {
+    setActiveIntakeType('client');
     if (!user || !token) {
       setMode('auth');
       return;
@@ -173,6 +178,11 @@ export function ClientIntakeProvider({ children }) {
 
     setMode('stepper');
   }, [clientSubmission, hasCheckedStatus, isCheckingStatus, statusError, token, user]);
+
+  const openBusinessIntake = useCallback(() => {
+    setActiveIntakeType('business');
+    setMode('stepper');
+  }, []);
 
   const handleSubmissionSuccess = useCallback((submission) => {
     setClientSubmission(submission || { status: 'pending' });
@@ -210,16 +220,19 @@ export function ClientIntakeProvider({ children }) {
       case 'status-error':
         return 'Submission status unavailable';
       case 'stepper':
-        return 'Client intake form';
+        return activeIntakeType === 'business'
+          ? 'Business intake form'
+          : 'Client intake form';
       default:
         return 'Client intake';
     }
-  }, [mode]);
+  }, [activeIntakeType, mode]);
 
   const contextValue = useMemo(
     () => ({
       openClientIntake,
       closeClientIntake,
+      openBusinessIntake,
       hasSubmitted,
       isOverlayOpen,
       isCheckingStatus,
@@ -233,6 +246,7 @@ export function ClientIntakeProvider({ children }) {
       hasSubmitted,
       isCheckingStatus,
       isOverlayOpen,
+      openBusinessIntake,
       loadClientStatus,
       openClientIntake,
       statusError,
@@ -334,6 +348,10 @@ export function ClientIntakeProvider({ children }) {
     }
 
     if (mode === 'stepper') {
+      if (activeIntakeType === 'business') {
+        return <BusinessIntakeStepper />;
+      }
+
       return <ClientIntakeStepper onSuccess={handleSubmissionSuccess} />;
     }
 

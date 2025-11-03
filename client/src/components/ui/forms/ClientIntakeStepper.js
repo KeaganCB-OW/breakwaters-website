@@ -1,7 +1,9 @@
 import React, { useContext, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import Stepper, { Step } from '../auth/Stepper';
+import RolesDropdown from './RolesDropdown';
 import '../../../styling/ClientIntakeStepper.css';
+import '../../../styling/forms.css';
 import { createClient } from '../../../services/clientService';
 import { AuthContext } from '../../../context/AuthContext';
 
@@ -11,7 +13,7 @@ const INITIAL_FORM_DATA = {
   phoneNumber: '',
   location: '',
   skills: '',
-  preferredRole: '',
+  desiredRole: '',
   education: '',
   linkedinUrl: '',
   experience: '',
@@ -19,7 +21,7 @@ const INITIAL_FORM_DATA = {
 
 const STEP_FIELDS = [
   ['fullName', 'email', 'phoneNumber', 'location'],
-  ['skills', 'preferredRole', 'experience'],
+  ['skills', 'desiredRole', 'experience'],
   ['education', 'linkedinUrl'],
 ];
 
@@ -29,7 +31,7 @@ const FIELD_LABELS = {
   phoneNumber: 'Phone number',
   location: 'Location',
   skills: 'Skills & tools',
-  preferredRole: 'Preferred role',
+  desiredRole: 'Desired role',
   education: 'Education',
   linkedinUrl: 'LinkedIn URL',
   experience: 'Experience',
@@ -41,7 +43,7 @@ const FIELD_PLACEHOLDERS = {
   phoneNumber: '+1 (555) 123-4567',
   location: 'City, Country or remote',
   skills: 'List the skills you want us to highlight',
-  preferredRole: 'Product Designer, Full-stack Engineer, etc.',
+  desiredRole: 'Select a role from the list',
   education: 'Highest level or relevant certification',
   linkedinUrl: 'https://www.linkedin.com/in/your-profile',
   experience: 'Share your most recent experience and highlights',
@@ -65,7 +67,7 @@ const fieldValidators = {
     value.trim() ? '' : 'Let us know where you are based.',
   skills: (value) =>
     value.trim() ? '' : 'Highlight a few skills or tools you use.',
-  preferredRole: (value) =>
+  desiredRole: (value) =>
     value.trim() ? '' : 'Tell us the role you are aiming for.',
   education: (value) =>
     value.trim() ? '' : 'Education or certification is required.',
@@ -96,7 +98,7 @@ const sanitizePayload = (data) => ({
   phoneNumber: data.phoneNumber.trim(),
   location: data.location.trim(),
   skills: data.skills.trim(),
-  preferredRole: data.preferredRole.trim(),
+  preferredRole: data.desiredRole.trim(),
   education: data.education.trim(),
   linkedinUrl: data.linkedinUrl.trim(),
   experience: data.experience.trim(),
@@ -118,7 +120,7 @@ function ClientIntakeStepper({ onSuccess }) {
       { key: 'email', label: FIELD_LABELS.email, value: formData.email },
       { key: 'phoneNumber', label: FIELD_LABELS.phoneNumber, value: formData.phoneNumber },
       { key: 'location', label: FIELD_LABELS.location, value: formData.location },
-      { key: 'preferredRole', label: FIELD_LABELS.preferredRole, value: formData.preferredRole },
+      { key: 'desiredRole', label: FIELD_LABELS.desiredRole, value: formData.desiredRole },
       { key: 'skills', label: FIELD_LABELS.skills, value: formData.skills },
       { key: 'education', label: FIELD_LABELS.education, value: formData.education },
       { key: 'linkedinUrl', label: FIELD_LABELS.linkedinUrl, value: formData.linkedinUrl || 'Not provided' },
@@ -144,6 +146,20 @@ function ClientIntakeStepper({ onSuccess }) {
     setErrors((previous) => ({
       ...previous,
       [name]: '',
+    }));
+
+    resetSubmissionState();
+  };
+
+  const handleDesiredRoleChange = (value) => {
+    setFormData((previous) => ({
+      ...previous,
+      desiredRole: value || '',
+    }));
+
+    setErrors((previous) => ({
+      ...previous,
+      desiredRole: '',
     }));
 
     resetSubmissionState();
@@ -321,11 +337,13 @@ function ClientIntakeStepper({ onSuccess }) {
             description="How can we reach you?"
             onNext={() => validateStep(1)}
           >
-            <div className="client-intake__grid">
-              {renderField('fullName')}
-              {renderField('email', { type: 'email', autoComplete: 'email' })}
-              {renderField('phoneNumber', { type: 'tel', autoComplete: 'tel' })}
-              {renderField('location')}
+            <div className="formScroll">
+              <div className="client-intake__grid">
+                {renderField('fullName')}
+                {renderField('email', { type: 'email', autoComplete: 'email' })}
+                {renderField('phoneNumber', { type: 'tel', autoComplete: 'tel' })}
+                {renderField('location')}
+              </div>
             </div>
           </Step>
 
@@ -334,18 +352,30 @@ function ClientIntakeStepper({ onSuccess }) {
             description="Show us what you bring"
             onNext={() => validateStep(2)}
           >
-            <div className="client-intake__grid client-intake__grid--single">
-              {renderField('skills', {
-                as: 'textarea',
-                hint: 'Separate skills with commas or short phrases.',
-                rows: 4,
-              })}
-              {renderField('preferredRole')}
-              {renderField('experience', {
-                as: 'textarea',
-                rows: 5,
-                hint: 'Give a snapshot of your current or most recent role.',
-              })}
+            <div className="formScroll">
+              <div className="client-intake__grid client-intake__grid--single">
+                {renderField('skills', {
+                  as: 'textarea',
+                  hint: 'Separate skills with commas or short phrases.',
+                  rows: 4,
+                })}
+                <RolesDropdown
+                  id="desiredRole"
+                  label={FIELD_LABELS.desiredRole}
+                  placeholder="Select your desired role"
+                  description="Pick the role that best matches your next opportunity."
+                  selected={formData.desiredRole}
+                  onChange={handleDesiredRoleChange}
+                  error={errors.desiredRole}
+                  className="client-intake__field"
+                  invalidClassName="client-intake__field--invalid"
+                />
+                {renderField('experience', {
+                  as: 'textarea',
+                  rows: 5,
+                  hint: 'Give a snapshot of your current or most recent role.',
+                })}
+              </div>
             </div>
           </Step>
 
@@ -354,13 +384,15 @@ function ClientIntakeStepper({ onSuccess }) {
             description="Round out your profile"
             onNext={() => validateStep(3)}
           >
-            <div className="client-intake__grid client-intake__grid--single">
-              {renderField('education')}
-              {renderField('linkedinUrl', {
-                type: 'url',
-                autoComplete: 'url',
-                hint: 'Optional, but helps us connect quicker.',
-              })}
+            <div className="formScroll">
+              <div className="client-intake__grid client-intake__grid--single">
+                {renderField('education')}
+                {renderField('linkedinUrl', {
+                  type: 'url',
+                  autoComplete: 'url',
+                  hint: 'Optional, but helps us connect quicker.',
+                })}
+              </div>
             </div>
           </Step>
 
@@ -372,38 +404,40 @@ function ClientIntakeStepper({ onSuccess }) {
             isNextDisabled={submissionState.status === 'pending'}
           >
             {({ isCompleted }) => (
-              <div className="client-intake__review">
-                <h2 className="client-intake__review-title">
-                  {isCompleted
-                    ? 'Thanks for sharing your details!'
-                    : 'Here is what we will send to our team'}
-                </h2>
-                <dl className="client-intake__summary">
-                  {summaryItems.map((item) => (
-                    <div className="client-intake__summary-item" key={item.key}>
-                      <dt>{item.label}</dt>
-                      <dd>{item.value || '\u2014'}</dd>
+              <div className="formScroll">
+                <div className="client-intake__review">
+                  <h2 className="client-intake__review-title">
+                    {isCompleted
+                      ? 'Thanks for sharing your details!'
+                      : 'Here is what we will send to our team'}
+                  </h2>
+                  <dl className="client-intake__summary">
+                    {summaryItems.map((item) => (
+                      <div className="client-intake__summary-item" key={item.key}>
+                        <dt>{item.label}</dt>
+                        <dd>{item.value || '\u2014'}</dd>
+                      </div>
+                    ))}
+                  </dl>
+
+                  {submissionState.status === 'pending' ? (
+                    <div className="client-intake__alert client-intake__alert--info">
+                      {'Submitting your details\u2026'}
                     </div>
-                  ))}
-                </dl>
+                  ) : null}
 
-                {submissionState.status === 'pending' ? (
-                  <div className="client-intake__alert client-intake__alert--info">
-                    {'Submitting your details\u2026'}
-                  </div>
-                ) : null}
+                  {submissionState.status === 'error' ? (
+                    <div className="client-intake__alert client-intake__alert--error">
+                      {submissionState.message}
+                    </div>
+                  ) : null}
 
-                {submissionState.status === 'error' ? (
-                  <div className="client-intake__alert client-intake__alert--error">
-                    {submissionState.message}
-                  </div>
-                ) : null}
-
-                {submissionState.status === 'success' ? (
-                  <div className="client-intake__alert client-intake__alert--success">
-                    {submissionState.message}
-                  </div>
-                ) : null}
+                  {submissionState.status === 'success' ? (
+                    <div className="client-intake__alert client-intake__alert--success">
+                      {submissionState.message}
+                    </div>
+                  ) : null}
+                </div>
               </div>
             )}
           </Step>

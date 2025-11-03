@@ -1,5 +1,4 @@
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import "../styling/home.css";
 import AppCardNav from "../components/ui/layout/AppCardNav";
 import heroWave from "../assets/svgs/Hero-wave.svg";
@@ -29,7 +28,7 @@ const HOW_IT_WORKS_STEPS = [
 
 export default function HomePage() {
   const { user } = useContext(AuthContext);
-  const { openClientIntake, hasSubmitted } = useClientIntake();
+  const { openClientIntake, openBusinessIntake, hasSubmitted } = useClientIntake();
   const howItWorksRef = useRef(null);
   const aboutBreakwatersRef = useRef(null);
   const [howItWorksVisible, setHowItWorksVisible] = useState(false);
@@ -46,6 +45,10 @@ export default function HomePage() {
     },
     [openClientIntake]
   );
+
+  const handleBusinessClick = useCallback(() => {
+    openBusinessIntake();
+  }, [openBusinessIntake]);
 
   const navCtaLabel = user
     ? hasSubmitted
@@ -107,9 +110,13 @@ export default function HomePage() {
             >
               Submit your resume
             </button>
-            <Link to="/signup" className="hero-cta hero-cta--white">
+            <button
+              type="button"
+              className="hero-cta hero-cta--white"
+              onClick={handleBusinessClick}
+            >
               Register your business
-            </Link>
+            </button>
           </div>
         </div>
         <div className="hero-wave-accent" aria-hidden="true" />
