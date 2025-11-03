@@ -1,30 +1,43 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import AppCardNav from '../layout/AppCardNav';
 import { StatsCard } from './StatsCard';
-import { CandidateCard } from './CandidateCard';
-import { AssignmentCard } from './AssignmentCard';
 import { DashboardAvatar } from './DashboardAvatar';
 import { fetchClients } from '../../../services/clientService';
 import { fetchAssignments } from '../../../services/assignmentService';
-import { fetchCompanyStats } from '../../../services/companyService';
+import { fetchCompanies, fetchCompanyStats } from '../../../services/companyService';
 import { AuthContext } from '../../../context/AuthContext';
 import '../../../styling/dashboard.css';
+import { DashboardDataContext } from './DashboardContext';
 
 export function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { logout, token, user } = useContext(AuthContext);
   const [candidates, setCandidates] = useState([]);
   const [isLoadingCandidates, setIsLoadingCandidates] = useState(true);
   const [candidateError, setCandidateError] = useState(null);
 
-  const [companyStats, setCompanyStats] = useState({ total: 0, newThisWeek: 0, unverified: 0 });
+  const [companies, setCompanies] = useState([]);
   const [isLoadingCompanies, setIsLoadingCompanies] = useState(true);
   const [companyError, setCompanyError] = useState(null);
+
+  const [companyStats, setCompanyStats] = useState({ total: 0, newThisWeek: 0, unverified: 0 });
+  const [isLoadingCompanyStats, setIsLoadingCompanyStats] = useState(true);
+  const [companyStatsError, setCompanyStatsError] = useState(null);
 
   const [assignments, setAssignments] = useState([]);
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(true);
   const [assignmentError, setAssignmentError] = useState(null);
+
+  const isMountedRef = useRef(false);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -37,121 +50,170 @@ export function Dashboard() {
     }
   }, [navigate, user]);
 
-  useEffect(() => {
-    let isMounted = true;
-
+  const reloadCandidates = useCallback(async () => {
     if (!token) {
-      return () => {
-        isMounted = false;
-      };
+      if (isMountedRef.current) {
+        setCandidates([]);
+        setCandidateError(null);
+        setIsLoadingCandidates(false);
+      }
+      return [];
     }
 
-    const loadCandidates = async () => {
+    if (isMountedRef.current) {
       setIsLoadingCandidates(true);
-      try {
-        const data = await fetchClients(token);
-        if (isMounted) {
-          setCandidates(Array.isArray(data) ? data : []);
-          setCandidateError(null);
-        }
-      } catch (error) {
-        if (isMounted) {
-          setCandidateError(error.message || 'Failed to load candidates');
-          setCandidates([]);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoadingCandidates(false);
-        }
-      }
-    };
-
-    loadCandidates();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [token]);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    if (!token) {
-      return () => {
-        isMounted = false;
-      };
     }
 
-    const loadCompanyStats = async () => {
+    try {
+      const data = await fetchClients(token);
+      const normalized = Array.isArray(data) ? data : [];
+      if (isMountedRef.current) {
+        setCandidates(normalized);
+        setCandidateError(null);
+      }
+      return normalized;
+    } catch (error) {
+      if (isMountedRef.current) {
+        setCandidateError(error.message || 'Failed to load candidates');
+        setCandidates([]);
+      }
+      return [];
+    } finally {
+      if (isMountedRef.current) {
+        setIsLoadingCandidates(false);
+      }
+    }
+  }, [token]);
+
+  const reloadCompanies = useCallback(async () => {
+    if (!token) {
+      if (isMountedRef.current) {
+        setCompanies([]);
+        setCompanyError(null);
+        setIsLoadingCompanies(false);
+      }
+      return [];
+    }
+
+    if (isMountedRef.current) {
       setIsLoadingCompanies(true);
-      try {
-        const data = await fetchCompanyStats(token);
-        if (isMounted) {
-          const total = Number(data?.total ?? 0);
-          const newThisWeek = Number(data?.newThisWeek ?? 0);
-          const unverified = Number(data?.unverified ?? 0);
+    }
 
-          setCompanyStats({
-            total: Number.isNaN(total) ? 0 : total,
-            newThisWeek: Number.isNaN(newThisWeek) ? 0 : newThisWeek,
-            unverified: Number.isNaN(unverified) ? 0 : unverified,
-          });
-          setCompanyError(null);
-        }
-      } catch (error) {
-        if (isMounted) {
-          setCompanyError(error.message || 'Failed to load company stats');
-          setCompanyStats({ total: 0, newThisWeek: 0, unverified: 0 });
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoadingCompanies(false);
-        }
+    try {
+      const data = await fetchCompanies(token);
+      const normalized = Array.isArray(data) ? data : [];
+      if (isMountedRef.current) {
+        setCompanies(normalized);
+        setCompanyError(null);
       }
-    };
+      return normalized;
+    } catch (error) {
+      if (isMountedRef.current) {
+        setCompanyError(error.message || 'Failed to load companies');
+        setCompanies([]);
+      }
+      return [];
+    } finally {
+      if (isMountedRef.current) {
+        setIsLoadingCompanies(false);
+      }
+    }
+  }, [token]);
 
-    loadCompanyStats();
+  const reloadCompanyStats = useCallback(async () => {
+    if (!token) {
+      if (isMountedRef.current) {
+        setCompanyStats({ total: 0, newThisWeek: 0, unverified: 0 });
+        setCompanyStatsError(null);
+        setIsLoadingCompanyStats(false);
+      }
+      return null;
+    }
 
-    return () => {
-      isMounted = false;
-    };
+    if (isMountedRef.current) {
+      setIsLoadingCompanyStats(true);
+    }
+
+    try {
+      const data = await fetchCompanyStats(token);
+      const total = Number(data?.total ?? 0);
+      const newThisWeek = Number(data?.newThisWeek ?? 0);
+      const unverified = Number(data?.unverified ?? 0);
+
+      const nextStats = {
+        total: Number.isNaN(total) ? 0 : total,
+        newThisWeek: Number.isNaN(newThisWeek) ? 0 : newThisWeek,
+        unverified: Number.isNaN(unverified) ? 0 : unverified,
+      };
+
+      if (isMountedRef.current) {
+        setCompanyStats(nextStats);
+        setCompanyStatsError(null);
+      }
+      return nextStats;
+    } catch (error) {
+      if (isMountedRef.current) {
+        setCompanyStats({ total: 0, newThisWeek: 0, unverified: 0 });
+        setCompanyStatsError(error.message || 'Failed to load company stats');
+      }
+      return null;
+    } finally {
+      if (isMountedRef.current) {
+        setIsLoadingCompanyStats(false);
+      }
+    }
+  }, [token]);
+
+  const reloadAssignments = useCallback(async () => {
+    if (!token) {
+      if (isMountedRef.current) {
+        setAssignments([]);
+        setAssignmentError(null);
+        setIsLoadingAssignments(false);
+      }
+      return [];
+    }
+
+    if (isMountedRef.current) {
+      setIsLoadingAssignments(true);
+    }
+
+    try {
+      const data = await fetchAssignments(token);
+      const normalized = Array.isArray(data) ? data : [];
+      if (isMountedRef.current) {
+        setAssignments(normalized);
+        setAssignmentError(null);
+      }
+      return normalized;
+    } catch (error) {
+      if (isMountedRef.current) {
+        setAssignmentError(error.message || 'Failed to load assignments');
+        setAssignments([]);
+      }
+      return [];
+    } finally {
+      if (isMountedRef.current) {
+        setIsLoadingAssignments(false);
+      }
+    }
   }, [token]);
 
   useEffect(() => {
-    let isMounted = true;
+    reloadCandidates();
+  }, [reloadCandidates]);
 
-    if (!token) {
-      return () => {
-        isMounted = false;
-      };
-    }
+  useEffect(() => {
+    reloadCompanies();
+  }, [reloadCompanies]);
 
-    const loadAssignments = async () => {
-      setIsLoadingAssignments(true);
-      try {
-        const data = await fetchAssignments(token);
-        if (isMounted) {
-          setAssignments(Array.isArray(data) ? data : []);
-          setAssignmentError(null);
-        }
-      } catch (error) {
-        if (isMounted) {
-          setAssignmentError(error.message || 'Failed to load assignments');
-          setAssignments([]);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoadingAssignments(false);
-        }
-      }
-    };
+  useEffect(() => {
+    reloadCompanyStats();
+  }, [reloadCompanyStats]);
 
-    loadAssignments();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [token]);
+  useEffect(() => {
+    reloadAssignments();
+  }, [reloadAssignments]);
 
   const startOfWeek = useMemo(() => {
     const now = new Date();
@@ -207,13 +269,14 @@ export function Dashboard() {
   let companyCountDisplay = 'N/A';
   let companySubtitle = 'Loading...';
 
-  if (companyError) {
+  if (companyStatsError) {
     companyCountDisplay = 'Error';
-    companySubtitle = companyError;
-  } else if (!isLoadingCompanies) {
+    companySubtitle = companyStatsError;
+  } else if (!isLoadingCompanyStats) {
     companyCountDisplay = String(companyStats.total);
     companySubtitle = `${companyStats.newThisWeek} new this week | ${companyStats.unverified} unverified`;
   }
+
   const assignmentCountDisplay = isLoadingAssignments ? 'N/A' : String(assignments.length);
   const assignmentWeekSubtitle = isLoadingAssignments ? 'Loading...' : `${assignmentsAddedThisWeek} new this week`;
 
@@ -222,132 +285,153 @@ export function Dashboard() {
     navigate('/login', { replace: true });
   }, [logout, navigate]);
 
+  const activeCard = useMemo(() => {
+    if (location.pathname.startsWith('/rod/candidates')) {
+      return 'candidates';
+    }
+
+    if (location.pathname.startsWith('/rod/companies')) {
+      return 'companies';
+    }
+
+    if (location.pathname.startsWith('/rod/assignments')) {
+      return 'assignments';
+    }
+
+    return null;
+  }, [location.pathname]);
+
+  const handleCardNavigation = useCallback(
+    (target) => {
+      if (!target) {
+        navigate('/rod');
+        return;
+      }
+
+      if (activeCard === target) {
+        navigate('/rod');
+        return;
+      }
+
+      navigate(`/rod/${target}`);
+    },
+    [activeCard, navigate],
+  );
+
+  const dashboardContextValue = useMemo(
+    () => ({
+      token,
+      user,
+      logout,
+      candidates: {
+        data: candidates,
+        isLoading: isLoadingCandidates,
+        error: candidateError,
+        reload: reloadCandidates,
+      },
+      companies: {
+        data: companies,
+        isLoading: isLoadingCompanies,
+        error: companyError,
+        reload: reloadCompanies,
+      },
+      assignments: {
+        data: assignments,
+        isLoading: isLoadingAssignments,
+        error: assignmentError,
+        reload: reloadAssignments,
+      },
+      companyStats: {
+        data: companyStats,
+        isLoading: isLoadingCompanyStats,
+        error: companyStatsError,
+        reload: reloadCompanyStats,
+      },
+    }),
+    [
+      assignments,
+      assignmentError,
+      candidateError,
+      candidates,
+      companies,
+      companyError,
+      companyStats,
+      companyStatsError,
+      isLoadingAssignments,
+      isLoadingCandidates,
+      isLoadingCompanies,
+      isLoadingCompanyStats,
+      logout,
+      reloadAssignments,
+      reloadCandidates,
+      reloadCompanies,
+      reloadCompanyStats,
+      token,
+      user,
+    ],
+  );
+
   return (
-    <div className="dashboard">
-      <div className="dashboard__background-image" />
-      <div className="dashboard__overlay" />
-      <div className="dashboard__content">
-        <AppCardNav
-          rightContent={(
-            <DashboardAvatar
-              size="md"
-              className="card-nav-avatar"
-              onClick={handleAvatarClick}
-              aria-label="Sign out"
-              title="Sign out"
-            />
-          )}
-        />
-        <div className="dashboard__layout">
-          <div className="dashboard__container">
-            <section className="dashboard__panel">
-              <div className="dashboard__panel-body">
-                <div className="dashboard__welcome">
-                  <h1 className="dashboard__headline">Welcome, Vanessa.</h1>
-                  <button type="button" className="dashboard__cta">
-                    New Assignment
-                  </button>
+    <DashboardDataContext.Provider value={dashboardContextValue}>
+      <div className="dashboard">
+        <div className="dashboard__background-image" />
+        <div className="dashboard__overlay" />
+        <div className="dashboard__content">
+          <AppCardNav
+            rightContent={(
+              <DashboardAvatar
+                size="md"
+                className="card-nav-avatar"
+                onClick={handleAvatarClick}
+                aria-label="Sign out"
+                title="Sign out"
+              />
+            )}
+          />
+          <div className="dashboard__layout">
+            <div className="dashboard__container">
+              <section className="dashboard__panel">
+                <div className="dashboard__panel-body">
+                  <div className="dashboard__welcome">
+                    <h1 className="dashboard__headline">Welcome, Vanessa.</h1>
+                    <button type="button" className="dashboard__cta">
+                      New Assignment
+                    </button>
+                  </div>
+
+                  <div className="dashboard__stats-grid">
+                    <StatsCard
+                      title="Candidates"
+                      value={candidateCountDisplay}
+                      subtitle={candidateWeekSubtitle}
+                      onClick={() => handleCardNavigation('candidates')}
+                      isActive={activeCard === 'candidates'}
+                    />
+                    <StatsCard
+                      title="Companies"
+                      value={companyCountDisplay}
+                      subtitle={companySubtitle}
+                      onClick={() => handleCardNavigation('companies')}
+                      isActive={activeCard === 'companies'}
+                    />
+                    <StatsCard
+                      title="Assignments"
+                      value={assignmentCountDisplay}
+                      subtitle={assignmentWeekSubtitle}
+                      className="stats-card--wide"
+                      onClick={() => handleCardNavigation('assignments')}
+                      isActive={activeCard === 'assignments'}
+                    />
+                  </div>
+
+                  <Outlet />
                 </div>
-
-                <div className="dashboard__stats-grid">
-                  <StatsCard title="Candidates" value={candidateCountDisplay} subtitle={candidateWeekSubtitle} />
-                  <StatsCard title="Companies" value={companyCountDisplay} subtitle={companySubtitle} />
-                  <StatsCard title="Assignments" value={assignmentCountDisplay} subtitle={assignmentWeekSubtitle} className="stats-card--wide" />
-                </div>
-
-                <div className="dashboard__main-grid">
-                  <section className="dashboard__candidate-panel">
-                    <div className="dashboard__section">
-                      <h2 className="dashboard__section-title">Candidate Overview</h2>
-                      <div className="dashboard__divider" />
-                      <div className="dashboard__candidate-list">
-                        {isLoadingCandidates && (
-                          <p className="dashboard__status-text">Loading candidates...</p>
-                        )}
-                        {candidateError && (
-                          <p className="dashboard__status-text dashboard__status-text--error">
-                            {candidateError}
-                          </p>
-                        )}
-                        {!isLoadingCandidates && !candidateError && candidates.length === 0 && (
-                          <p className="dashboard__status-text">No candidates found.</p>
-                        )}
-                        {!isLoadingCandidates &&
-                          !candidateError &&
-                          candidates.map((candidate) => {
-                            const candidateId = candidate.id ?? candidate._id ?? candidate.clientId;
-                            const candidateKey = candidateId ?? candidate.email ?? candidate.fullName;
-                            const candidateDetailsPath = candidateId ? `/client-details/${candidateId}` : undefined;
-
-                            return (
-                              <CandidateCard
-                                key={candidateKey}
-                                name={candidate.fullName}
-                                role={candidate.preferredRole || 'Role not specified'}
-                                status={candidate.status || 'pending'}
-                                to={candidateDetailsPath}
-                              />
-                            );
-                          })}
-                      </div>
-                    </div>
-                  </section>
-
-                  <section className="dashboard__assignments-panel">
-                    <div className="dashboard__section">
-                      <h2 className="dashboard__section-title">Recent Assignments</h2>
-                      <div className="dashboard__divider" />
-                      <div className="dashboard__assignment-list">
-                        {isLoadingAssignments && (
-                          <p className="dashboard__status-text">Loading assignments...</p>
-                        )}
-                        {assignmentError && (
-                          <p className="dashboard__status-text dashboard__status-text--error">
-                            {assignmentError}
-                          </p>
-                        )}
-                        {!isLoadingAssignments && !assignmentError && assignments.length === 0 && (
-                          <p className="dashboard__status-text">No assignments found.</p>
-                        )}
-                        {!isLoadingAssignments &&
-                          !assignmentError &&
-                          assignments.map((assignment, index) => {
-                            const fallbackKey =
-                              [assignment.clientName, assignment.companyName].filter(Boolean).join(' - ') ||
-                              'assignment';
-                            const assignmentKey = assignment.id ?? `${fallbackKey}-${index}`;
-                            // Find the associated client/candidate for status
-                            const associatedClient = candidates.find(
-                              (c) => c.fullName === assignment.clientName
-                            );
-                            const statusLabel =
-                              (associatedClient && associatedClient.status) ? associatedClient.status :
-                              (typeof assignment.status === 'string' && assignment.status.trim()
-                                ? assignment.status.trim()
-                                : 'Pending');
-
-                            return (
-                              <div key={assignmentKey} className="dashboard__assignment-item">
-                                <AssignmentCard
-                                  name={assignment.clientName}
-                                  company={assignment.companyName}
-                                />
-                                <div className="candidate-card__status dashboard__assignment-status">
-                                  <span>{statusLabel}</span>
-                                </div>
-                              </div>
-                            );
-                          })}
-                      </div>
-                    </div>
-                  </section>
-                </div>
-              </div>
-            </section>
+              </section>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </DashboardDataContext.Provider>
   );
 }
 

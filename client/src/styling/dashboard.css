@@ -167,11 +167,35 @@
 }
 
 .stats-card {
+  border: none;
   background: var(--glass-white);
   border-radius: 8px;
   box-shadow: 0 18px 48px rgba(8, 38, 88, 0.12);
   padding: 24px;
   backdrop-filter: blur(4px);
+  width: 100%;
+  text-align: left;
+}
+
+.stats-card--interactive {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, outline 0.2s ease;
+}
+
+.stats-card--interactive:hover,
+.stats-card--interactive:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 52px rgba(8, 38, 88, 0.18);
+  outline: 2px solid rgba(8, 38, 88, 0.3);
+}
+
+.stats-card--interactive:focus-visible {
+  outline-offset: 2px;
+}
+
+.stats-card--active {
+  box-shadow: 0 22px 52px rgba(8, 38, 88, 0.3);
+  border: 2px solid rgba(16, 56, 127, 0.35);
 }
 
 @media (min-width: 768px) {
@@ -381,6 +405,277 @@
   font-family: var(--font-roboto);
   font-size: var(--font-size-subtext1);
   color: rgba(8, 38, 88, 0.7);
+}
+
+.dashboard__list-section {
+  background: var(--glass-white);
+  border-radius: 8px;
+  box-shadow: 0 18px 48px rgba(8, 38, 88, 0.12);
+  backdrop-filter: blur(4px);
+  padding: 32px;
+  margin-top: 24px;
+}
+
+.dashboard__list-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+.dashboard__list-search {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 320px;
+}
+
+.dashboard__list-label {
+  font-family: var(--font-roboto);
+  font-weight: 500;
+  color: var(--dashboard-primary);
+}
+
+.dashboard__list-input {
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(8, 38, 88, 0.2);
+  font-family: var(--font-roboto);
+  font-size: 1rem;
+  background: #fff;
+  color: inherit;
+}
+
+.dashboard__list-input:focus {
+  outline: 2px solid rgba(16, 56, 127, 0.4);
+  outline-offset: 2px;
+}
+
+.dashboard__list-clear {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(16, 56, 127, 0.12);
+  border: none;
+  font-family: var(--font-roboto);
+  cursor: pointer;
+}
+
+.dashboard__list-clear:hover {
+  background: rgba(16, 56, 127, 0.2);
+}
+
+.dashboard__list-filters-toggle {
+  padding: 12px 18px;
+  border-radius: 8px;
+  border: none;
+  background: var(--dashboard-primary);
+  color: #fff;
+  font-family: var(--font-roboto);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard__list-filters-toggle:hover,
+.dashboard__list-filters-toggle:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(8, 38, 88, 0.2);
+  outline: none;
+}
+
+.dashboard__filters-panel {
+  margin: 16px 0 24px;
+  padding: 20px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(8, 38, 88, 0.1);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.dashboard__filters-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dashboard__filters-title {
+  margin: 0;
+  font-family: var(--font-roboto);
+  font-weight: 600;
+  color: var(--dashboard-primary);
+}
+
+.dashboard__filters-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.dashboard__filters-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-roboto);
+  cursor: pointer;
+}
+
+.dashboard__filters-option input {
+  accent-color: var(--dashboard-secondary);
+}
+
+.dashboard__filters-reset {
+  align-self: flex-start;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(8, 38, 88, 0.2);
+  background: transparent;
+  font-family: var(--font-roboto);
+  cursor: pointer;
+}
+
+.dashboard__filters-reset:hover {
+  background: rgba(8, 38, 88, 0.08);
+}
+
+.dashboard__table-container {
+  overflow-x: auto;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(8, 38, 88, 0.12);
+}
+
+.dashboard__table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.dashboard__table thead {
+  background: rgba(8, 38, 88, 0.08);
+}
+
+.dashboard__table th,
+.dashboard__table td {
+  padding: 14px 16px;
+  text-align: left;
+  font-family: var(--font-roboto);
+  font-size: 0.95rem;
+  color: var(--dashboard-primary);
+  border-bottom: 1px solid rgba(8, 38, 88, 0.12);
+}
+
+.dashboard__table th {
+  font-weight: 600;
+}
+
+.dashboard__table tbody tr:nth-child(even) {
+  background: rgba(8, 38, 88, 0.03);
+}
+
+.dashboard__table-cell--truncate {
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dashboard__table-status {
+  text-align: center;
+  padding: 24px 16px;
+  font-family: var(--font-roboto);
+  color: rgba(8, 38, 88, 0.8);
+}
+
+.dashboard__table-status--error {
+  color: #b00020;
+}
+
+.dashboard__list-reset {
+  margin-left: 8px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(16, 56, 127, 0.15);
+  cursor: pointer;
+}
+
+.dashboard__list-reset:hover {
+  background: rgba(16, 56, 127, 0.25);
+}
+
+.dashboard__pagination {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-roboto);
+}
+
+.dashboard__pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dashboard__pagination-button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(8, 38, 88, 0.2);
+  background: #fff;
+  cursor: pointer;
+}
+
+.dashboard__pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dashboard__pagination-page {
+  font-weight: 600;
+}
+
+.dashboard__pagination-size {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard__pagination-select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(8, 38, 88, 0.2);
+}
+
+.dashboard__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+@media (max-width: 768px) {
+  .dashboard__list-section {
+    padding: 24px;
+  }
+
+  .dashboard__filters-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard__table {
+    min-width: 600px;
+  }
 }
 
 @media (max-width: 640px) {

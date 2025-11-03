@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import AboutUsPage from './pages/AboutUsPage';
 import RODashboard from './pages/RODashboard';
@@ -22,13 +22,14 @@ function App() {
             <Route path="/become-client" element={<BecomeClientPage />} />
             <Route path="/signup" element={<SignUpPage />} />
             <Route
-              path="/dashboard"
+              path="/rod/*"
               element={(
                 <RequireAuth allowedRoles={['recruitment_officer']}>
                   <RODashboard />
                 </RequireAuth>
               )}
             />
+            <Route path="/dashboard/*" element={<Navigate to="/rod" replace />} />
             <Route
               path="/client-details"
               element={(
