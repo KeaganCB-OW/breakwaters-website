@@ -8,6 +8,7 @@
   padding: clamp(24px, 6vw, 48px);
   min-height: 100vh;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .home-overlay__backdrop {
@@ -28,22 +29,30 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  box-sizing: border-box;
 }
 
 .home-overlay__content--stepper {
-  width: min(960px, 96vw);
+  width: 100%;
+  max-width: 960px;
   padding: clamp(20px, 3.2vw, 32px);
   gap: 0;
   background: transparent;
   box-shadow: none;
   max-height: 96vh;
   overflow: hidden;
+  overflow-x: hidden;
+  margin: 0 auto;
+  justify-content: center;
+  align-items: center;
 }
 
 .home-overlay__content--stepper .client-intake,
 .home-overlay__content--stepper .business-intake {
   flex: 1 1 auto;
   min-height: 0;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .home-overlay__close {

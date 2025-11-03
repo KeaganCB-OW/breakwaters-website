@@ -4,7 +4,7 @@
   box-sizing: border-box;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
   background: linear-gradient(140deg, #f4f8ff 0%, #e5ecff 45%, #f7fbff 100%);
 }
 
@@ -13,6 +13,7 @@
   display: flex;
   flex-direction: column;
   gap: clamp(24px, 3vw, 36px);
+  margin: 0 auto;
 }
 
 .client-intake__intro {
