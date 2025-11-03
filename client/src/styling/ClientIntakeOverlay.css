@@ -6,6 +6,8 @@
   align-items: center;
   justify-content: center;
   padding: clamp(24px, 6vw, 48px);
+  min-height: 100vh;
+  overflow-y: auto;
 }
 
 .home-overlay__backdrop {
@@ -32,6 +34,8 @@
   width: min(960px, 96vw);
   padding: clamp(20px, 3.2vw, 32px);
   gap: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .home-overlay__close {
