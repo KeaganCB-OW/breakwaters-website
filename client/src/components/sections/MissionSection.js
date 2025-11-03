@@ -1,6 +1,30 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "../../styling/mission-section.css";
 
+export const TEAM_SHOWCASE_MEMBERS = [
+  {
+    id: "1",
+    name: "Aisha Pillay",
+    role: "Creative Director",
+    photoUrl: "https://picsum.photos/seed/aisha/600/720",
+    quote: "Design should whisper purpose before it shouts style.",
+  },
+  {
+    id: "2",
+    name: "Sipho Dlamini",
+    role: "Lead Engineer",
+    photoUrl: "https://picsum.photos/seed/sipho/600/720",
+    quote: "Great systems are invisible until you need them.",
+  },
+  {
+    id: "3",
+    name: "Luca Venter",
+    role: "UX Researcher",
+    photoUrl: "https://picsum.photos/seed/luca/600/720",
+    quote: "Empathy turns assumptions into insights.",
+  },
+];
+
 const DEFAULT_OBSERVER_THRESHOLDS = Array.from({ length: 101 }, (_, index) => index / 100);
 const VISIBILITY_TOLERANCE = 1;
 

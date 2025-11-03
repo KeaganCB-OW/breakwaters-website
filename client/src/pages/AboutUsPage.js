@@ -1,7 +1,9 @@
-import { Component, useCallback, useContext } from "react";
+import { useCallback, useContext } from "react";
 import "../styling/about.css";
 import AppCardNav from "../components/ui/layout/AppCardNav";
 import MissionSection from "../components/sections/MissionSection";
+import TeamShowcase from "../components/about/TeamShowcase";
+import { TEAM_SHOWCASE_MEMBERS } from "../components/sections/MissionSection";
 import Footer from "../components/ui/layout/Footer";
 import { AuthContext } from "../context/AuthContext";
 import { useClientIntake } from "../context/ClientIntakeContext";
@@ -25,18 +27,11 @@ const MISSION_ENTRIES = [
     lines: TEAM_INTRO_LINES,
     subtext: TEAM_INTRO_SUBTEXT,
   },
-    {
-    id: "team-intro",
-    component: <TeamMembers />,
+  {
+    id: "team-showcase",
+    component: <TeamShowcase members={TEAM_SHOWCASE_MEMBERS} />,
   },
 ];
-
-function TeamMembers() {
-  return (
-    <div className="">
-    </div>
-  );
-}
 
 export default function AboutUsPage() {
   const { user } = useContext(AuthContext);
