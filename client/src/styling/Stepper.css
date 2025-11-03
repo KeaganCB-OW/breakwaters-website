@@ -9,6 +9,8 @@
   gap: clamp(20px, 2.5vw, 32px);
   box-sizing: border-box;
   color: #082658;
+  max-height: min(92vh, 960px);
+  overflow: hidden;
 }
 
 .stepper__indicators {
@@ -18,6 +20,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  flex-shrink: 0;
 }
 
 .stepper__header {
@@ -25,6 +28,7 @@
   flex-direction: column;
   gap: 12px;
   padding: 4px clamp(6px, 1.5vw, 12px);
+  flex-shrink: 0;
 }
 
 .stepper__header > * {
@@ -125,16 +129,23 @@
   padding: clamp(20px, 2.5vw, 34px);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
   box-sizing: border-box;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .stepper__content > * {
   width: 100%;
+  flex: 0 0 auto;
 }
 
 .stepper__footer {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .stepper__actions {

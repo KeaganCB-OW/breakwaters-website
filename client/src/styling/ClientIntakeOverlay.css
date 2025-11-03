@@ -36,6 +36,14 @@
   gap: 0;
   background: transparent;
   box-shadow: none;
+  max-height: 96vh;
+  overflow: hidden;
+}
+
+.home-overlay__content--stepper .client-intake,
+.home-overlay__content--stepper .business-intake {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .home-overlay__close {
