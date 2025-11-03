@@ -82,14 +82,14 @@
   margin: 0;
   font-size: 1.15rem;
   font-weight: 600;
-  color: #0f1f33;
+  color: #ffffff;
 }
 
 .role {
   margin: 0.35rem 0 0;
   font-size: 0.95rem;
   font-weight: 500;
-  color: #51637b;
+  color: #808fa1;
 }
 
 @media (max-width: 1024px) {

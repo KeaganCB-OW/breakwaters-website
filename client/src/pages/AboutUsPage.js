@@ -54,7 +54,6 @@ export default function AboutUsPage() {
 
       <MissionSection id="about-mission" entries={MISSION_ENTRIES} />
 
-      <Footer />
     </main>
   );
 }
