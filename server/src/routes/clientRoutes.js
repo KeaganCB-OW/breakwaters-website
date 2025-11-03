@@ -13,7 +13,7 @@ import { upload } from '../middleware/uploadMiddleware.js';
 
 const router = Router();
 
-router.get('/', authenticate, authorize('company_rep'), listClients);
+router.get('/', authenticate, authorize('recruitment_officer'), listClients);
 router.get('/me', authenticate, getCurrentClient);
 router.post('/', authenticate, createClient);
 router.patch('/:id', authenticate, authorize('recruitment_officer'), updateClient);

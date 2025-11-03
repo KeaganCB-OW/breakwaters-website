@@ -95,7 +95,7 @@ export default function LoginForm() {
       setAuthState(result.user, result.token);
 
       const role = result?.user?.role;
-      if (role === 'company_rep') {
+      if (role === 'recruitment_officer') {
         navigate('/dashboard', { replace: true });
       } else {
         navigate('/', { replace: true });

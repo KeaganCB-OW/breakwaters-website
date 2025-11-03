@@ -32,7 +32,7 @@ export function Dashboard() {
       return;
     }
 
-    if (user.role !== 'company_rep') {
+    if (user.role !== 'recruitment_officer') {
       navigate('/', { replace: true });
     }
   }, [navigate, user]);

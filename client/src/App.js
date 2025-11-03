@@ -24,7 +24,7 @@ function App() {
             <Route
               path="/dashboard"
               element={(
-                <RequireAuth allowedRoles={['company_rep']}>
+                <RequireAuth allowedRoles={['recruitment_officer']}>
                   <RODashboard />
                 </RequireAuth>
               )}
@@ -32,7 +32,7 @@ function App() {
             <Route
               path="/client-details"
               element={(
-                <RequireAuth allowedRoles={['company_rep']}>
+                <RequireAuth allowedRoles={['recruitment_officer']}>
                   <ClientDetailsPage />
                 </RequireAuth>
               )}
@@ -40,7 +40,7 @@ function App() {
             <Route
               path="/client-details/:clientId"
               element={(
-                <RequireAuth allowedRoles={['company_rep']}>
+                <RequireAuth allowedRoles={['recruitment_officer']}>
                   <ClientDetailsPage />
                 </RequireAuth>
               )}
