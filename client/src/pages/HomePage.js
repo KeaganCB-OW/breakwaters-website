@@ -51,9 +51,11 @@ export default function HomePage() {
   }, [openBusinessIntake]);
 
   const navCtaLabel = user
-    ? hasSubmitted
-      ? "Resume Sent"
-      : "Get Started"
+    ? user.role === 'recruitment_officer'
+      ? "Dashboard"
+      : hasSubmitted
+        ? "Resume Sent"
+        : "Get Started"
     : "Sign Up / Sign In";
 
   useEffect(() => {

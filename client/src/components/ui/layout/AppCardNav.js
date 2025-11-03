@@ -12,8 +12,8 @@ const defaultItems = [
     textColor: '#fff',
     links: [
       { label: 'Home', ariaLabel: 'Home Page', href: '/' },
-      { label: 'About Us', ariaLabel: 'About Us', href: '/about' },
-      { label: 'For Companies', ariaLabel: 'Join the Breakwaters Network', href: '/become-client' }
+      { label: 'About Us', ariaLabel: 'About Us', href: '/about' }
+      
     ]
   },
   {
@@ -21,7 +21,7 @@ const defaultItems = [
     bgColor: '#0b3173ff',
     textColor: '#fff',
     links: [
-      { label: 'Featured Companies', ariaLabel: 'Featured Companies', href: '/#companies' },
+      { label: 'For Companies', ariaLabel: 'Join the Breakwaters Network', href: '/become-client' },
       { label: 'Testimonials', ariaLabel: 'Our Testimonials', href: '/#testimonials' }
     ]
   },
@@ -56,12 +56,14 @@ const AppCardNav = ({
   const navigate = useNavigate();
 
   const handleGetStarted = useCallback(() => {
-    if (typeof onGetStarted === 'function') {
+    if (user?.role === 'recruitment_officer') {
+      navigate('/rod');
+    } else if (typeof onGetStarted === 'function') {
       onGetStarted();
     } else {
       openClientIntake();
     }
-  }, [onGetStarted, openClientIntake]);
+  }, [user, navigate, onGetStarted, openClientIntake]);
 
   const handleLogout = useCallback(() => {
     logout();

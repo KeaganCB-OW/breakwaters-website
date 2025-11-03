@@ -42,9 +42,11 @@ export default function AboutUsPage() {
   }, [openClientIntake]);
 
   const navCtaLabel = user
-    ? hasSubmitted
-      ? "Resume Sent"
-      : "Get Started"
+    ? user.role === 'recruitment_officer'
+      ? "Dashboard"
+      : hasSubmitted
+        ? "Resume Sent"
+        : "Get Started"
     : "Sign Up / Sign In";
 
   return (
