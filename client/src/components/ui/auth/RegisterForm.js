@@ -270,7 +270,7 @@ export default function RegisterForm() {
           <div className="divider-text">or</div>
         </div>
 
-        <div className="social-login">
+        {/*<div className="social-login">
           <button className="social-button" aria-label="Sign up with Google">
             <img src={googleIcon} alt="Google icon" />
           </button>
@@ -280,7 +280,7 @@ export default function RegisterForm() {
           <button className="social-button" aria-label="Sign up with Apple">
             <img src={appleIcon} alt="Apple icon" />
           </button>
-        </div>
+        </div>*/}
 
         <div className="auth-link-text">
           Already have an account? <Link to="/login" className="auth-link">Login</Link>

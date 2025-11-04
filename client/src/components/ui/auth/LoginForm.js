@@ -198,14 +198,14 @@ export default function LoginForm() {
           )}
         </form>
 
-        <a href="#" className="forgot-password">Forgot password?</a>
+        {/*<a href="#" className="forgot-password">Forgot password?</a>*/}
 
         <div className="divider-section">
           <div className="divider-line"></div>
           <div className="divider-text">or</div>
         </div>
 
-        <div className="social-login">
+        {/*<div className="social-login">
           <button className="social-button" aria-label="Login with Google">
             <img src={googleIcon} alt="Google icon" />
           </button>
@@ -215,7 +215,7 @@ export default function LoginForm() {
           <button className="social-button" aria-label="Login with Apple">
             <img src={appleIcon} alt="Apple icon" />
           </button>
-        </div>
+        </div>*/}
 
         <div className="auth-link-text">
           Don't have an account? <Link to="/signup" className="auth-link">Sign up</Link>
