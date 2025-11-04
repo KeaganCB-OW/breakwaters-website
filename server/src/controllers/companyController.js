@@ -1,5 +1,3 @@
-import bcrypt from 'bcrypt';
-import crypto from 'crypto';
 import { pool } from '../config/db.js';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
@@ -41,6 +39,21 @@ const formatAvailableRoles = (value) => {
   return null;
 };
 
+const parseAvailableRolesList = (value) => {
+  if (!value) {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((role) => sanitizeString(role)).filter((role) => role.length > 0);
+  }
+
+  return String(value)
+    .split(',')
+    .map((role) => sanitizeString(role))
+    .filter((role) => role.length > 0);
+};
+
 export const createCompany = async (req, res) => {
   const {
     company_name,
@@ -63,6 +76,7 @@ export const createCompany = async (req, res) => {
   const specificationsValue = sanitizeString(specifications);
   const workforceSizeValue = parseWorkforceSize(workforce_size);
   const availableRolesValue = formatAvailableRoles(available_roles);
+  const userId = req.user?.id;
 
   if (!companyName) {
     errors.company_name = 'Company name is required.';
@@ -96,6 +110,10 @@ export const createCompany = async (req, res) => {
     errors.specifications = 'Please share a short description of the roles you need.';
   }
 
+  if (!userId) {
+    return res.status(401).json({ message: 'Authentication required.' });
+  }
+
   if (Object.keys(errors).length > 0) {
     return res.status(422).json({
       message: 'Please correct the highlighted fields.',
@@ -108,48 +126,33 @@ export const createCompany = async (req, res) => {
   try {
     await connection.beginTransaction();
 
-    let userId;
-
-    const [existingUsers] = await connection.query(
-      'SELECT id, role FROM users WHERE email = ? LIMIT 1 FOR UPDATE',
-      [emailValue]
+    const [[existingCompany]] = await connection.query(
+      'SELECT id FROM companies WHERE user_id = ? LIMIT 1 FOR UPDATE',
+      [userId]
     );
 
-    if (Array.isArray(existingUsers) && existingUsers.length > 0) {
-      const existingUser = existingUsers[0];
+    if (existingCompany) {
+      await connection.rollback();
+      return res.status(409).json({
+        message: 'Company already registered for this user.',
+      });
+    }
 
-      if (existingUser.role !== 'company_rep') {
-        await connection.rollback();
-        return res.status(409).json({
-          message: 'This email is already registered. Please sign in or use a different company email.',
-          errors: { email: 'This email is already registered. Please sign in or use a different company email.' },
-        });
-      }
-
-      const [existingCompanies] = await connection.query(
-        'SELECT id FROM companies WHERE user_id = ? LIMIT 1',
-        [existingUser.id]
+    if (emailValue) {
+      const [[emailConflict]] = await connection.query(
+        'SELECT id FROM companies WHERE email = ? AND user_id <> ? LIMIT 1 FOR UPDATE',
+        [emailValue, userId]
       );
 
-      if (Array.isArray(existingCompanies) && existingCompanies.length > 0) {
+      if (emailConflict) {
         await connection.rollback();
         return res.status(409).json({
-          message: 'A company has already been submitted for this account.',
-          errors: { email: 'A company has already been submitted with this email.' },
+          message: 'A company has already been submitted with this email.',
+          errors: {
+            email: 'A company has already been submitted with this email.',
+          },
         });
       }
-
-      userId = existingUser.id;
-    } else {
-      const tempPassword = crypto.randomBytes(16).toString('hex');
-      const passwordHash = await bcrypt.hash(tempPassword, 10);
-
-      const [userResult] = await connection.query(
-        'INSERT INTO users (email, password_hash, role) VALUES (?, ?, ?)',
-        [emailValue, passwordHash, 'company_rep']
-      );
-
-      userId = userResult.insertId;
     }
 
     const [companyResult] = await connection.query(
@@ -180,6 +183,13 @@ export const createCompany = async (req, res) => {
       ]
     );
 
+    if (req.user?.role !== 'company_rep') {
+      await connection.query(
+        'UPDATE users SET role = ? WHERE id = ? AND role <> ?',
+        ['company_rep', userId, 'company_rep']
+      );
+    }
+
     await connection.commit();
 
     return res.status(201).json({
@@ -190,16 +200,104 @@ export const createCompany = async (req, res) => {
       email: emailValue,
       workforce_size: workforceSizeValue,
       location: locationValue,
-      available_roles: availableRolesValue ? availableRolesValue.split(',').map((role) => role.trim()) : [],
+      available_roles: parseAvailableRolesList(availableRolesValue),
       specifications: specificationsValue,
       status: 'unverified',
     });
   } catch (error) {
     await connection.rollback();
+
+    if (error?.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({
+        message: 'Company already registered for this user.',
+      });
+    }
+
     console.error('Failed to create company intake', error);
     return res.status(500).json({ message: 'Failed to submit company information.' });
   } finally {
     connection.release();
+  }
+};
+
+export const getCurrentCompany = async (req, res) => {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    return res.status(401).json({ message: 'Authentication required.' });
+  }
+
+  try {
+    const [rows] = await pool.query(
+      `SELECT
+        id,
+        user_id AS userId,
+        company_name AS companyName,
+        industry,
+        phone_number AS phoneNumber,
+        email,
+        workforce_size AS workforceSize,
+        location,
+        available_roles AS availableRoles,
+        specifications,
+        linkedin_url AS linkedinUrl,
+        status
+      FROM companies
+      WHERE user_id = ?
+      LIMIT 1`,
+      [userId]
+    );
+
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return res.status(404).json({
+        message: 'No company registration found for this user.',
+      });
+    }
+
+    const company = rows[0];
+
+    return res.json({
+      id: company.id,
+      user_id: company.userId,
+      company_name: company.companyName,
+      industry: company.industry,
+      phone_number: company.phoneNumber,
+      email: company.email,
+      workforce_size: company.workforceSize,
+      location: company.location,
+      available_roles: parseAvailableRolesList(company.availableRoles),
+      specifications: company.specifications,
+      linkedin_url: company.linkedinUrl,
+      status: company.status,
+    });
+  } catch (error) {
+    console.error('Failed to load current company', error);
+    return res.status(500).json({ message: 'Failed to load company profile.' });
+  }
+};
+
+export const checkCompanyExists = async (req, res) => {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    return res.status(401).json({ message: 'Authentication required.' });
+  }
+
+  try {
+    const [rows] = await pool.query(
+      'SELECT id FROM companies WHERE user_id = ? LIMIT 1',
+      [userId]
+    );
+
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return res.json({ exists: false });
+    }
+
+    const company = rows[0];
+    return res.json({ exists: true, companyId: company.id });
+  } catch (error) {
+    console.error('Failed to check company registration', error);
+    return res.status(500).json({ message: 'Failed to check company registration.' });
   }
 };
 

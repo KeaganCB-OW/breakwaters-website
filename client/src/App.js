@@ -7,6 +7,8 @@ import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
 import BecomeClientPage from './pages/BecomeClientPage';
 import SharedClientDetailsPage from './pages/SharedClientDetails';
+import RegisterBusinessPage from './pages/RegisterBusinessPage';
+import CompanyProfilePage from './pages/CompanyProfilePage';
 import { AuthProvider } from './context/AuthContext';
 import { ClientIntakeProvider } from './context/ClientIntakeContext';
 import RequireAuth from './components/routing/RequireAuth';
@@ -21,6 +23,8 @@ function App() {
             <Route path="/about" element={<AboutUsPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/become-client" element={<BecomeClientPage />} />
+            <Route path="/register-business" element={<RegisterBusinessPage />} />
+            <Route path="/business/profile" element={<CompanyProfilePage />} />
             <Route path="/signup" element={<SignUpPage />} />
             <Route
               path="/rod/*"

@@ -1,5 +1,5 @@
-import React, { useContext, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useCallback, useContext, useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import octopusImage from '../../../assets/images/octopus-image.png';
 import '../../../styling/auth.css';
@@ -43,6 +43,7 @@ const isValidEmail = (value) => {
 
 export default function LoginForm() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login: setAuthState } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     email: '',
@@ -51,6 +52,31 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const resolveRedirectPath = useCallback(
+    (role) => {
+      const defaultPath = role === 'recruitment_officer' ? '/dashboard' : '/';
+      const fromState = location.state?.from;
+
+      if (!fromState) {
+        return defaultPath;
+      }
+
+      if (typeof fromState === 'string') {
+        return fromState;
+      }
+
+      if (typeof fromState === 'object' && fromState !== null) {
+        const pathname = fromState.pathname || defaultPath;
+        const search = fromState.search || '';
+        const hash = fromState.hash || '';
+        return `${pathname}${search}${hash}`;
+      }
+
+      return defaultPath;
+    },
+    [location]
+  );
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -95,11 +121,8 @@ export default function LoginForm() {
       setAuthState(result.user, result.token);
 
       const role = result?.user?.role;
-      if (role === 'recruitment_officer') {
-        navigate('/dashboard', { replace: true });
-      } else {
-        navigate('/', { replace: true });
-      }
+      const redirectPath = resolveRedirectPath(role);
+      navigate(redirectPath, { replace: true });
     } catch (error) {
       const field = error.field;
       if (field === 'email' || field === 'password') {

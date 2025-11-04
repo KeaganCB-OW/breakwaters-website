@@ -73,3 +73,47 @@ export async function createCompany(payload, token) {
 
   return data;
 }
+
+export async function fetchCurrentCompany(token) {
+  const response = await fetch(`${API_URL}/companies/me`, {
+    headers: {
+      ...buildAuthHeaders(token),
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await parseJson(response);
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    const message = data?.message || 'Failed to load company profile';
+    throw buildError(message, data);
+  }
+
+  return data;
+}
+
+export async function checkCompanyExists(token) {
+  const response = await fetch(`${API_URL}/me/company-exists`, {
+    headers: {
+      ...buildAuthHeaders(token),
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await parseJson(response);
+
+  if (!response.ok) {
+    const message = data?.message || 'Failed to check company registration status';
+    throw buildError(message, data);
+  }
+
+  const exists = Boolean(data?.exists);
+  const companyId =
+    exists && typeof data?.companyId === 'number' ? data.companyId : undefined;
+
+  return { exists, companyId };
+}

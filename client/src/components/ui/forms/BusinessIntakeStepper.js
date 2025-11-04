@@ -228,6 +228,9 @@ function BusinessIntakeStepper({ onSubmitCompany }) {
         error?.details?.message ||
         error?.message ||
         'We could not submit your company details. Please try again.';
+      const normalizedMessage = /already registered/i.test(message)
+        ? 'You\'ve already registered a business with this account.'
+        : message;
 
       if (error?.details?.errors && typeof error.details.errors === 'object') {
         setErrors((previous) => ({
@@ -236,7 +239,7 @@ function BusinessIntakeStepper({ onSubmitCompany }) {
         }));
       }
 
-      setSubmissionState({ status: 'error', message });
+      setSubmissionState({ status: 'error', message: normalizedMessage });
 
       return { completed: false, error };
     }

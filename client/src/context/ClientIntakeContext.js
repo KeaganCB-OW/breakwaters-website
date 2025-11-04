@@ -12,6 +12,7 @@ import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from './AuthContext';
 import { fetchCurrentClient } from '../services/clientService';
+import { createCompany, fetchCurrentCompany } from '../services/companyService';
 import ClientIntakeStepper from '../components/ui/forms/ClientIntakeStepper';
 import BusinessIntakeStepper from '../components/ui/forms/BusinessIntakeStepper';
 import '../styling/ClientIntakeOverlay.css';
@@ -23,21 +24,32 @@ export const ClientIntakeContext = createContext({
   openBusinessIntake: noop,
   closeClientIntake: noop,
   hasSubmitted: false,
+  hasRegisteredBusiness: false,
   isOverlayOpen: false,
   isCheckingStatus: false,
+  isCheckingBusinessStatus: false,
   clientSubmission: null,
+  companyProfile: null,
   refreshClientStatus: noop,
+  refreshCompanyStatus: noop,
+  companyStatusError: '',
+  submitBusinessIntake: noop,
+  hasCheckedBusinessStatus: false,
 });
 
 export function ClientIntakeProvider({ children }) {
   const navigate = useNavigate();
-  const { user, token } = useContext(AuthContext);
+  const { user, token, setUser } = useContext(AuthContext);
 
   const [mode, setMode] = useState('closed'); // closed | loading | auth | stepper | already-submitted | status-error
   const [clientSubmission, setClientSubmission] = useState(null);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [hasCheckedStatus, setHasCheckedStatus] = useState(false);
   const [statusError, setStatusError] = useState('');
+  const [companyProfile, setCompanyProfile] = useState(null);
+  const [isCheckingCompanyStatus, setIsCheckingCompanyStatus] = useState(false);
+  const [hasCheckedCompanyStatus, setHasCheckedCompanyStatus] = useState(false);
+  const [companyStatusError, setCompanyStatusError] = useState('');
   const [activeIntakeType, setActiveIntakeType] = useState('client'); // client | business
 
   const overlayContentRef = useRef(null);
@@ -47,6 +59,7 @@ export function ClientIntakeProvider({ children }) {
 
   const isOverlayOpen = mode !== 'closed';
   const hasSubmitted = Boolean(clientSubmission);
+  const hasRegisteredBusiness = Boolean(companyProfile);
 
   const closeClientIntake = useCallback(() => {
     setMode('closed');
@@ -75,6 +88,31 @@ export function ClientIntakeProvider({ children }) {
     } finally {
       setHasCheckedStatus(true);
       setIsCheckingStatus(false);
+    }
+  }, [token, user]);
+
+  const loadCompanyStatus = useCallback(async () => {
+    if (!token || !user) {
+      setCompanyProfile(null);
+      setCompanyStatusError('');
+      setHasCheckedCompanyStatus(false);
+      return null;
+    }
+
+    setIsCheckingCompanyStatus(true);
+    setCompanyStatusError('');
+
+    try {
+      const company = await fetchCurrentCompany(token);
+      setCompanyProfile(company);
+      return company;
+    } catch (error) {
+      setCompanyProfile(null);
+      setCompanyStatusError(error?.message || 'Failed to check your company registration status.');
+      throw error;
+    } finally {
+      setHasCheckedCompanyStatus(true);
+      setIsCheckingCompanyStatus(false);
     }
   }, [token, user]);
 
@@ -112,6 +150,46 @@ export function ClientIntakeProvider({ children }) {
         }
         setHasCheckedStatus(true);
         setIsCheckingStatus(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [token, user]);
+
+  useEffect(() => {
+    if (!token || !user) {
+      setCompanyProfile(null);
+      setCompanyStatusError('');
+      setHasCheckedCompanyStatus(false);
+      setIsCheckingCompanyStatus(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    setIsCheckingCompanyStatus(true);
+    setCompanyStatusError('');
+    fetchCurrentCompany(token)
+      .then((company) => {
+        if (!isMounted) {
+          return;
+        }
+        setCompanyProfile(company);
+      })
+      .catch((error) => {
+        if (!isMounted) {
+          return;
+        }
+        setCompanyProfile(null);
+        setCompanyStatusError(error?.message || 'Failed to check your company registration status.');
+      })
+      .finally(() => {
+        if (!isMounted) {
+          return;
+        }
+        setHasCheckedCompanyStatus(true);
+        setIsCheckingCompanyStatus(false);
       });
 
     return () => {
@@ -264,7 +342,30 @@ export function ClientIntakeProvider({ children }) {
   }, [isOverlayOpen]);
 
   useEffect(() => {
-    if (mode !== 'loading' || isCheckingStatus) {
+    if (mode !== 'loading') {
+      return;
+    }
+
+    if (activeIntakeType === 'business') {
+      if (isCheckingCompanyStatus) {
+        return;
+      }
+
+      if (companyStatusError) {
+        setMode('status-error');
+        return;
+      }
+
+      if (companyProfile) {
+        setMode('already-submitted');
+        return;
+      }
+
+      setMode('stepper');
+      return;
+    }
+
+    if (isCheckingStatus) {
       return;
     }
 
@@ -279,7 +380,16 @@ export function ClientIntakeProvider({ children }) {
     }
 
     setMode('stepper');
-  }, [clientSubmission, isCheckingStatus, mode, statusError]);
+  }, [
+    activeIntakeType,
+    clientSubmission,
+    companyProfile,
+    companyStatusError,
+    isCheckingCompanyStatus,
+    isCheckingStatus,
+    mode,
+    statusError,
+  ]);
 
   const openClientIntake = useCallback(() => {
     setActiveIntakeType('client');
@@ -308,18 +418,81 @@ export function ClientIntakeProvider({ children }) {
 
   const openBusinessIntake = useCallback(() => {
     setActiveIntakeType('business');
-    setMode('stepper');
-  }, []);
 
-  const handleSubmissionSuccess = useCallback((submission) => {
+    if (!user || !token) {
+      setMode('auth');
+      return;
+    }
+
+    if (!hasCheckedCompanyStatus || isCheckingCompanyStatus) {
+      setMode('loading');
+      if (!hasCheckedCompanyStatus && !isCheckingCompanyStatus) {
+        loadCompanyStatus().catch(() => {});
+      }
+      return;
+    }
+
+    if (companyStatusError) {
+      setMode('status-error');
+      return;
+    }
+
+    if (companyProfile) {
+      setMode('already-submitted');
+      return;
+    }
+
+    setMode('stepper');
+  }, [
+    companyProfile,
+    companyStatusError,
+    hasCheckedCompanyStatus,
+    isCheckingCompanyStatus,
+    loadCompanyStatus,
+    token,
+    user,
+  ]);
+
+  const handleClientSubmissionSuccess = useCallback((submission) => {
     setClientSubmission(submission || { status: 'pending' });
     setHasCheckedStatus(true);
   }, []);
 
+  const submitBusinessIntake = useCallback(
+    async (payload, authToken) => {
+      try {
+        const company = await createCompany(payload, authToken);
+        setCompanyProfile(company);
+        setCompanyStatusError('');
+        setHasCheckedCompanyStatus(true);
+        setUser((previousUser) => {
+          if (!previousUser) {
+            return previousUser;
+          }
+
+          if (previousUser.role === 'company_rep') {
+            return previousUser;
+          }
+
+          return { ...previousUser, role: 'company_rep' };
+        });
+        return company;
+      } catch (error) {
+        if (error?.message && error.message.toLowerCase().includes('already registered')) {
+          loadCompanyStatus().catch(() => {});
+        }
+        throw error;
+      }
+    },
+    [loadCompanyStatus, setUser]
+  );
+
   const handleRetryStatus = useCallback(() => {
     setMode('loading');
-    loadClientStatus().catch(() => {});
-  }, [loadClientStatus]);
+    const loader =
+      activeIntakeType === 'business' ? loadCompanyStatus : loadClientStatus;
+    loader().catch(() => {});
+  }, [activeIntakeType, loadClientStatus, loadCompanyStatus]);
 
   const handleNavigate = useCallback(
     (path) => {
@@ -341,11 +514,17 @@ export function ClientIntakeProvider({ children }) {
       case 'auth':
         return 'Authentication required';
       case 'already-submitted':
-        return 'Submission already completed';
+        return activeIntakeType === 'business'
+          ? 'Business registration already completed'
+          : 'Submission already completed';
       case 'loading':
-        return 'Checking submission status';
+        return activeIntakeType === 'business'
+          ? 'Checking business registration status'
+          : 'Checking submission status';
       case 'status-error':
-        return 'Submission status unavailable';
+        return activeIntakeType === 'business'
+          ? 'Business registration status unavailable'
+          : 'Submission status unavailable';
       case 'stepper':
         return activeIntakeType === 'business'
           ? 'Business intake form'
@@ -361,35 +540,66 @@ export function ClientIntakeProvider({ children }) {
       closeClientIntake,
       openBusinessIntake,
       hasSubmitted,
+      hasRegisteredBusiness,
       isOverlayOpen,
       isCheckingStatus,
+      isCheckingBusinessStatus,
       clientSubmission,
+      companyProfile,
       statusError,
+      companyStatusError,
       refreshClientStatus: loadClientStatus,
+      refreshCompanyStatus: loadCompanyStatus,
+      submitBusinessIntake,
+      hasCheckedBusinessStatus: hasCheckedCompanyStatus,
     }),
     [
       clientSubmission,
       closeClientIntake,
+      companyProfile,
+      companyStatusError,
+      hasRegisteredBusiness,
       hasSubmitted,
+      hasCheckedCompanyStatus,
+      isCheckingBusinessStatus,
       isCheckingStatus,
       isOverlayOpen,
       openBusinessIntake,
       loadClientStatus,
+      loadCompanyStatus,
       openClientIntake,
       statusError,
+      submitBusinessIntake,
     ]
   );
 
   const renderOverlayContent = () => {
+    const isBusinessFlow = activeIntakeType === 'business';
+    const currentStatusError = isBusinessFlow ? companyStatusError : statusError;
+    const loadingMessage = isBusinessFlow
+      ? 'Checking your company registration status...'
+      : 'Checking your submission status...';
+    const retryErrorMessage = isBusinessFlow
+      ? 'Something went wrong while checking your company registration. Please try again.'
+      : 'Something went wrong while checking your intake status. Please try again.';
+    const authTitle = isBusinessFlow
+      ? 'Sign in to register your business'
+      : 'Ready to join the Breakwaters network?';
+    const authSubtitle = isBusinessFlow
+      ? 'Create an account or sign in to register your company. We\u2019ll bring you back to the business intake after you log in.'
+      : 'Create an account or sign in to submit your profile and start matching with new opportunities.';
+    const alreadySubmittedTitle = isBusinessFlow
+      ? 'You\u2019ve already registered your business'
+      : 'Your intake is already submitted';
+    const alreadySubmittedMessage = isBusinessFlow
+      ? 'Your company details are already on file. You can review your profile any time.'
+      : 'Thanks for sending your details. Our team is reviewing your information. If you need to make updates, please contact support and we\u2019ll help you out.';
+
     if (mode === 'auth') {
       return (
         <div className="home-auth">
-          <h2 className="home-auth__title">
-            Ready to join the Breakwaters network?
-          </h2>
-          <p className="home-auth__subtitle">
-            Create an account or sign in to submit your profile and start matching with new opportunities.
-          </p>
+          <h2 className="home-auth__title">{authTitle}</h2>
+          <p className="home-auth__subtitle">{authSubtitle}</p>
           <div className="home-auth__actions">
             <button
               type="button"
@@ -414,7 +624,7 @@ export function ClientIntakeProvider({ children }) {
       return (
         <div className="home-status home-status--loading">
           <div className="home-status__spinner" aria-hidden="true" />
-          <p className="home-status__message">Checking your submission status...</p>
+          <p className="home-status__message">{loadingMessage}</p>
         </div>
       );
     }
@@ -422,9 +632,13 @@ export function ClientIntakeProvider({ children }) {
     if (mode === 'status-error') {
       return (
         <div className="home-status home-status--error">
-          <h2 className="home-status__title">We could not confirm your submission</h2>
+          <h2 className="home-status__title">
+            {isBusinessFlow
+              ? 'We couldn\u2019t confirm your business registration'
+              : 'We could not confirm your submission'}
+          </h2>
           <p className="home-status__message">
-            {statusError || 'Something went wrong while checking your intake status. Please try again.'}
+            {currentStatusError || retryErrorMessage}
           </p>
           <div className="home-status__actions">
             <button
@@ -449,26 +663,44 @@ export function ClientIntakeProvider({ children }) {
     if (mode === 'already-submitted') {
       return (
         <div className="home-status home-status--info">
-          <h2 className="home-status__title">Your intake is already submitted</h2>
-          <p className="home-status__message">
-            Thanks for sending your details. Our team is reviewing your information.
-            If you need to make updates, please contact support and we&apos;ll help you out.
-          </p>
+          <h2 className="home-status__title">{alreadySubmittedTitle}</h2>
+          <p className="home-status__message">{alreadySubmittedMessage}</p>
           <div className="home-status__actions">
-            <button
-              type="button"
-              className="home-status__button home-status__button--primary"
-              onClick={handleContactSupport}
-            >
-              Contact Support
-            </button>
-            <button
-              type="button"
-              className="home-status__button"
-              onClick={closeClientIntake}
-            >
-              Close
-            </button>
+            {isBusinessFlow ? (
+              <>
+                <button
+                  type="button"
+                  className="home-status__button home-status__button--primary"
+                  onClick={() => handleNavigate('/business/profile')}
+                >
+                  View company profile
+                </button>
+                <button
+                  type="button"
+                  className="home-status__button"
+                  onClick={closeClientIntake}
+                >
+                  Close
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="home-status__button home-status__button--primary"
+                  onClick={handleContactSupport}
+                >
+                  Contact Support
+                </button>
+                <button
+                  type="button"
+                  className="home-status__button"
+                  onClick={closeClientIntake}
+                >
+                  Close
+                </button>
+              </>
+            )}
           </div>
         </div>
       );
@@ -476,12 +708,12 @@ export function ClientIntakeProvider({ children }) {
 
     if (mode === 'stepper') {
       if (activeIntakeType === 'business') {
-        return <BusinessIntakeStepper />;
+        return <BusinessIntakeStepper onSubmitCompany={submitBusinessIntake} />;
       }
 
       return (
         <ClientIntakeStepper
-          onSuccess={handleSubmissionSuccess}
+          onSuccess={handleClientSubmissionSuccess}
           onComplete={closeClientIntake}
         />
       );
