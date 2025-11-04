@@ -13,7 +13,7 @@ import assignmentRoutes from './routes/assignmentRoutes.js';
 dotenv.config();
 
 const app = express();
-const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:3000';
+const clientOrigin = process.env.CLIENT_ORIGIN || 'https://breakwatersrecruitment.co.za/';
 const MAX_BODY_SIZE = process.env.API_MAX_BODY_SIZE || '100kb';
 
 const apiLimiter = rateLimit({
@@ -55,10 +55,6 @@ app.use('/api/clients', clientRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/officers', recruitmentOfficerRoutes);
 app.use('/api/assignments', assignmentRoutes);
-
-app.get('/', (req, res) => {
-  res.send('Breakwaters API is running.');
-});
 
 app.get('/api/health/db', async (req, res) => {
   try {
