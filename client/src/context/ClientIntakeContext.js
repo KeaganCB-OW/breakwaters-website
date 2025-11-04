@@ -1,4 +1,13 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useId,
+} from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from './AuthContext';
@@ -30,6 +39,11 @@ export function ClientIntakeProvider({ children }) {
   const [hasCheckedStatus, setHasCheckedStatus] = useState(false);
   const [statusError, setStatusError] = useState('');
   const [activeIntakeType, setActiveIntakeType] = useState('client'); // client | business
+
+  const overlayContentRef = useRef(null);
+  const closeButtonRef = useRef(null);
+  const previouslyFocusedElementRef = useRef(null);
+  const dialogTitleId = useId();
 
   const isOverlayOpen = mode !== 'closed';
   const hasSubmitted = Boolean(clientSubmission);
@@ -121,6 +135,119 @@ export function ClientIntakeProvider({ children }) {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [closeClientIntake, isOverlayOpen]);
+
+  useEffect(() => {
+    if (!isOverlayOpen || typeof document === 'undefined') {
+      return undefined;
+    }
+
+    const { body, documentElement } = document;
+    const previousBodyOverflow = body.style.overflow;
+    const previousHtmlOverflow = documentElement.style.overflow;
+    const previousBodyOverscroll = body.style.overscrollBehavior;
+
+    body.style.overflow = 'hidden';
+    body.style.overscrollBehavior = 'contain';
+    documentElement.style.overflow = 'hidden';
+
+    return () => {
+      body.style.overflow = previousBodyOverflow;
+      body.style.overscrollBehavior = previousBodyOverscroll;
+      documentElement.style.overflow = previousHtmlOverflow;
+    };
+  }, [isOverlayOpen]);
+
+  useEffect(() => {
+    if (!isOverlayOpen || typeof document === 'undefined') {
+      return undefined;
+    }
+
+    const overlayNode = overlayContentRef.current;
+    if (!overlayNode) {
+      return undefined;
+    }
+
+    const focusableSelector = [
+      'a[href]',
+      'area[href]',
+      'button:not([disabled])',
+      'input:not([disabled]):not([type="hidden"])',
+      'select:not([disabled])',
+      'textarea:not([disabled])',
+      '[tabindex]:not([tabindex="-1"])',
+    ].join(', ');
+
+    const isElementVisible = (element) => {
+      if (!(element instanceof HTMLElement)) {
+        return false;
+      }
+
+      if (element.offsetParent === null && element !== document.activeElement) {
+        return false;
+      }
+
+      const style = window.getComputedStyle(element);
+      return style.visibility !== 'hidden' && style.display !== 'none';
+    };
+
+    const getFocusableElements = () =>
+      Array.from(overlayNode.querySelectorAll(focusableSelector)).filter((element) =>
+        isElementVisible(element)
+      );
+
+    previouslyFocusedElementRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    const focusInitialElement = () => {
+      const focusableElements = getFocusableElements();
+      const initialFocusTarget = closeButtonRef.current || focusableElements[0] || null;
+      if (initialFocusTarget && typeof initialFocusTarget.focus === 'function') {
+        initialFocusTarget.focus({ preventScroll: true });
+      } else if (typeof overlayNode.focus === 'function') {
+        overlayNode.focus({ preventScroll: true });
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key !== 'Tab') {
+        return;
+      }
+
+      const focusableElements = getFocusableElements();
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const [firstElement] = focusableElements;
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement;
+
+      if (event.shiftKey) {
+        if (!overlayNode.contains(activeElement) || activeElement === firstElement) {
+          event.preventDefault();
+          lastElement.focus({ preventScroll: true });
+        }
+        return;
+      }
+
+      if (!overlayNode.contains(activeElement) || activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus({ preventScroll: true });
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    window.requestAnimationFrame(focusInitialElement);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      const previousElement = previouslyFocusedElementRef.current;
+      if (previousElement && typeof previousElement.focus === 'function') {
+        previousElement.focus({ preventScroll: true });
+      }
+    };
+  }, [isOverlayOpen]);
 
   useEffect(() => {
     if (!isOverlayOpen || typeof document === 'undefined') {
@@ -372,18 +499,34 @@ export function ClientIntakeProvider({ children }) {
     <ClientIntakeContext.Provider value={contextValue}>
       {children}
       {isOverlayOpen && (
-        <div className="home-overlay" role="dialog" aria-modal="true" aria-label={overlayAriaLabel}>
+        <div
+          className="home-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={dialogTitleId}
+        >
           <div className="home-overlay__backdrop" onClick={closeClientIntake} aria-hidden="true" />
-          <div className={contentClassName} role="document">
-            <button
-              type="button"
-              className="home-overlay__close"
-              aria-label="Close overlay"
-              onClick={closeClientIntake}
-            >
-              &times;
-            </button>
-            {renderOverlayContent()}
+          <div
+            className={contentClassName}
+            role="document"
+            ref={overlayContentRef}
+            tabIndex={-1}
+          >
+            <header className="home-overlay__header">
+              <h2 id={dialogTitleId} className="home-overlay__title">
+                {overlayAriaLabel}
+              </h2>
+              <button
+                type="button"
+                className="home-overlay__close"
+                aria-label="Close overlay"
+                onClick={closeClientIntake}
+                ref={closeButtonRef}
+              >
+                &times;
+              </button>
+            </header>
+            <div className="home-overlay__body">{renderOverlayContent()}</div>
           </div>
         </div>
       )}

@@ -9,8 +9,8 @@
   gap: clamp(20px, 2.5vw, 32px);
   box-sizing: border-box;
   color: #082658;
-  max-height: min(92vh, 960px);
-  overflow: hidden;
+  max-height: none;
+  overflow: visible;
 }
 
 .stepper__indicators {
@@ -130,10 +130,12 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
   box-sizing: border-box;
   flex: 1 1 auto;
-  overflow-y: auto;
+  overflow: visible;
   min-height: 0;
   display: flex;
   flex-direction: column;
+  gap: clamp(18px, 2.2vw, 28px);
+  padding-bottom: calc(clamp(20px, 2.5vw, 34px) + env(safe-area-inset-bottom) + 96px);
 }
 
 .stepper__content > * {
@@ -146,6 +148,13 @@
   flex-direction: column;
   gap: 12px;
   flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  background: transparent;
+  padding-bottom: calc(env(safe-area-inset-bottom) + clamp(12px, 2vw, 20px));
+  padding-top: clamp(12px, 2vw, 18px);
+  box-shadow: none;
 }
 
 .stepper__actions {

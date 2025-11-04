@@ -1,6 +1,6 @@
 .formScroll {
-  max-height: 80vh;
-  overflow-y: auto;
-  padding-right: 8px;
+  max-height: none;
+  overflow: visible;
+  padding-right: 0;
   scroll-behavior: smooth;
 }
