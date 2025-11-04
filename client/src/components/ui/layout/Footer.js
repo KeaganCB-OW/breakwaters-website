@@ -7,9 +7,9 @@ export default function Footer() {
         <div className="footer__top">
           <nav className="footer__links" aria-label="Footer navigation">
             <a href="/">Home</a>
-            <a href="/#about">About us</a>
-            <a href="/#companies">For Companies</a>
-            <a href="/#testimonials">Testimonials</a>
+            <a href="/about">About us</a> 
+            {/* <a href="/#companies">For Companies</a> */}
+            {/* <a href="/#testimonials">Testimonials</a> */}
           </nav>
           <div className="footer__contact">
             <p>
@@ -26,16 +26,15 @@ export default function Footer() {
           </div>
         </div>
         <div className="footer__bottom">
-          <a className="footer__policy" href="/privacy">
+          {/* <a className="footer__policy" href="/privacy">
             Privacy Policy
-          </a>
-          <a className="footer__policy" href="/terms">
+          </a> */}
+          {/* <a className="footer__policy" href="/terms">
             Terms of Service
-          </a>
-          <a className="footer__policy" href="/terms">
+          </a> */}
+          {/* <a className="footer__policy" href="/terms">
             2025 Breakwaters. All rights reserved.
-          </a>
-
+          </a> */}
         </div>
       </div>
     </footer>
