@@ -1,10 +1,11 @@
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import Stepper, { Step } from '../auth/Stepper';
 import RolesDropdown from './RolesDropdown';
 import '../../../styling/ClientIntakeStepper.css';
 import '../../../styling/forms.css';
 import { createClient } from '../../../services/clientService';
+import { uploadClientCv } from '../../../services/cvService';
 import { AuthContext } from '../../../context/AuthContext';
 
 const INITIAL_FORM_DATA = {
@@ -50,6 +51,44 @@ const FIELD_PLACEHOLDERS = {
 };
 
 const TEXTAREA_FIELDS = new Set(['skills', 'experience']);
+
+const MAX_CV_FILE_SIZE = 5 * 1024 * 1024;
+const ALLOWED_PDF_MIME_TYPES = new Set(['application/pdf', 'application/x-pdf']);
+
+const formatFileSize = (bytes) => {
+  if (!Number.isFinite(bytes) || bytes < 0) {
+    return '';
+  }
+
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+
+  const units = ['KB', 'MB', 'GB'];
+  let size = bytes / 1024;
+  let unitIndex = 0;
+
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex += 1;
+  }
+
+  const precision = size >= 10 || unitIndex === 0 ? 0 : 1;
+  return `${size.toFixed(precision)} ${units[unitIndex]}`;
+};
+
+const isPdfFile = (file) => {
+  if (!file) {
+    return false;
+  }
+
+  const mimeType = file.type?.toLowerCase() || '';
+  if (mimeType && ALLOWED_PDF_MIME_TYPES.has(mimeType)) {
+    return true;
+  }
+
+  return (file.name || '').toLowerCase().endsWith('.pdf');
+};
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const linkedinPattern = /^(https?:\/\/)?([\w]+\.)?linkedin\.com\/.*$/i;
@@ -112,7 +151,22 @@ function ClientIntakeStepper({ onSuccess }) {
     status: 'idle',
     message: '',
   });
+  const [cvFile, setCvFile] = useState(null);
+  const [cvError, setCvError] = useState('');
+  const [cvUploadState, setCvUploadState] = useState({ status: 'idle', progress: 0, key: '' });
+  const [createdClient, setCreatedClient] = useState(null);
+  const fileInputRef = useRef(null);
+  const [toastMessage, setToastMessage] = useState('');
+  const toastTimeoutRef = useRef(null);
   const [activeStep, setActiveStep] = useState(1);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const summaryItems = useMemo(
     () => [
@@ -134,6 +188,24 @@ function ClientIntakeStepper({ onSuccess }) {
       setSubmissionState({ status: 'idle', message: '' });
     }
   };
+
+  const showToast = useCallback((message) => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+      toastTimeoutRef.current = null;
+    }
+
+    if (!message) {
+      setToastMessage('');
+      return;
+    }
+
+    setToastMessage(message);
+    toastTimeoutRef.current = setTimeout(() => {
+      setToastMessage('');
+      toastTimeoutRef.current = null;
+    }, 4000);
+  }, []);
 
   const handleFieldChange = (event) => {
     const { name, value } = event.target;
@@ -163,6 +235,56 @@ function ClientIntakeStepper({ onSuccess }) {
     }));
 
     resetSubmissionState();
+  };
+
+  const clearCvSelection = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+
+    setCvFile(null);
+    setCvUploadState({ status: 'idle', progress: 0, key: '' });
+  };
+
+  const handleCvFileChange = (event) => {
+    const file = event.target?.files?.[0] || null;
+
+    if (!file) {
+      clearCvSelection();
+      setCvError('');
+      return;
+    }
+
+    if (!isPdfFile(file)) {
+      clearCvSelection();
+      setCvError('Please select a PDF file.');
+      return;
+    }
+
+    if (file.size > MAX_CV_FILE_SIZE) {
+      clearCvSelection();
+      setCvError('Your CV must be 5MB or smaller.');
+      return;
+    }
+
+    setCvFile(file);
+    setCvError('');
+    setCvUploadState({ status: 'ready', progress: 0, key: '' });
+    resetSubmissionState();
+  };
+
+  const handleRemoveCv = () => {
+    clearCvSelection();
+    setCvError('');
+    resetSubmissionState();
+  };
+
+  const handleTriggerFilePicker = () => {
+    if (cvUploadState.status === 'uploading') {
+      return;
+    }
+
+    fileInputRef.current?.click();
   };
 
   const validateFields = (fields) => {
@@ -218,36 +340,91 @@ function ClientIntakeStepper({ onSuccess }) {
       return { completed: false };
     }
 
-    setSubmissionState({ status: 'pending', message: '' });
+    if (!cvFile) {
+      setCvError('Please attach your CV before finishing.');
+      setSubmissionState({
+        status: 'error',
+        message: 'Add your CV so we can review your experience.',
+      });
+      return { completed: false };
+    }
+
+    setSubmissionState({
+      status: 'pending',
+      message: 'Submitting your details...',
+    });
+
+    let clientRecord = createdClient;
+
+    if (!clientRecord) {
+      try {
+        const payload = sanitizePayload(formData);
+        clientRecord = await createClient(payload, token);
+        setCreatedClient(clientRecord);
+      } catch (error) {
+        const message =
+          error?.details?.message ||
+          error?.message ||
+          'We could not submit your details. Please try again.';
+
+        if (error?.details?.errors && typeof error.details.errors === 'object') {
+          setErrors((previous) => ({
+            ...previous,
+            ...error.details.errors,
+          }));
+        }
+
+        setSubmissionState({
+          status: 'error',
+          message,
+        });
+
+        return { completed: false, error };
+      }
+    }
+
+    setSubmissionState({
+      status: 'pending',
+      message: 'Uploading your CV...',
+    });
+    setCvError('');
+    setCvUploadState({ status: 'uploading', progress: 0, key: '' });
 
     try {
-      const payload = sanitizePayload(formData);
-      const response = await createClient(payload, token);
+      const uploadResponse = await uploadClientCv(
+        { clientId: clientRecord.id, file: cvFile },
+        token,
+        (progress) => {
+          setCvUploadState((previous) => ({
+            ...previous,
+            status: 'uploading',
+            progress,
+          }));
+        }
+      );
 
+      const uploadedKey = uploadResponse?.key || '';
+      setCvUploadState({ status: 'success', progress: 1, key: uploadedKey });
+      setCvError('');
       setSubmissionState({
         status: 'success',
-        message:
-          'Thank you! Our recruitment crew will review your profile and reach out shortly.',
+        message: 'All set! We received your details and CV.',
       });
+      showToast('CV uploaded successfully.');
 
       if (typeof onSuccess === 'function') {
-        onSuccess(response);
+        onSuccess({ ...clientRecord, cvKey: uploadedKey });
       }
 
-      return { completed: true, data: response };
+      return { completed: true, data: { client: clientRecord, cvKey: uploadedKey } };
     } catch (error) {
       const message =
         error?.details?.message ||
         error?.message ||
-        'We could not submit your details. Please try again.';
+        'We could not upload your CV. Please try again.';
 
-      if (error?.details?.errors && typeof error.details.errors === 'object') {
-        setErrors((previous) => ({
-          ...previous,
-          ...error.details.errors,
-        }));
-      }
-
+      setCvUploadState({ status: 'error', progress: 0, key: '' });
+      setCvError(message);
       setSubmissionState({
         status: 'error',
         message,
@@ -256,6 +433,8 @@ function ClientIntakeStepper({ onSuccess }) {
       return { completed: false, error };
     }
   };
+
+  const uploadPercent = Math.round((cvUploadState.progress || 0) * 100);
 
   const renderField = (fieldName, options = {}) => {
     const errorMessage = errors[fieldName];
@@ -320,6 +499,11 @@ function ClientIntakeStepper({ onSuccess }) {
 
   return (
     <section className="client-intake">
+      {toastMessage ? (
+        <div className="client-intake__toast" role="status" aria-live="polite">
+          {toastMessage}
+        </div>
+      ) : null}
       <div className="client-intake__stepper">
         <Stepper
           className="client-intake__stepper-inner"
@@ -400,8 +584,10 @@ function ClientIntakeStepper({ onSuccess }) {
             title="Review & submit"
             description="Everything look good?"
             onNext={validateAll}
-            pendingText="Submitting..."
-            isNextDisabled={submissionState.status === 'pending'}
+            pendingText="Working..."
+            isNextDisabled={
+              submissionState.status === 'pending' || cvUploadState.status === 'uploading'
+            }
           >
             {({ isCompleted }) => (
               <div className="formScroll">
@@ -420,9 +606,94 @@ function ClientIntakeStepper({ onSuccess }) {
                     ))}
                   </dl>
 
+                  <div
+                    className={[
+                      'client-intake__field',
+                      'client-intake__field--file',
+                      cvError ? 'client-intake__field--invalid' : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                  >
+                    <label className="client-intake__label" htmlFor="client-intake-cv">
+                      Upload your CV{' '}
+                      <span className="client-intake__label-note">(PDF, max 5MB)</span>
+                    </label>
+                    <input
+                      ref={fileInputRef}
+                      id="client-intake-cv"
+                      type="file"
+                      name="cv"
+                      accept="application/pdf"
+                      className="client-intake__file-input"
+                      onChange={handleCvFileChange}
+                      disabled={cvUploadState.status === 'uploading'}
+                    />
+                    <div className="client-intake__file-actions">
+                      <button
+                        type="button"
+                        className="client-intake__upload-button"
+                        onClick={handleTriggerFilePicker}
+                        disabled={cvUploadState.status === 'uploading'}
+                      >
+                        {cvFile ? 'Replace PDF' : 'Choose PDF'}
+                      </button>
+                      {cvFile ? (
+                        <button
+                          type="button"
+                          className="client-intake__file-remove"
+                          onClick={handleRemoveCv}
+                          disabled={cvUploadState.status === 'uploading'}
+                        >
+                          Remove
+                        </button>
+                      ) : null}
+                    </div>
+                    <p className="client-intake__hint">
+                      Attach a PDF resume so our recruitment team can review your experience quickly.
+                    </p>
+                    {cvFile ? (
+                      <div className="client-intake__file-pill" role="status">
+                        <span className="client-intake__file-name">{cvFile.name}</span>
+                        <span className="client-intake__file-size">
+                          {formatFileSize(cvFile.size)}
+                        </span>
+                      </div>
+                    ) : (
+                      <p className="client-intake__hint client-intake__hint--muted">
+                        No file selected yet.
+                      </p>
+                    )}
+                    {cvUploadState.status === 'uploading' ? (
+                      <div className="client-intake__progress" role="status" aria-live="polite">
+                        <div className="client-intake__progress-track">
+                          <div
+                            className="client-intake__progress-bar"
+                            style={{
+                              width: `${Math.min(Math.max(uploadPercent, 0), 100)}%`,
+                            }}
+                          />
+                        </div>
+                        <span className="client-intake__progress-label">
+                          {uploadPercent > 0 ? `Uploading ${uploadPercent}%` : 'Uploading...'}
+                        </span>
+                      </div>
+                    ) : null}
+                    {cvUploadState.status === 'success' ? (
+                      <p className="client-intake__hint client-intake__hint--success" role="status">
+                        CV uploaded successfully.
+                      </p>
+                    ) : null}
+                    {cvError ? (
+                      <p className="client-intake__error" role="alert">
+                        {cvError}
+                      </p>
+                    ) : null}
+                  </div>
+
                   {submissionState.status === 'pending' ? (
                     <div className="client-intake__alert client-intake__alert--info">
-                      {'Submitting your details\u2026'}
+                      {submissionState.message || 'Working on your submission...'}
                     </div>
                   ) : null}
 

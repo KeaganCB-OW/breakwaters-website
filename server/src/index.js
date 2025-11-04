@@ -9,6 +9,7 @@ import clientRoutes from './routes/clientRoutes.js';
 import companyRoutes from './routes/companyRoutes.js';
 import recruitmentOfficerRoutes from './routes/recruitmentOfficerRoutes.js';
 import assignmentRoutes from './routes/assignmentRoutes.js';
+import cvRoutes from './routes/cvRoutes.js';
 
 dotenv.config();
 
@@ -58,6 +59,7 @@ app.use('/api/clients', clientRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/officers', recruitmentOfficerRoutes);
 app.use('/api/assignments', assignmentRoutes);
+app.use('/api/cv', cvRoutes);
 
 app.get('/api/health/db', async (req, res) => {
   try {

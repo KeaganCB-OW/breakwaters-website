@@ -8,6 +8,7 @@ import { fetchClients, updateClient, deleteClient as deleteClientService } from 
 import { fetchAssignments, suggestAssignment } from '../../../services/assignmentService';
 import { AuthContext } from '../../../context/AuthContext';
 import { fetchCompanies } from '../../../services/companyService';
+import { fetchLatestClientCv } from '../../../services/cvService';
 import '../../../styling/ClientDetails.css';
 
 const normaliseRoleName = (value) => {
@@ -183,6 +184,48 @@ const FIELD_DEFINITIONS = {
   ],
 };
 
+const formatFileSizeDisplay = (bytes) => {
+  const size = Number(bytes);
+  if (!Number.isFinite(size) || size <= 0) {
+    return '';
+  }
+
+  if (size < 1024) {
+    return `${size} B`;
+  }
+
+  const units = ['KB', 'MB', 'GB'];
+  let value = size / 1024;
+  let unitIndex = 0;
+
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+
+  const precision = value >= 10 || unitIndex === 0 ? 0 : 1;
+  return `${value.toFixed(precision)} ${units[unitIndex]}`;
+};
+
+const formatUploadedAtDisplay = (value) => {
+  if (!value) {
+    return '';
+  }
+
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  return date.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
 export function ClientDetails() {
   const navigate = useNavigate();
   const { clientId } = useParams();
@@ -199,6 +242,9 @@ export function ClientDetails() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeletingClient, setIsDeletingClient] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
+  const [isLoadingCv, setIsLoadingCv] = useState(false);
+  const [cvDetails, setCvDetails] = useState(null);
+  const [cvErrorMessage, setCvErrorMessage] = useState(null);
 
   const [isManaging, setIsManaging] = useState(false);
   const [editableValues, setEditableValues] = useState({});
@@ -321,6 +367,53 @@ export function ClientDetails() {
   }, [token]);
 
   useEffect(() => {
+    let isMounted = true;
+
+    if (!token || !clientId) {
+      setCvDetails(null);
+      setCvErrorMessage(null);
+      setIsLoadingCv(false);
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    const loadCv = async () => {
+      setIsLoadingCv(true);
+      setCvErrorMessage(null);
+      try {
+        const response = await fetchLatestClientCv(clientId, token);
+        if (!isMounted) {
+          return;
+        }
+
+        if (response?.exists) {
+          setCvDetails(response);
+        } else {
+          setCvDetails(null);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setCvDetails(null);
+          setCvErrorMessage(
+            error?.message || 'Failed to load CV for this client.'
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingCv(false);
+        }
+      }
+    };
+
+    loadCv();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [clientId, token]);
+
+  useEffect(() => {
     setSuggestionStatusByCompany({});
     setShowAllCompanies(false);
   }, [clientId]);
@@ -380,6 +473,38 @@ export function ClientDetails() {
 
     return '';
   }, [candidateRole, selectedCandidate]);
+
+  const hasCv = useMemo(
+    () => Boolean(cvDetails?.exists && cvDetails.viewUrl),
+    [cvDetails]
+  );
+
+  const cvViewUrl = useMemo(() => {
+    if (!cvDetails?.exists || !cvDetails.viewUrl) {
+      return '';
+    }
+
+    return cvDetails.viewUrl;
+  }, [cvDetails]);
+
+  const cvMetadata = useMemo(() => {
+    if (!cvDetails?.exists) {
+      return '';
+    }
+
+    const parts = [];
+    const uploaded = formatUploadedAtDisplay(cvDetails.uploadedAt);
+    if (uploaded) {
+      parts.push(`Uploaded ${uploaded}`);
+    }
+
+    const sizeLabel = formatFileSizeDisplay(cvDetails.fileSize);
+    if (sizeLabel) {
+      parts.push(sizeLabel);
+    }
+
+    return parts.join(' • ');
+  }, [cvDetails]);
 
   const assignmentsForSelectedClient = useMemo(() => {
     if (!clientId || !Array.isArray(assignments)) {
@@ -1087,6 +1212,53 @@ export function ClientDetails() {
                               {renderFieldControl(field)}
                             </div>
                           ))}
+                          <div className="client-details__field">
+                            <label className="client-details__label" htmlFor="client-details-cv">
+                              <span>CV</span>
+                            </label>
+                            <div
+                              id="client-details-cv"
+                              className="client-details__textarea client-details__textarea--readonly client-details__textarea--cv"
+                            >
+                              {isLoadingCv ? (
+                                <p className="client-details__cv-meta">Loading CV...</p>
+                              ) : cvErrorMessage ? (
+                                <p className="client-details__cv-error">{cvErrorMessage}</p>
+                              ) : hasCv && cvViewUrl ? (
+                                <>
+                                  <div className="client-details__cv-actions">
+                                    <a
+                                      className="client-details__cv-button"
+                                      href={cvViewUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      View CV
+                                    </a>
+                                    {cvMetadata ? (
+                                      <p className="client-details__cv-meta">{cvMetadata}</p>
+                                    ) : null}
+                                  </div>
+                                  <div
+                                    className="client-details__cv-preview"
+                                    role="region"
+                                    aria-label="CV preview"
+                                  >
+                                    <iframe
+                                      src={cvViewUrl}
+                                      title="Client CV preview"
+                                      className="client-details__cv-frame"
+                                      loading="lazy"
+                                    />
+                                  </div>
+                                </>
+                              ) : (
+                                <p className="client-details__cv-meta client-details__cv-meta--muted">
+                                  No CV uploaded yet.
+                                </p>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
                       {isManaging && (

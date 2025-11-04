@@ -146,6 +146,10 @@
   .client-details__columns {
     grid-template-columns: 1fr;
   }
+
+  .client-details__cv-frame {
+    height: 300px;
+  }
 }
 
 .client-details__column {
@@ -304,6 +308,88 @@
 .client-details__textarea--link:focus {
   border-color: #082658;
   text-decoration: underline;
+}
+
+.client-details__textarea--cv {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: auto;
+  padding: 18px 20px;
+}
+
+.client-details__cv-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.client-details__cv-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 22px;
+  border-radius: 14px;
+  border: none;
+  background: var(--dashboard-primary);
+  color: #ffffff;
+  font-family: var(--font-roboto);
+  font-size: clamp(0.85rem, 0.9vw, 1rem);
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.client-details__cv-button:hover,
+.client-details__cv-button:focus-visible {
+  background: var(--dashboard-secondary);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.client-details__cv-button:active {
+  transform: translateY(0);
+}
+
+.client-details__cv-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.client-details__cv-meta {
+  margin: 0;
+  font-family: var(--font-roboto);
+  font-size: clamp(0.85rem, 0.9vw, 1rem);
+  color: rgba(8, 38, 88, 0.78);
+}
+
+.client-details__cv-meta--muted {
+  color: rgba(8, 38, 88, 0.5);
+}
+
+.client-details__cv-error {
+  margin: 0;
+  font-family: var(--font-roboto);
+  font-size: clamp(0.85rem, 0.9vw, 1rem);
+  color: #c0392b;
+}
+
+.client-details__cv-preview {
+  border: 1px solid rgba(8, 38, 88, 0.12);
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(8, 38, 88, 0.02);
+  margin-top: 4px;
+}
+
+.client-details__cv-frame {
+  width: 100%;
+  height: 360px;
+  border: none;
 }
 
 .related-opportunities__toggle {
@@ -567,6 +653,10 @@
   .client-details__modal {
     padding: 24px;
     width: min(480px, 95vw);
+  }
+
+  .client-details__cv-frame {
+    height: 240px;
   }
 
   .client-details__modal-actions {
