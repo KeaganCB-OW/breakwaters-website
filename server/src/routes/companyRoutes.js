@@ -1,9 +1,15 @@
 import { Router } from 'express';
-import { getCandidates, getCompanyStats, listCompanies } from '../controllers/companyController.js';
+import {
+  createCompany,
+  getCandidates,
+  getCompanyStats,
+  listCompanies,
+} from '../controllers/companyController.js';
 import { authenticate } from '../middleware/authMiddleware.js';
 import { authorize } from '../middleware/roleMiddleware.js';
 
 const router = Router();
+router.post('/', createCompany);
 router.get('/', authenticate, authorize('recruitment_officer'), listCompanies);
 router.get('/stats', authenticate, authorize('recruitment_officer'), getCompanyStats);
 router.get('/candidates', authenticate, authorize('company_rep'), getCandidates);
