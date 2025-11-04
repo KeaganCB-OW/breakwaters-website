@@ -56,6 +56,10 @@ app.use('/api/companies', companyRoutes);
 app.use('/api/officers', recruitmentOfficerRoutes);
 app.use('/api/assignments', assignmentRoutes);
 
+app.get('/', (req, res) => {
+  res.send('Breakwaters API is running.');
+});
+
 app.get('/api/health/db', async (req, res) => {
   try {
     await pool.query('SELECT 1');
