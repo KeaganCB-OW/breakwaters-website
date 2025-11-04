@@ -4,7 +4,7 @@ import { pool } from '../config/db.js';
 
 const MIN_PASSWORD_LENGTH = 8;
 const JWT_EXPIRY = '12h';
-const ALLOWED_ROLES = new Set(['client', 'company_rep', 'recruitment_officer']);
+const DEFAULT_ROLE = 'client';
 
 const getJwtSecret = (() => {
   let cachedSecret;
@@ -74,13 +74,20 @@ export const register = async (req, res) => {
 
   if (typeof password !== 'string' || password.length < MIN_PASSWORD_LENGTH) {
     return res.status(400).json({
-      message: `Password must be at least  characters long.`,
+      message: `Password must be at least ${MIN_PASSWORD_LENGTH} characters long.`,
       field: 'password',
     });
   }
 
   if (confirmPassword != null && password !== confirmPassword) {
     return res.status(400).json({ message: 'Passwords do not match.', field: 'confirmPassword' });
+  }
+
+  if (role && role !== DEFAULT_ROLE) {
+    return res.status(403).json({
+      message: 'You are not allowed to assign elevated roles.',
+      field: 'role',
+    });
   }
 
   try {
@@ -91,7 +98,7 @@ export const register = async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const userRole = ALLOWED_ROLES.has(role) ? role : 'client';
+    const userRole = DEFAULT_ROLE;
 
     const [insertResult] = await pool.query(
       'INSERT INTO users (email, password_hash, role) VALUES (?, ?, ?)',
