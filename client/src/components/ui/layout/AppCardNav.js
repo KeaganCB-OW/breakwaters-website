@@ -17,15 +17,6 @@ const defaultItems = [
     ]
   },
   {
-    label: 'Our Clients',
-    bgColor: '#0b3173ff',
-    textColor: '#fff',
-    links: [
-      { label: 'For Companies', ariaLabel: 'Join the Breakwaters Network', href: '/become-client' },
-      { label: 'Testimonials', ariaLabel: 'Our Testimonials', href: '/#testimonials' }
-    ]
-  },
-  {
     label: 'Contact',
     bgColor: '#10387fff',
     textColor: '#fff',
