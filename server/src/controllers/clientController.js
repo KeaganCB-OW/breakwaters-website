@@ -1,4 +1,17 @@
 import { pool } from '../config/db.js';
+import { sendMail } from '../utils/email.js';
+import { buildClientStatusChangedEmail } from '../utils/emailTemplates.js';
+import { normaliseEmail, normaliseStatusValue } from '../utils/notificationUtils.js';
+
+const VALID_CLIENT_STATUSES = new Set([
+  'pending',
+  'in progress',
+  'suggested',
+  'interview pending',
+  'interviewed',
+  'assigned',
+  'rejected',
+]);
 
 export const listClients = async (req, res) => {
   try {
@@ -321,6 +334,136 @@ export const updateClient = async (req, res) => {
   } catch (error) {
     console.error('Failed to update client', error);
     return res.status(500).json({ message: 'Failed to update client' });
+  }
+};
+
+export const updateClientStatus = async (req, res) => {
+  const { id } = req.params;
+  const rawStatus = req.body?.status;
+
+  const clientId = Number(id);
+
+  if (!Number.isFinite(clientId) || clientId <= 0) {
+    return res.status(400).json({ message: 'Invalid client id' });
+  }
+
+  if (typeof rawStatus !== 'string' || !rawStatus.trim()) {
+    return res.status(400).json({ message: 'A status value is required.' });
+  }
+
+  const normalisedStatus = normaliseStatusValue(rawStatus);
+
+  if (!VALID_CLIENT_STATUSES.has(normalisedStatus)) {
+    return res.status(400).json({ message: 'Invalid status value provided.' });
+  }
+
+  let connection;
+
+  try {
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const [[client]] = await connection.query(
+      `SELECT
+        id,
+        full_name AS fullName,
+        email,
+        phone_number AS phoneNumber,
+        location,
+        skills,
+        preferred_role AS preferredRole,
+        education,
+        linkedin_url AS linkedinUrl,
+        experience,
+        status
+      FROM clients
+      WHERE id = ?
+      LIMIT 1`,
+      [clientId]
+    );
+
+    if (!client) {
+      await connection.rollback();
+      return res.status(404).json({ message: 'Client not found' });
+    }
+
+    const previousStatus = client.status;
+    const normalisedPrevious = normaliseStatusValue(previousStatus);
+
+    if (normalisedPrevious === normalisedStatus) {
+      await connection.commit();
+      return res.json({ client, statusUnchanged: true });
+    }
+
+    await connection.query('UPDATE clients SET status = ? WHERE id = ?', [
+      normalisedStatus,
+      clientId,
+    ]);
+
+    const [rows] = await connection.query(
+      `SELECT
+        id,
+        full_name AS fullName,
+        email,
+        phone_number AS phoneNumber,
+        location,
+        skills,
+        preferred_role AS preferredRole,
+        education,
+        linkedin_url AS linkedinUrl,
+        experience,
+        status
+      FROM clients
+      WHERE id = ?
+      LIMIT 1`,
+      [clientId]
+    );
+
+    const updatedClient =
+      Array.isArray(rows) && rows.length > 0 ? rows[0] : { ...client, status: normalisedStatus };
+
+    await connection.commit();
+
+    res.json({ client: updatedClient, statusUpdated: true });
+
+    const recipientEmail = normaliseEmail(updatedClient.email);
+
+    if (recipientEmail) {
+      const message = buildClientStatusChangedEmail({
+        client: updatedClient,
+        statusOld: previousStatus,
+        statusNew: updatedClient.status,
+      });
+
+      sendMail({
+        to: recipientEmail,
+        subject: message.subject,
+        html: message.html,
+        text: message.text,
+      }).catch((error) => {
+        console.error('Failed to send client status update email', {
+          clientId,
+          error,
+        });
+      });
+    }
+
+    return;
+  } catch (error) {
+    if (connection) {
+      try {
+        await connection.rollback();
+      } catch (rollbackError) {
+        console.error('Failed to rollback status update', rollbackError);
+      }
+    }
+
+    console.error('Failed to update client status', error);
+    return res.status(500).json({ message: 'Failed to update client status' });
+  } finally {
+    if (connection) {
+      connection.release();
+    }
   }
 };
 

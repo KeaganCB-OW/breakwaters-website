@@ -6,6 +6,7 @@ import {
   updateClient,
   deleteClient,
   getCurrentClient,
+  updateClientStatus,
 } from '../controllers/clientController.js';
 import { authenticate } from '../middleware/authMiddleware.js';
 import { authorize } from '../middleware/roleMiddleware.js';
@@ -16,6 +17,7 @@ const router = Router();
 router.get('/', authenticate, authorize('recruitment_officer'), listClients);
 router.get('/me', authenticate, getCurrentClient);
 router.post('/', authenticate, createClient);
+router.patch('/:id/status', authenticate, authorize('recruitment_officer'), updateClientStatus);
 router.patch('/:id', authenticate, authorize('recruitment_officer'), updateClient);
 router.delete('/:id', authenticate, authorize('recruitment_officer'), deleteClient);
 router.post('/cv', authenticate, handleCvUpload, submitCv);

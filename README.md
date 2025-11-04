@@ -8,7 +8,20 @@ Recruitment Management System using React, Node/Express, and MySQL.
 
 This repository contains the foundational file structure to support role-based authentication, CV submissions, and candidate-company workflows.
 
+## Email & Notification Configuration
+- `MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASS`, `MAIL_FROM` - Hostinger SMTP settings used by the reusable mailer utility.
+- `APP_URL` - Public URL for building call-to-action links in mail templates.
+- `SHARE_LINK_SECRET` *(optional)* - Secret for signing read-only client share tokens (falls back to `JWT_SECRET`).
+- `SHARE_LINK_TTL_SECONDS` *(optional)* - Lifetime for read-only links (defaults to 3600 seconds).
+- `CV_SIGNED_URL_TTL` *(optional)* - Lifetime (in seconds) for generated CV presigned URLs (defaults to 900 seconds).
+- `TEST_ENDPOINT_TOKEN` *(optional)* - When set, enables guarded `/api/test-hooks/...` endpoints for triggering notification emails in non-production environments.
 
+### Testing Notification Emails
+Set `TEST_ENDPOINT_TOKEN`, then call:
+- `POST /api/test-hooks/emails/client-status` with `{"clientId": 1, "statusNew": "in progress"}` to simulate the client status update email.
+- `POST /api/test-hooks/emails/client-suggested` with `{"assignmentId": 1}` (or `clientId` + `companyId`) to trigger the company notification email.
+
+Include the matching token in the `x-test-token` header (or `token` query/body param). These endpoints run only when the token is configured.
 
 ## todo
 - store users on signup and login to database
@@ -33,7 +46,6 @@ This repository contains the foundational file structure to support role-based a
     - placements (company/client)
 - candidate view dashboard
     - user can do an edit request -> email if confirmed
-
 
 ## Connecting to MySQL via XAMPP
 1. Start Apache and MySQL in the XAMPP Control Panel.

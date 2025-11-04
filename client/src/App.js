@@ -6,6 +6,7 @@ import ClientDetailsPage from './pages/ClientDetails';
 import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
 import BecomeClientPage from './pages/BecomeClientPage';
+import SharedClientDetailsPage from './pages/SharedClientDetails';
 import { AuthProvider } from './context/AuthContext';
 import { ClientIntakeProvider } from './context/ClientIntakeContext';
 import RequireAuth from './components/routing/RequireAuth';
@@ -46,6 +47,7 @@ function App() {
                 </RequireAuth>
               )}
             />
+            <Route path="/share/clients/:clientId" element={<SharedClientDetailsPage />} />
           </Routes>
         </ClientIntakeProvider>
       </Router>

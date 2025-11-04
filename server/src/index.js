@@ -10,6 +10,8 @@ import companyRoutes from './routes/companyRoutes.js';
 import recruitmentOfficerRoutes from './routes/recruitmentOfficerRoutes.js';
 import assignmentRoutes from './routes/assignmentRoutes.js';
 import cvRoutes from './routes/cvRoutes.js';
+import shareRoutes from './routes/shareRoutes.js';
+import notificationTestRoutes from './routes/notificationTestRoutes.js';
 
 dotenv.config();
 
@@ -60,6 +62,11 @@ app.use('/api/companies', companyRoutes);
 app.use('/api/officers', recruitmentOfficerRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/cv', cvRoutes);
+app.use('/api/share', shareRoutes);
+
+if ((process.env.TEST_ENDPOINT_TOKEN || '').trim()) {
+  app.use('/api/test-hooks', notificationTestRoutes);
+}
 
 app.get('/api/health/db', async (req, res) => {
   try {

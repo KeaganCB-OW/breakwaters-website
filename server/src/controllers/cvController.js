@@ -1,12 +1,8 @@
 import path from 'path';
-import {
-  DeleteObjectCommand,
-  GetObjectCommand,
-  PutObjectCommand,
-} from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { pool } from '../config/db.js';
-import { s3Bucket, s3Client, s3PublicBaseUrl } from '../config/s3Client.js';
+import { s3Bucket, s3Client } from '../config/s3Client.js';
+import { resolveCvViewUrl } from '../utils/cvUrls.js';
 
 const buildSafeName = (filename) => {
   const parsed = path.parse(filename || 'cv.pdf');
@@ -21,14 +17,6 @@ const buildSafeName = (filename) => {
 
 const isRecruitmentOfficer = (user) =>
   Boolean(user?.role && user.role === 'recruitment_officer');
-
-const keyLooksLikeUrl = (key) => /^https?:\/\//i.test(key || '');
-
-const encodeObjectKey = (key) =>
-  key
-    .split('/')
-    .map((segment) => encodeURIComponent(segment))
-    .join('/');
 
 export const uploadClientCv = async (req, res) => {
   if (!s3Bucket) {
@@ -183,46 +171,16 @@ export const getLatestClientCv = async (req, res) => {
     }
 
     const key = latest.filePath;
+    const { exists, url, isSigned } = await resolveCvViewUrl(key);
 
-    if (keyLooksLikeUrl(key)) {
-      return res.json({
-        exists: true,
-        key,
-        viewUrl: key,
-        uploadedAt: latest.uploadedAt instanceof Date ? latest.uploadedAt.toISOString() : latest.uploadedAt,
-        fileType: latest.fileType,
-        fileSize: latest.fileSize,
-        isSigned: false,
-      });
-    }
-
-    if (!s3Bucket) {
+    if (!exists || !url) {
       return res.json({ exists: false });
-    }
-
-    const trimmedBase = s3PublicBaseUrl?.trim();
-    let viewUrl = null;
-    let isSigned = false;
-
-    if (trimmedBase) {
-      const strippedBase = trimmedBase.endsWith('/')
-        ? trimmedBase.slice(0, -1)
-        : trimmedBase;
-      viewUrl = `${strippedBase}/${encodeObjectKey(key)}`;
-    } else {
-      const command = new GetObjectCommand({
-        Bucket: s3Bucket,
-        Key: key,
-      });
-
-      viewUrl = await getSignedUrl(s3Client, command, { expiresIn: 600 });
-      isSigned = true;
     }
 
     return res.json({
       exists: true,
       key,
-      viewUrl,
+      viewUrl: url,
       uploadedAt: latest.uploadedAt instanceof Date ? latest.uploadedAt.toISOString() : latest.uploadedAt,
       fileType: latest.fileType,
       fileSize: latest.fileSize,

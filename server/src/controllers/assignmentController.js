@@ -1,4 +1,117 @@
 import { pool } from '../config/db.js';
+import { sendMail } from '../utils/email.js';
+import {
+  buildClientStatusChangedEmail,
+  buildClientSuggestedEmail,
+} from '../utils/emailTemplates.js';
+import { createShareToken } from '../utils/shareTokens.js';
+import {
+  fetchLatestCvUrl,
+  normaliseEmail,
+  normaliseStatusValue,
+} from '../utils/notificationUtils.js';
+
+const APP_BASE_URL = (process.env.APP_URL || 'https://breakwatersrecruitment.co.za').replace(/\/$/, '');
+
+const triggerAssignmentNotifications = async ({
+  client,
+  company,
+  assignment,
+  previousStatus,
+  updatedStatus,
+}) => {
+  if (!client?.id) {
+    return;
+  }
+
+  const clientEmail = normaliseEmail(client.email);
+  const previousNormalised = normaliseStatusValue(previousStatus);
+  const updatedNormalised = normaliseStatusValue(updatedStatus);
+
+  if (
+    clientEmail &&
+    updatedNormalised &&
+    (!previousNormalised || previousNormalised !== updatedNormalised)
+  ) {
+    try {
+      const message = buildClientStatusChangedEmail({
+        client,
+        statusOld: previousStatus,
+        statusNew: updatedStatus,
+      });
+      await sendMail({
+        to: clientEmail,
+        subject: message.subject,
+        html: message.html,
+        text: message.text,
+      });
+    } catch (error) {
+      console.error('Failed to send client status update email', {
+        clientId: client.id,
+        error,
+      });
+    }
+  }
+
+  const companyEmail = normaliseEmail(company?.email);
+
+  if (!companyEmail) {
+    return;
+  }
+
+  let cvUrl = null;
+  try {
+    cvUrl = await fetchLatestCvUrl(client.id, client.cvFilePath);
+  } catch (error) {
+    console.error('Failed to fetch CV URL for assignment notification', {
+      clientId: client.id,
+      error,
+    });
+  }
+
+  let shareLink = null;
+
+  try {
+    const token = createShareToken({
+      type: 'client-share',
+      clientId: client.id,
+      companyId: company?.id,
+      assignmentId: assignment?.id,
+    });
+
+    shareLink = `${APP_BASE_URL}/share/clients/${client.id}?token=${encodeURIComponent(token)}`;
+  } catch (error) {
+    console.error('Failed to generate share link token', {
+      clientId: client.id,
+      companyId: company?.id,
+      assignmentId: assignment?.id,
+      error,
+    });
+  }
+
+  try {
+    const message = buildClientSuggestedEmail({
+      client,
+      company,
+      cvUrl,
+      candidateDetailsUrl: shareLink,
+    });
+
+    await sendMail({
+      to: companyEmail,
+      subject: message.subject,
+      html: message.html,
+      text: message.text,
+    });
+  } catch (error) {
+    console.error('Failed to send company assignment notification email', {
+      clientId: client.id,
+      companyId: company?.id,
+      assignmentId: assignment?.id,
+      error,
+    });
+  }
+};
 
 export const listAssignments = async (req, res) => {
   try {
@@ -57,7 +170,22 @@ export const suggestAssignment = async (req, res) => {
     }
 
     const [[client]] = await connection.query(
-      'SELECT id, status FROM clients WHERE id = ? LIMIT 1',
+      `SELECT
+        id,
+        full_name AS fullName,
+        email,
+        phone_number AS phoneNumber,
+        location,
+        skills,
+        preferred_role AS preferredRole,
+        education,
+        linkedin_url AS linkedinUrl,
+        experience,
+        status,
+        cv_file_path AS cvFilePath
+      FROM clients
+      WHERE id = ?
+      LIMIT 1`,
       [numericClientId]
     );
 
@@ -67,7 +195,14 @@ export const suggestAssignment = async (req, res) => {
     }
 
     const [[company]] = await connection.query(
-      'SELECT id FROM companies WHERE id = ? LIMIT 1',
+      `SELECT
+        id,
+        company_name AS companyName,
+        email,
+        phone_number AS phoneNumber
+      FROM companies
+      WHERE id = ?
+      LIMIT 1`,
       [numericCompanyId]
     );
 
@@ -89,6 +224,7 @@ export const suggestAssignment = async (req, res) => {
       });
     }
 
+    const previousClientStatus = client?.status;
     let updatedClientStatus = client.status;
     const normalizedClientStatus =
       typeof client.status === 'string' ? client.status.trim().toLowerCase() : '';
@@ -130,10 +266,30 @@ export const suggestAssignment = async (req, res) => {
 
     const assignment = Array.isArray(assignmentRows) && assignmentRows.length > 0 ? assignmentRows[0] : null;
 
-    return res.status(201).json({
+    client.status = updatedClientStatus;
+
+    const responsePayload = {
       assignment,
       clientStatus: updatedClientStatus,
+    };
+
+    res.status(201).json(responsePayload);
+
+    triggerAssignmentNotifications({
+      client,
+      company,
+      assignment,
+      previousStatus: previousClientStatus,
+      updatedStatus: updatedClientStatus,
+    }).catch((error) => {
+      console.error('Unexpected failure in assignment notifications', {
+        clientId: client?.id,
+        assignmentId: assignment?.id,
+        error,
+      });
     });
+
+    return;
   } catch (error) {
     if (connection) {
       try {
