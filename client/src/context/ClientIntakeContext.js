@@ -352,7 +352,12 @@ export function ClientIntakeProvider({ children }) {
         return <BusinessIntakeStepper />;
       }
 
-      return <ClientIntakeStepper onSuccess={handleSubmissionSuccess} />;
+      return (
+        <ClientIntakeStepper
+          onSuccess={handleSubmissionSuccess}
+          onComplete={closeClientIntake}
+        />
+      );
     }
 
     return null;

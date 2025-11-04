@@ -1,4 +1,4 @@
-import { useCallback, useContext } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ClientIntakeStepper from '../components/ui/forms/ClientIntakeStepper';
 import { AuthContext } from '../context/AuthContext';
@@ -13,6 +13,7 @@ export default function BecomeClientPage() {
     statusError,
     refreshClientStatus,
   } = useClientIntake();
+  const [submissionCompleted, setSubmissionCompleted] = useState(false);
 
   const handleNavigate = useCallback(
     (path) => {
@@ -30,6 +31,11 @@ export default function BecomeClientPage() {
       window.location.href = 'mailto:support@breakwaters.com';
     }
   }, []);
+
+  const handleStepperSuccess = useCallback(() => {
+    setSubmissionCompleted(true);
+    refreshClientStatus().catch(() => {});
+  }, [refreshClientStatus]);
 
   if (!user) {
     return (
@@ -53,6 +59,65 @@ export default function BecomeClientPage() {
               onClick={() => handleNavigate('/login')}
             >
               Sign In
+            </button>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (submissionCompleted) {
+    return (
+      <main className="client-intake-page">
+        <section className="home-status home-status--info">
+          <h1 className="home-status__title">Thank you! Your profile is on its way</h1>
+          <p className="home-status__message">
+            Our recruitment crew is reviewing your submission. We&rsquo;ll reach out soon with the next steps.
+          </p>
+          <div className="home-status__actions">
+            <button
+              type="button"
+              className="home-status__button home-status__button--primary"
+              onClick={() => handleNavigate('/')}
+            >
+              Back to home
+            </button>
+            <button
+              type="button"
+              className="home-status__button"
+              onClick={handleContactSupport}
+            >
+              Contact support
+            </button>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (hasSubmitted) {
+    return (
+      <main className="client-intake-page">
+        <section className="home-status home-status--info">
+          <h1 className="home-status__title">You&rsquo;re already in our queue</h1>
+          <p className="home-status__message">
+            Thanks for submitting your details. If anything changes or you need to update your information,
+            contact our support crew and we&rsquo;ll take care of it.
+          </p>
+          <div className="home-status__actions">
+            <button
+              type="button"
+              className="home-status__button home-status__button--primary"
+              onClick={handleContactSupport}
+            >
+              Contact Support
+            </button>
+            <button
+              type="button"
+              className="home-status__button"
+              onClick={() => handleNavigate('/')}
+            >
+              Back to home
             </button>
           </div>
         </section>
@@ -100,39 +165,9 @@ export default function BecomeClientPage() {
     );
   }
 
-  if (hasSubmitted) {
-    return (
-      <main className="client-intake-page">
-        <section className="home-status home-status--info">
-          <h1 className="home-status__title">You&rsquo;re already in our queue</h1>
-          <p className="home-status__message">
-            Thanks for submitting your details. If anything changes or you need to update your information,
-            contact our support crew and we&rsquo;ll take care of it.
-          </p>
-          <div className="home-status__actions">
-            <button
-              type="button"
-              className="home-status__button home-status__button--primary"
-              onClick={handleContactSupport}
-            >
-              Contact Support
-            </button>
-            <button
-              type="button"
-              className="home-status__button"
-              onClick={() => handleNavigate('/')}
-            >
-              Back to home
-            </button>
-          </div>
-        </section>
-      </main>
-    );
-  }
-
   return (
     <main className="client-intake-page">
-      <ClientIntakeStepper />
+      <ClientIntakeStepper onSuccess={handleStepperSuccess} />
     </main>
   );
 }

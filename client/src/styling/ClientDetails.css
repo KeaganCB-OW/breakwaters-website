@@ -316,6 +316,15 @@
   gap: 12px;
   min-height: auto;
   padding: 18px 20px;
+  pointer-events: auto;
+  user-select: auto;
+  caret-color: auto;
+}
+
+.client-details__textarea--readonly.client-details__textarea--cv {
+  pointer-events: auto;
+  user-select: auto;
+  caret-color: auto;
 }
 
 .client-details__cv-actions {

@@ -388,9 +388,16 @@ export function ClientDetails() {
         }
 
         if (response?.exists) {
-          setCvDetails(response);
+          if (response.viewUrl) {
+            setCvDetails(response);
+            setCvErrorMessage(null);
+          } else {
+            setCvDetails(null);
+            setCvErrorMessage('We couldn\u2019t generate a link to view this CV.');
+          }
         } else {
           setCvDetails(null);
+          setCvErrorMessage(null);
         }
       } catch (error) {
         if (isMounted) {
@@ -1223,7 +1230,7 @@ export function ClientDetails() {
                               {isLoadingCv ? (
                                 <p className="client-details__cv-meta">Loading CV...</p>
                               ) : cvErrorMessage ? (
-                                <p className="client-details__cv-error">{cvErrorMessage}</p>
+                                <p className="client-details__cv-error" role="alert">{cvErrorMessage}</p>
                               ) : hasCv && cvViewUrl ? (
                                 <>
                                   <div className="client-details__cv-actions">

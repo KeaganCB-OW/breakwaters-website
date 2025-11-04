@@ -143,7 +143,7 @@ const sanitizePayload = (data) => ({
   experience: data.experience.trim(),
 });
 
-function ClientIntakeStepper({ onSuccess }) {
+function ClientIntakeStepper({ onSuccess, onComplete }) {
   const { token } = useContext(AuthContext);
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState(() => buildEmptyErrors());
@@ -158,12 +158,17 @@ function ClientIntakeStepper({ onSuccess }) {
   const fileInputRef = useRef(null);
   const [toastMessage, setToastMessage] = useState('');
   const toastTimeoutRef = useRef(null);
+  const completionTimeoutRef = useRef(null);
   const [activeStep, setActiveStep] = useState(1);
 
   useEffect(() => {
     return () => {
       if (toastTimeoutRef.current) {
         clearTimeout(toastTimeoutRef.current);
+      }
+      if (completionTimeoutRef.current) {
+        clearTimeout(completionTimeoutRef.current);
+        completionTimeoutRef.current = null;
       }
     };
   }, []);
@@ -207,6 +212,24 @@ function ClientIntakeStepper({ onSuccess }) {
     }, 4000);
   }, []);
 
+  const scheduleCompletion = useCallback(
+    (payload) => {
+      if (typeof onComplete !== 'function') {
+        return;
+      }
+
+      if (completionTimeoutRef.current) {
+        clearTimeout(completionTimeoutRef.current);
+      }
+
+      completionTimeoutRef.current = setTimeout(() => {
+        completionTimeoutRef.current = null;
+        onComplete(payload);
+      }, 500);
+    },
+    [onComplete]
+  );
+
   const handleFieldChange = (event) => {
     const { name, value } = event.target;
 
@@ -237,13 +260,15 @@ function ClientIntakeStepper({ onSuccess }) {
     resetSubmissionState();
   };
 
-  const clearCvSelection = () => {
+  const clearCvSelection = (resetUploadState = true) => {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
 
     setCvFile(null);
-    setCvUploadState({ status: 'idle', progress: 0, key: '' });
+    if (resetUploadState) {
+      setCvUploadState({ status: 'idle', progress: 0, key: '' });
+    }
   };
 
   const handleCvFileChange = (event) => {
@@ -411,10 +436,12 @@ function ClientIntakeStepper({ onSuccess }) {
         message: 'All set! We received your details and CV.',
       });
       showToast('CV uploaded successfully.');
+      clearCvSelection(false);
 
       if (typeof onSuccess === 'function') {
         onSuccess({ ...clientRecord, cvKey: uploadedKey });
       }
+      scheduleCompletion({ client: clientRecord, cvKey: uploadedKey });
 
       return { completed: true, data: { client: clientRecord, cvKey: uploadedKey } };
     } catch (error) {
@@ -720,10 +747,12 @@ function ClientIntakeStepper({ onSuccess }) {
 
 ClientIntakeStepper.propTypes = {
   onSuccess: PropTypes.func,
+  onComplete: PropTypes.func,
 };
 
 ClientIntakeStepper.defaultProps = {
   onSuccess: undefined,
+  onComplete: undefined,
 };
 
 export default ClientIntakeStepper;
