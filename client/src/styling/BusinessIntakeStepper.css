@@ -3,10 +3,6 @@
   display: flex;
   flex-direction: column;
   gap: clamp(24px, 3vw, 36px);
-  padding: clamp(32px, 4vw, 48px);
-  background: linear-gradient(150deg, #f7fbff 0%, #ecf2ff 60%, #fdfdff 100%);
-  border-radius: 24px;
-  box-shadow: 0 22px 60px rgba(8, 38, 88, 0.08);
   box-sizing: border-box;
 }
 
@@ -208,11 +204,6 @@
 }
 
 @media (max-width: 640px) {
-  .business-intake {
-    padding: 24px 18px 32px;
-    border-radius: 18px;
-  }
-
   .business-intake__grid {
     grid-template-columns: 1fr;
   }
