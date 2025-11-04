@@ -13,6 +13,9 @@ import assignmentRoutes from './routes/assignmentRoutes.js';
 dotenv.config();
 
 const app = express();
+
+app.set('trust proxy', 1);
+
 const clientOrigin = process.env.CLIENT_ORIGIN || 'https://breakwatersrecruitment.co.za/';
 const MAX_BODY_SIZE = process.env.API_MAX_BODY_SIZE || '100kb';
 
