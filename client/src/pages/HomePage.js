@@ -71,6 +71,32 @@ export default function HomePage() {
         : "Get Started"
     : "Sign Up / Sign In";
 
+  const isBusinessStatusPending =
+    Boolean(user) && (!hasCheckedBusinessStatus || isCheckingBusinessStatus);
+
+  const businessButtonDisabled = Boolean(user)
+    ? !hasRegisteredBusiness && isBusinessStatusPending
+    : false;
+
+  const businessButtonTitle = !user
+    ? undefined
+    : hasRegisteredBusiness
+      ? 'You have already registered a business'
+      : isBusinessStatusPending
+        ? 'Checking your company registration status...'
+        : undefined;
+
+  const businessButtonLabel = !user
+    ? 'Register your business'
+    : hasRegisteredBusiness
+      ? 'View company profile'
+      : isBusinessStatusPending
+        ? 'Checking status...'
+        : 'Register your business';
+
+  const businessButtonHandler =
+    user && hasRegisteredBusiness ? handleViewCompanyProfile : handleBusinessClick;
+
   useEffect(() => {
     if (typeof window === "undefined" || typeof IntersectionObserver === "undefined") {
       setHowItWorksVisible(true);
@@ -128,22 +154,11 @@ export default function HomePage() {
             <button
               type="button"
               className="hero-cta hero-cta--white"
-              onClick={hasRegisteredBusiness ? handleViewCompanyProfile : handleBusinessClick}
-              disabled={
-                !hasRegisteredBusiness
-                && (!hasCheckedBusinessStatus || isCheckingBusinessStatus)
-              }
-              title={hasRegisteredBusiness
-                ? 'You have already registered a business'
-                : (!hasCheckedBusinessStatus || isCheckingBusinessStatus)
-                  ? 'Checking your company registration status...'
-                  : undefined}
+              onClick={businessButtonHandler}
+              disabled={businessButtonDisabled}
+              title={businessButtonTitle}
             >
-              {hasRegisteredBusiness
-                ? 'View company profile'
-                : (!hasCheckedBusinessStatus || isCheckingBusinessStatus)
-                  ? 'Checking status...'
-                  : 'Register your business'}
+              {businessButtonLabel}
             </button>
           </div>
         </div>
