@@ -4,7 +4,6 @@ import AppCardNav from "../components/ui/layout/AppCardNav";
 import MissionSection from "../components/sections/MissionSection";
 import TeamShowcase from "../components/about/TeamShowcase";
 import { TEAM_SHOWCASE_MEMBERS } from "../components/sections/MissionSection";
-import Footer from "../components/ui/layout/Footer";
 import { AuthContext } from "../context/AuthContext";
 import { useClientIntake } from "../context/ClientIntakeContext";
 

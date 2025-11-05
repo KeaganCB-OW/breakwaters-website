@@ -1,4 +1,5 @@
 import '../../../styling/Footer.css';
+import { ReactComponent as Logo } from '../../../assets/logos/logo.svg';
 
 export default function Footer() {
   return (
@@ -11,6 +12,9 @@ export default function Footer() {
             {/* <a href="/#companies">For Companies</a> */}
             {/* <a href="/#testimonials">Testimonials</a> */}
           </nav>
+          <div className="footer__logo" aria-hidden="true">
+            <Logo className="footer__logo-svg" focusable="false" />
+          </div>
           <div className="footer__contact">
             <p>
               Email:{' '}

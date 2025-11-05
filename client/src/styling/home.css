@@ -309,13 +309,6 @@
   backdrop-filter: blur(12px);
   opacity: 0;
   transform: translate3d(0, 28px, 0);
-  transition: transform 0.35s ease, box-shadow 0.35s ease;
-}
-
-.how-it-works__item:hover,
-.how-it-works__item:focus-within {
-  transform: translate3d(0, -8px, 0);
-  box-shadow: 0 34px 68px rgba(6, 22, 47, 0.28);
 }
 
 .how-it-works__item-header {

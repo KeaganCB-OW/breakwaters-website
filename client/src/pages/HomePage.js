@@ -5,7 +5,6 @@ import heroWave from "../assets/svgs/Hero-wave.svg";
 import { AuthContext } from "../context/AuthContext";
 import { useClientIntake } from "../context/ClientIntakeContext";
 import Footer from "../components/ui/layout/Footer";
-import { useNavigate } from "react-router-dom";
 
 const HERO_TITLE = "We Break Barriers\nfor your success.";
 const HOW_IT_WORKS_STEPS = [
@@ -29,15 +28,7 @@ const HOW_IT_WORKS_STEPS = [
 
 export default function HomePage() {
   const { user } = useContext(AuthContext);
-  const {
-    openClientIntake,
-    openBusinessIntake,
-    hasSubmitted,
-    hasRegisteredBusiness,
-    isCheckingBusinessStatus,
-    hasCheckedBusinessStatus,
-  } = useClientIntake();
-  const navigate = useNavigate();
+  const { openClientIntake, openBusinessIntake, hasSubmitted } = useClientIntake();
   const howItWorksRef = useRef(null);
   const aboutBreakwatersRef = useRef(null);
   const [howItWorksVisible, setHowItWorksVisible] = useState(false);
@@ -59,10 +50,6 @@ export default function HomePage() {
     openBusinessIntake();
   }, [openBusinessIntake]);
 
-  const handleViewCompanyProfile = useCallback(() => {
-    navigate('/business/profile');
-  }, [navigate]);
-
   const navCtaLabel = user
     ? user.role === 'recruitment_officer'
       ? "Dashboard"
@@ -70,32 +57,6 @@ export default function HomePage() {
         ? "Resume Sent"
         : "Get Started"
     : "Sign Up / Sign In";
-
-  const isBusinessStatusPending =
-    Boolean(user) && (!hasCheckedBusinessStatus || isCheckingBusinessStatus);
-
-  const businessButtonDisabled = Boolean(user)
-    ? !hasRegisteredBusiness && isBusinessStatusPending
-    : false;
-
-  const businessButtonTitle = !user
-    ? undefined
-    : hasRegisteredBusiness
-      ? 'You have already registered a business'
-      : isBusinessStatusPending
-        ? 'Checking your company registration status...'
-        : undefined;
-
-  const businessButtonLabel = !user
-    ? 'Register your business'
-    : hasRegisteredBusiness
-      ? 'View company profile'
-      : isBusinessStatusPending
-        ? 'Checking status...'
-        : 'Register your business';
-
-  const businessButtonHandler =
-    user && hasRegisteredBusiness ? handleViewCompanyProfile : handleBusinessClick;
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof IntersectionObserver === "undefined") {
@@ -154,11 +115,9 @@ export default function HomePage() {
             <button
               type="button"
               className="hero-cta hero-cta--white"
-              onClick={businessButtonHandler}
-              disabled={businessButtonDisabled}
-              title={businessButtonTitle}
+              onClick={handleBusinessClick}
             >
-              {businessButtonLabel}
+              Register your business
             </button>
           </div>
         </div>
