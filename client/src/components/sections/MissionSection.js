@@ -1,26 +1,29 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "../../styling/mission-section.css";
+import AishaPillayPhoto from "../../assets/teamMembers/TeamMember-AishaPillay.jpeg";
+import SiphoDlaminiPhoto from "../../assets/teamMembers/TeamMember-SiphoDlamini.jpeg";
+import LucaVenterPhoto from "../../assets/teamMembers/TeamMember-LucaVenter.jpeg";
 
 export const TEAM_SHOWCASE_MEMBERS = [
   {
     id: "1",
     name: "Aisha Pillay",
     role: "Creative Director",
-    photoUrl: "https://picsum.photos/seed/aisha/600/720",
+    photoUrl: AishaPillayPhoto,
     quote: "Design should whisper purpose before it shouts style.",
   },
   {
     id: "2",
     name: "Sipho Dlamini",
     role: "Lead Engineer",
-    photoUrl: "https://picsum.photos/seed/sipho/600/720",
+    photoUrl: SiphoDlaminiPhoto,
     quote: "Great systems are invisible until you need them.",
   },
   {
     id: "3",
     name: "Luca Venter",
     role: "UX Researcher",
-    photoUrl: "https://picsum.photos/seed/luca/600/720",
+    photoUrl: LucaVenterPhoto,
     quote: "Empathy turns assumptions into insights.",
   },
 ];
