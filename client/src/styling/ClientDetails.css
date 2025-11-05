@@ -91,6 +91,53 @@
   gap: 12px;
 }
 
+.client-details__status-control {
+  position: relative;
+  display: inline-flex;
+}
+
+.client-details__status-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  padding: 8px 0;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid rgba(8, 38, 88, 0.15);
+  box-shadow: 0 18px 48px rgba(8, 38, 88, 0.12);
+  z-index: 10;
+}
+
+.client-details__status-option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  font-family: var(--font-roboto);
+  font-size: 0.95rem;
+  color: var(--dashboard-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.client-details__status-option[aria-selected='true'] {
+  font-weight: 600;
+  background: rgba(16, 56, 127, 0.08);
+}
+
+.client-details__status-option:focus-visible {
+  outline: none;
+  background: rgba(16, 56, 127, 0.12);
+}
+
+.client-details__status-option:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .client-details__secondary-btn {
   border: none;
   border-radius: 16px;

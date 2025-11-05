@@ -15,7 +15,36 @@ const VALID_CLIENT_STATUSES = new Set([
 
 export const listClients = async (req, res) => {
   try {
-    const query = `
+    const { search: rawSearch, status: rawStatus, page: rawPage, pageSize: rawPageSize, limit: rawLimit } =
+      req.query ?? {};
+
+    const filters = [];
+    const values = [];
+
+    if (typeof rawStatus === 'string' && rawStatus.trim()) {
+      const normalisedStatus = normaliseStatusValue(rawStatus);
+
+      if (!VALID_CLIENT_STATUSES.has(normalisedStatus)) {
+        return res.status(400).json({ message: 'Invalid status filter provided.' });
+      }
+
+      filters.push('LOWER(status) = ?');
+      values.push(normalisedStatus);
+    }
+
+    if (typeof rawSearch === 'string' && rawSearch.trim()) {
+      const search = rawSearch.trim().toLowerCase();
+      const likeTerm = `%${search}%`;
+      filters.push(`(
+        LOWER(full_name) LIKE ? OR
+        LOWER(email) LIKE ? OR
+        LOWER(COALESCE(skills, '')) LIKE ? OR
+        LOWER(COALESCE(preferred_role, '')) LIKE ?
+      )`);
+      values.push(likeTerm, likeTerm, likeTerm, likeTerm);
+    }
+
+    let query = `
       SELECT
         id,
         full_name AS fullName,
@@ -30,9 +59,28 @@ export const listClients = async (req, res) => {
         status,
         created_at AS createdAt
       FROM clients
-      ORDER BY created_at DESC;
     `;
-    const [rows] = await pool.query(query);
+
+    if (filters.length > 0) {
+      query += ` WHERE ${filters.join(' AND ')}`;
+    }
+
+    query += ' ORDER BY created_at DESC';
+
+    const page = Number.parseInt(rawPage, 10);
+    const pageSize = Number.parseInt(rawPageSize, 10);
+    const limit = Number.parseInt(rawLimit, 10);
+
+    if (Number.isFinite(page) && page > 0 && Number.isFinite(pageSize) && pageSize > 0) {
+      const offset = (page - 1) * pageSize;
+      query += ' LIMIT ? OFFSET ?';
+      values.push(pageSize, offset);
+    } else if (Number.isFinite(limit) && limit > 0) {
+      query += ' LIMIT ?';
+      values.push(limit);
+    }
+
+    const [rows] = await pool.query(query, values);
     res.json(rows);
   } catch (error) {
     console.error('Failed to fetch clients', error);
@@ -253,6 +301,47 @@ export const getCurrentClient = async (req, res) => {
     return res
       .status(500)
       .json({ message: 'Failed to load client submission' });
+  }
+};
+
+export const getClientById = async (req, res) => {
+  const { id } = req.params;
+  const clientId = Number(id);
+
+  if (!Number.isFinite(clientId) || clientId <= 0) {
+    return res.status(400).json({ message: 'Invalid client id' });
+  }
+
+  try {
+    const [rows] = await pool.query(
+      `SELECT
+        id,
+        user_id AS userId,
+        full_name AS fullName,
+        email,
+        phone_number AS phoneNumber,
+        location,
+        skills,
+        preferred_role AS preferredRole,
+        education,
+        linkedin_url AS linkedinUrl,
+        experience,
+        status,
+        created_at AS createdAt
+      FROM clients
+      WHERE id = ?
+      LIMIT 1`,
+      [clientId]
+    );
+
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
+
+    return res.json(rows[0]);
+  } catch (error) {
+    console.error('Failed to fetch client details', error);
+    return res.status(500).json({ message: 'Failed to fetch client details' });
   }
 };
 

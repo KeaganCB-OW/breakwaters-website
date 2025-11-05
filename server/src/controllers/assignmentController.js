@@ -115,7 +115,10 @@ const triggerAssignmentNotifications = async ({
 
 export const listAssignments = async (req, res) => {
   try {
-    const [rows] = await pool.query(`SELECT a.id,
+    const { limit: rawLimit } = req.query ?? {};
+    const limit = Number.parseInt(rawLimit, 10);
+
+    let query = `SELECT a.id,
               a.client_id AS clientId,
               a.company_id AS companyId,
               a.assigned_by AS assignedBy,
@@ -126,7 +129,16 @@ export const listAssignments = async (req, res) => {
          FROM assignments a
          JOIN clients c ON c.id = a.client_id
          JOIN companies co ON co.id = a.company_id
-         ORDER BY a.assigned_at DESC`);
+         ORDER BY a.assigned_at DESC`;
+
+    const params = [];
+
+    if (Number.isFinite(limit) && limit > 0) {
+      query += ' LIMIT ?';
+      params.push(limit);
+    }
+
+    const [rows] = await pool.query(query, params);
     res.json(rows);
   } catch (error) {
     console.error('Failed to fetch assignments', error);

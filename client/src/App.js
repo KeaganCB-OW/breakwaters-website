@@ -51,6 +51,14 @@ function App() {
                 </RequireAuth>
               )}
             />
+            <Route
+              path="/ro/clients/:clientId"
+              element={(
+                <RequireAuth allowedRoles={['recruitment_officer']}>
+                  <ClientDetailsPage />
+                </RequireAuth>
+              )}
+            />
             <Route path="/share/clients/:clientId" element={<SharedClientDetailsPage />} />
           </Routes>
         </ClientIntakeProvider>
