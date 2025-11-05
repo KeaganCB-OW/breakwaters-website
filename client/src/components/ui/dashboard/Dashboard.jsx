@@ -393,10 +393,10 @@ export function Dashboard() {
               <section className="dashboard__panel">
                 <div className="dashboard__panel-body">
                   <div className="dashboard__welcome">
-                    <h1 className="dashboard__headline">Welcome, Vanessa.</h1>
-                    <button type="button" className="dashboard__cta">
+                    <h1 className="dashboard__headline">Welcome.</h1>
+                    {/*<button type="button" className="dashboard__cta">
                       New Assignment
-                    </button>
+                    </button>*/}
                   </div>
 
                   <div className="dashboard__stats-grid">
