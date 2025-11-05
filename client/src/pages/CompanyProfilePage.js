@@ -41,6 +41,24 @@ export default function CompanyProfilePage() {
     navigate('/register-business');
   }, [navigate]);
 
+  const detailItems = useMemo(() => {
+    if (!companyProfile) {
+      return [];
+    }
+
+    return [
+      { label: 'Company name', value: companyProfile.company_name },
+      { label: 'Industry', value: companyProfile.industry },
+      { label: 'Company email', value: companyProfile.email },
+      { label: 'Phone number', value: companyProfile.phone_number },
+      { label: 'Workforce size', value: companyProfile.workforce_size },
+      { label: 'Location', value: companyProfile.location },
+      { label: 'Roles hiring', value: companyProfile.available_roles },
+      { label: 'Specifications', value: companyProfile.specifications },
+      { label: 'Status', value: companyProfile.status },
+    ];
+  }, [companyProfile]);
+
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
@@ -113,21 +131,6 @@ export default function CompanyProfilePage() {
       </main>
     );
   }
-
-  const detailItems = useMemo(
-    () => [
-      { label: 'Company name', value: companyProfile.company_name },
-      { label: 'Industry', value: companyProfile.industry },
-      { label: 'Company email', value: companyProfile.email },
-      { label: 'Phone number', value: companyProfile.phone_number },
-      { label: 'Workforce size', value: companyProfile.workforce_size },
-      { label: 'Location', value: companyProfile.location },
-      { label: 'Roles hiring', value: companyProfile.available_roles },
-      { label: 'Specifications', value: companyProfile.specifications },
-      { label: 'Status', value: companyProfile.status },
-    ],
-    [companyProfile]
-  );
 
   return (
     <main className="client-intake-page">
