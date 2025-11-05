@@ -6,6 +6,7 @@ import TeamShowcase from "../components/about/TeamShowcase";
 import { TEAM_SHOWCASE_MEMBERS } from "../components/sections/MissionSection";
 import { AuthContext } from "../context/AuthContext";
 import { useClientIntake } from "../context/ClientIntakeContext";
+import PageMeta from "../components/seo/PageMeta";
 
 const INITIAL_MISSION_LINES = ["What we do", "and why we do it."];
 const UPDATED_MISSION_LINES = ["It's simple.", "We want to get you hired."];
@@ -41,7 +42,7 @@ export default function AboutUsPage() {
   }, [openClientIntake]);
 
   const navCtaLabel = user
-    ? user.role === 'recruitment_officer'
+    ? user.role === "recruitment_officer"
       ? "Dashboard"
       : hasSubmitted
         ? "Resume Sent"
@@ -50,11 +51,13 @@ export default function AboutUsPage() {
 
   return (
     <main className="about-page">
-        <AppCardNav ctaLabel={navCtaLabel} onGetStarted={handleNavCtaClick} />
- 
-
+      <PageMeta
+        title="About Breakwaters Recruitment | People-First Hiring Studio"
+        description="Discover the Breakwaters Recruitment team's mission to champion people-first hiring with human-led reviews, verified partners, and transparent recruitment."
+        canonical="https://breakwatersrecruitment.co.za/about"
+      />
+      <AppCardNav ctaLabel={navCtaLabel} onGetStarted={handleNavCtaClick} />
       <MissionSection id="about-mission" entries={MISSION_ENTRIES} />
-
     </main>
   );
 }

@@ -3,6 +3,7 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import BusinessIntakeStepper from '../components/ui/forms/BusinessIntakeStepper';
 import { AuthContext } from '../context/AuthContext';
 import { useClientIntake } from '../context/ClientIntakeContext';
+import PageMeta from '../components/seo/PageMeta';
 
 export default function RegisterBusinessPage() {
   const { user } = useContext(AuthContext);
@@ -31,17 +32,36 @@ export default function RegisterBusinessPage() {
     navigate('/');
   }, [navigate]);
 
+  const meta = (
+    <PageMeta
+      title="Register Your Business | Breakwaters Recruitment"
+      description="Create a Breakwaters Recruitment business account to request curated talent pipelines, review candidate matches, and accelerate hiring."
+      canonical="https://breakwatersrecruitment.co.za/register-business"
+    />
+  );
+
   if (!user) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+    return (
+      <>
+        {meta}
+        <Navigate to="/login" replace state={{ from: location }} />
+      </>
+    );
   }
 
   if (hasRegisteredBusiness) {
-    return <Navigate to="/business/profile" replace />;
+    return (
+      <>
+        {meta}
+        <Navigate to="/business/profile" replace />
+      </>
+    );
   }
 
   if (!hasCheckedBusinessStatus || isCheckingBusinessStatus) {
     return (
       <main className="client-intake-page">
+        {meta}
         <section className="home-status home-status--loading">
           <div className="home-status__spinner" aria-hidden="true" />
           <p className="home-status__message">Checking your company registration status...</p>
@@ -53,6 +73,7 @@ export default function RegisterBusinessPage() {
   if (companyStatusError) {
     return (
       <main className="client-intake-page">
+        {meta}
         <section className="home-status home-status--error">
           <h1 className="home-status__title">We couldn&rsquo;t load your company registration</h1>
           <p className="home-status__message">
@@ -81,6 +102,7 @@ export default function RegisterBusinessPage() {
 
   return (
     <main className="client-intake-page">
+      {meta}
       <BusinessIntakeStepper onSubmitCompany={submitBusinessIntake} />
     </main>
   );

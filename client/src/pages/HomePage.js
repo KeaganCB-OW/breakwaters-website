@@ -5,6 +5,7 @@ import heroWave from "../assets/svgs/Hero-wave.svg";
 import { AuthContext } from "../context/AuthContext";
 import { useClientIntake } from "../context/ClientIntakeContext";
 import Footer from "../components/ui/layout/Footer";
+import PageMeta from "../components/seo/PageMeta";
 
 const HERO_TITLE = "We Break Barriers\nfor your success.";
 const HOW_IT_WORKS_STEPS = [
@@ -89,6 +90,11 @@ export default function HomePage() {
 
   return (
     <main className="home-page">
+      <PageMeta
+        title="Breakwaters Recruitment | Human-Led Talent Matching"
+        description="Partner with Breakwaters Recruitment to match South African companies and talent through a guided intake, review, and placement process."
+        canonical="https://breakwatersrecruitment.co.za/"
+      />
       <section className="hero-section noise">
         <div className="hero-content">
           <AppCardNav

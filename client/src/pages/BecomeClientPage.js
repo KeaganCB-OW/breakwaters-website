@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import ClientIntakeStepper from '../components/ui/forms/ClientIntakeStepper';
 import { AuthContext } from '../context/AuthContext';
 import { useClientIntake } from '../context/ClientIntakeContext';
+import PageMeta from '../components/seo/PageMeta';
 
 export default function BecomeClientPage() {
   const { user } = useContext(AuthContext);
@@ -37,9 +38,18 @@ export default function BecomeClientPage() {
     refreshClientStatus().catch(() => {});
   }, [refreshClientStatus]);
 
+  const meta = (
+    <PageMeta
+      title="Become a Breakwaters Candidate | Submit Your Profile"
+      description="Complete the Breakwaters Recruitment intake to share your goals, upload your CV, and connect with verified employers ready to hire."
+      canonical="https://breakwatersrecruitment.co.za/become-client"
+    />
+  );
+
   if (!user) {
     return (
       <main className="client-intake-page">
+        {meta}
         <section className="home-status home-status--info">
           <h1 className="home-status__title">Let&rsquo;s get you signed in first</h1>
           <p className="home-status__message">
@@ -69,6 +79,7 @@ export default function BecomeClientPage() {
   if (submissionCompleted) {
     return (
       <main className="client-intake-page">
+        {meta}
         <section className="home-status home-status--info">
           <h1 className="home-status__title">Thank you! Your profile is on its way</h1>
           <p className="home-status__message">
@@ -98,6 +109,7 @@ export default function BecomeClientPage() {
   if (hasSubmitted) {
     return (
       <main className="client-intake-page">
+        {meta}
         <section className="home-status home-status--info">
           <h1 className="home-status__title">You&rsquo;re already in our queue</h1>
           <p className="home-status__message">
@@ -128,6 +140,7 @@ export default function BecomeClientPage() {
   if (isCheckingStatus) {
     return (
       <main className="client-intake-page">
+        {meta}
         <section className="home-status home-status--loading">
           <div className="home-status__spinner" aria-hidden="true" />
           <p className="home-status__message">Loading your submission status...</p>
@@ -139,6 +152,7 @@ export default function BecomeClientPage() {
   if (statusError) {
     return (
       <main className="client-intake-page">
+        {meta}
         <section className="home-status home-status--error">
           <h1 className="home-status__title">We couldn&rsquo;t load your submission</h1>
           <p className="home-status__message">
@@ -167,6 +181,7 @@ export default function BecomeClientPage() {
 
   return (
     <main className="client-intake-page">
+      {meta}
       <ClientIntakeStepper onSuccess={handleStepperSuccess} />
     </main>
   );

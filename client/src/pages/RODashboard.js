@@ -4,6 +4,7 @@ import DashboardHome from '../components/ui/dashboard/DashboardHome';
 import CandidatesListView from '../components/ui/dashboard/CandidatesListView';
 import CompaniesListView from '../components/ui/dashboard/CompaniesListView';
 import AssignmentsListView from '../components/ui/dashboard/AssignmentsListView';
+import PageMeta from '../components/seo/PageMeta';
 
 export default function RODashboard() {
   const element = useRoutes([
@@ -20,5 +21,14 @@ export default function RODashboard() {
     { path: '*', element: <Navigate to="." replace /> },
   ]);
 
-  return element;
+  return (
+    <>
+      <PageMeta
+        title="Recruitment Officer Dashboard | Breakwaters"
+        description="Manage candidates, companies, and assignments from the Breakwaters Recruitment officer dashboard."
+        canonical="https://breakwatersrecruitment.co.za/rod"
+      />
+      {element}
+    </>
+  );
 }

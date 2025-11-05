@@ -2,6 +2,7 @@ import { useCallback, useContext, useEffect, useMemo } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { useClientIntake } from '../context/ClientIntakeContext';
+import PageMeta from '../components/seo/PageMeta';
 
 const formatListValue = (value) => {
   if (!value) {
@@ -41,6 +42,14 @@ export default function CompanyProfilePage() {
     navigate('/register-business');
   }, [navigate]);
 
+  const meta = (
+    <PageMeta
+      title="Business Profile | Breakwaters Recruitment Partner Dashboard"
+      description="Review the information Breakwaters Recruitment keeps on file for your company, including hiring needs, contact details, and candidate preferences."
+      canonical="https://breakwatersrecruitment.co.za/business/profile"
+    />
+  );
+
   const detailItems = useMemo(() => {
     if (!companyProfile) {
       return [];
@@ -60,12 +69,18 @@ export default function CompanyProfilePage() {
   }, [companyProfile]);
 
   if (!user) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+    return (
+      <>
+        {meta}
+        <Navigate to="/login" replace state={{ from: location }} />
+      </>
+    );
   }
 
   if (!hasCheckedBusinessStatus || isCheckingBusinessStatus) {
     return (
       <main className="client-intake-page">
+        {meta}
         <section className="home-status home-status--loading">
           <div className="home-status__spinner" aria-hidden="true" />
           <p className="home-status__message">Loading your company profile...</p>
@@ -77,6 +92,7 @@ export default function CompanyProfilePage() {
   if (companyStatusError) {
     return (
       <main className="client-intake-page">
+        {meta}
         <section className="home-status home-status--error">
           <h1 className="home-status__title">We couldn&rsquo;t load your company profile</h1>
           <p className="home-status__message">
@@ -106,6 +122,7 @@ export default function CompanyProfilePage() {
   if (!companyProfile) {
     return (
       <main className="client-intake-page">
+        {meta}
         <section className="home-status home-status--info">
           <h1 className="home-status__title">No business on file yet</h1>
           <p className="home-status__message">
@@ -134,6 +151,7 @@ export default function CompanyProfilePage() {
 
   return (
     <main className="client-intake-page">
+      {meta}
       <section className="home-status home-status--info">
         <h1 className="home-status__title">Your company profile</h1>
         <p className="home-status__message">
