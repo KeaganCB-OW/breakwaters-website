@@ -1,9 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import useDebouncedValue from '../../../hooks/useDebouncedValue';
 import { useCandidatesQuery } from '../../../hooks/useDashboardQueries';
+import {
+  CLIENT_STATUS_OPTIONS,
+  findClientStatusOptionByQueryValue,
+  getClientStatusLabel,
+} from '../../../constants/clientStatuses';
 
 const PAGE_SIZES = [10, 20, 50];
+
+const STATUS_SELECT_OPTIONS = [
+  { queryValue: '', label: 'All statuses', value: '' },
+  ...CLIENT_STATUS_OPTIONS.map((option) => ({
+    queryValue: option.queryValue,
+    label: option.label,
+    value: option.value,
+  })),
+];
 
 function getSearchParamList(searchParams, key) {
   const values = searchParams.getAll(key);
@@ -87,6 +101,7 @@ function getField(row, ...keys) {
 
 export function CandidatesListView() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const searchParam = searchParams.get('search') || '';
   const pageParam = Number.parseInt(searchParams.get('page') || '1', 10);
   const pageSizeParam = Number.parseInt(searchParams.get('pageSize') || '10', 10);
@@ -95,6 +110,9 @@ export function CandidatesListView() {
   const preferredRoleFilter = getSearchParamList(searchParams, 'preferred_role');
   const educationFilter = getSearchParamList(searchParams, 'education');
   const skillsFilter = getSearchParamList(searchParams, 'skills');
+  const statusParam = searchParams.get('status') || '';
+  const selectedStatusOption = findClientStatusOptionByQueryValue(statusParam);
+  const statusFilterValue = selectedStatusOption?.value ?? '';
 
   const [searchInput, setSearchInput] = useState(searchParam);
   const debouncedSearch = useDebouncedValue(searchInput, 300);
@@ -107,8 +125,9 @@ export function CandidatesListView() {
       preferred_role: preferredRoleFilter,
       education: educationFilter,
       skills: skillsFilter,
+      status: statusFilterValue,
     }),
-    [educationFilter, locationFilter, preferredRoleFilter, skillsFilter],
+    [educationFilter, locationFilter, preferredRoleFilter, skillsFilter, statusFilterValue],
   );
 
   const query = useCandidatesQuery({ search: debouncedSearch, filters, page, pageSize });
@@ -173,6 +192,12 @@ export function CandidatesListView() {
   );
 
   useEffect(() => {
+    if (statusParam && !selectedStatusOption) {
+      updateSearchParam('status', '');
+    }
+  }, [selectedStatusOption, statusParam, updateSearchParam]);
+
+  useEffect(() => {
     setSearchInput(searchParam);
   }, [searchParam]);
 
@@ -207,7 +232,7 @@ export function CandidatesListView() {
 
   const handleClearFilters = () => {
     updateSearchParamsState((next) => {
-      ['location', 'preferred_role', 'education', 'skills', 'page'].forEach((key) => next.delete(key));
+      ['location', 'preferred_role', 'education', 'skills', 'status', 'page'].forEach((key) => next.delete(key));
       next.delete('pageSize');
     });
     setShowFilters(false);
@@ -235,6 +260,31 @@ export function CandidatesListView() {
     });
     setSearchInput('');
   };
+
+  const handleStatusFilterChange = (event) => {
+    updateSearchParam('status', event.target.value);
+  };
+
+  const handleRowNavigate = useCallback(
+    (candidateId) => {
+      if (!candidateId) {
+        return;
+      }
+
+      navigate(`/ro/clients/${candidateId}`);
+    },
+    [navigate],
+  );
+
+  const handleRowKeyDown = useCallback(
+    (event, candidateId) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        handleRowNavigate(candidateId);
+      }
+    },
+    [handleRowNavigate],
+  );
 
   const startItem = query.total === 0 || query.rows.length === 0 ? 0 : (page - 1) * pageSize + 1;
   const endItem = query.total === 0 || query.rows.length === 0
@@ -266,6 +316,23 @@ export function CandidatesListView() {
               Clear
             </button>
           )}
+        </div>
+        <div className="dashboard__list-search">
+          <label htmlFor="candidate-status-filter" className="dashboard__list-label">
+            Filter by status
+          </label>
+          <select
+            id="candidate-status-filter"
+            className="dashboard__list-input"
+            value={selectedStatusOption?.queryValue ?? ''}
+            onChange={handleStatusFilterChange}
+          >
+            {STATUS_SELECT_OPTIONS.map((option) => (
+              <option key={option.queryValue} value={option.queryValue}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
         <button
           type="button"
@@ -372,6 +439,7 @@ export function CandidatesListView() {
               <th scope="col">Location</th>
               <th scope="col">Skills</th>
               <th scope="col">Preferred Role</th>
+              <th scope="col">Status</th>
               <th scope="col">Education</th>
               <th scope="col">LinkedIn</th>
               <th scope="col">Experience</th>
@@ -380,21 +448,21 @@ export function CandidatesListView() {
           <tbody>
             {query.isLoading && (
               <tr>
-                <td colSpan={9} className="dashboard__table-status">
+                <td colSpan={10} className="dashboard__table-status">
                   Loading candidates...
                 </td>
               </tr>
             )}
             {query.error && !query.isLoading && (
               <tr>
-                <td colSpan={9} className="dashboard__table-status dashboard__table-status--error">
+                <td colSpan={10} className="dashboard__table-status dashboard__table-status--error">
                   {query.error}
                 </td>
               </tr>
             )}
             {!query.isLoading && !query.error && query.rows.length === 0 && (
               <tr>
-                <td colSpan={9} className="dashboard__table-status">
+                <td colSpan={10} className="dashboard__table-status">
                   No candidates match your criteria.
                   <button type="button" className="dashboard__list-reset" onClick={handleClearFilters}>
                     Reset filters
@@ -413,10 +481,26 @@ export function CandidatesListView() {
                 const education = getField(candidate, 'education') || '—';
                 const linkedin = getField(candidate, 'linkedin_url', 'linkedinUrl');
                 const experience = getField(candidate, 'experience') || '—';
+                const statusValue = getField(candidate, 'status');
+                const statusLabel = getClientStatusLabel(statusValue);
                 const skillsValue = normalizeSkills(getField(candidate, 'skills'));
+                const candidateId = getField(candidate, 'id', '_id', 'clientId');
+                const rowKey = candidateId ?? getField(candidate, 'email', 'fullName') ?? email ?? fullName;
+                const resolvedStatusLabel = statusLabel;
 
                 return (
-                  <tr key={getField(candidate, 'id', '_id', 'clientId', 'email', 'fullName')}>
+                  <tr
+                    key={rowKey}
+                    onClick={() => handleRowNavigate(candidateId)}
+                    onKeyDown={(event) => handleRowKeyDown(event, candidateId)}
+                    role={candidateId ? 'link' : undefined}
+                    tabIndex={candidateId ? 0 : -1}
+                    aria-label={
+                      candidateId
+                        ? `View client details for ${fullName}`
+                        : undefined
+                    }
+                  >
                     <td>{fullName}</td>
                     <td className="dashboard__table-cell--truncate" title={email}>
                       {email}
@@ -427,6 +511,7 @@ export function CandidatesListView() {
                       {skillsValue.length > 0 ? skillsValue.join(', ') : '—'}
                     </td>
                     <td>{preferredRole}</td>
+                    <td>{resolvedStatusLabel}</td>
                     <td>{education}</td>
                     <td>
                       {linkedin ? (

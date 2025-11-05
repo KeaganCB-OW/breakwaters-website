@@ -4,11 +4,22 @@ import { FaArrowLeftLong } from 'react-icons/fa6';
 import { BsFillPencilFill, BsFillTrashFill } from 'react-icons/bs';
 import AppCardNav from '../layout/AppCardNav';
 import { DashboardAvatar } from './DashboardAvatar';
-import { fetchClients, updateClient, deleteClient as deleteClientService } from '../../../services/clientService';
+import {
+  fetchClientById,
+  updateClient,
+  deleteClient as deleteClientService,
+  updateClientStatus,
+} from '../../../services/clientService';
 import { fetchAssignments, suggestAssignment } from '../../../services/assignmentService';
 import { AuthContext } from '../../../context/AuthContext';
 import { fetchCompanies } from '../../../services/companyService';
 import { fetchLatestClientCv } from '../../../services/cvService';
+import {
+  CLIENT_STATUS_OPTIONS,
+  CLIENT_STATUS_VARIANTS,
+  getClientStatusLabel,
+  normaliseClientStatus,
+} from '../../../constants/clientStatuses';
 import '../../../styling/ClientDetails.css';
 
 const normaliseRoleName = (value) => {
@@ -100,18 +111,6 @@ const rolesMatch = (role, desiredRole) => {
 
   return distance <= tolerance;
 };
-
-
-const STATUS_VARIANTS = {
-  pending: { label: 'Pending', className: 'client-details__secondary-btn--pending' },
-  assigned: { label: 'Assigned', className: 'client-details__secondary-btn--assigned' },
-  'interview pending': { label: 'Interview Pending', className: 'client-details__secondary-btn--interview-pending' },
-  'in progress': { label: 'In Progress', className: 'client-details__secondary-btn--in-progress' },
-  interviewed: { label: 'Interviewed', className: 'client-details__secondary-btn--interviewed' },
-  suggested: { label: 'Suggested', className: 'client-details__secondary-btn--suggested' },
-  rejected: { label: 'Rejected', className: 'client-details__secondary-btn--rejected' }
-};
-
 const formatAssignmentStatusLabel = (status) => {
   if (!status) {
     return 'Suggested';
@@ -252,16 +251,42 @@ export function ClientDetails() {
   const [activeFieldId, setActiveFieldId] = useState(null);
   const [isSubmittingClient, setIsSubmittingClient] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [statusFeedback, setStatusFeedback] = useState(null);
+  const statusButtonRef = useRef(null);
+  const statusMenuRef = useRef(null);
+  const statusOptionRefs = useRef(new Map());
+  const statusDropdownId = useMemo(
+    () => `client-status-dropdown-${clientId || 'unknown'}`,
+    [clientId],
+  );
 
   const handleAvatarClick = useCallback(() => {
     logout();
     navigate('/login', { replace: true });
   }, [logout, navigate]);
 
+  const selectedCandidate = useMemo(() => {
+    if (!clientId || !Array.isArray(candidates)) {
+      return null;
+    }
+
+    return (
+      candidates.find((candidate) => {
+        const candidateIdentifier = candidate.id ?? candidate._id ?? candidate.clientId;
+        return candidateIdentifier != null && String(candidateIdentifier) === clientId;
+      }) || null
+    );
+  }, [candidates, clientId]);
+
+  const selectedCandidateStatus = selectedCandidate?.status;
+  const selectedStatusNormalized = normaliseClientStatus(selectedCandidateStatus);
+
   useEffect(() => {
     let isMounted = true;
 
-    if (!token) {
+    if (!token || !clientId) {
       setCandidates([]);
       setIsLoadingCandidates(false);
       return () => {
@@ -269,16 +294,20 @@ export function ClientDetails() {
       };
     }
 
-    const loadCandidates = async () => {
+    const loadCandidate = async () => {
       setIsLoadingCandidates(true);
       try {
-        const data = await fetchClients(token);
+        const data = await fetchClientById(clientId, token);
         if (isMounted) {
-          setCandidates(Array.isArray(data) ? data : []);
+          setCandidates(data ? [data] : []);
         }
       } catch (error) {
         if (isMounted) {
           setCandidates([]);
+          setStatusFeedback({
+            type: 'error',
+            message: error?.message || 'Failed to load client details.',
+          });
         }
       } finally {
         if (isMounted) {
@@ -287,12 +316,78 @@ export function ClientDetails() {
       }
     };
 
-    loadCandidates();
+    loadCandidate();
 
     return () => {
       isMounted = false;
     };
-  }, [token]);
+  }, [clientId, token]);
+
+  useEffect(() => {
+    if (!isStatusMenuOpen) {
+      return undefined;
+    }
+
+    const handleClickOutside = (event) => {
+      if (
+        statusMenuRef.current &&
+        !statusMenuRef.current.contains(event.target) &&
+        statusButtonRef.current &&
+        !statusButtonRef.current.contains(event.target)
+      ) {
+        setIsStatusMenuOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setIsStatusMenuOpen(false);
+        statusButtonRef.current?.focus();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isStatusMenuOpen]);
+
+  useEffect(() => {
+    if (!isStatusMenuOpen) {
+      return;
+    }
+
+    const activeNode =
+      statusOptionRefs.current.get(selectedStatusNormalized) ||
+      Array.from(statusOptionRefs.current.values())[0];
+
+    if (activeNode && typeof activeNode.focus === 'function') {
+      activeNode.focus();
+    }
+  }, [isStatusMenuOpen, selectedStatusNormalized]);
+
+  useEffect(() => {
+    if (!statusFeedback) {
+      return undefined;
+    }
+
+    const timeout = setTimeout(() => {
+      setStatusFeedback(null);
+    }, 4000);
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [statusFeedback]);
+
+  useEffect(() => {
+    setIsStatusMenuOpen(false);
+    setStatusFeedback(null);
+  }, [clientId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -424,19 +519,6 @@ export function ClientDetails() {
     setSuggestionStatusByCompany({});
     setShowAllCompanies(false);
   }, [clientId]);
-
-  const selectedCandidate = useMemo(() => {
-    if (!clientId || !Array.isArray(candidates)) {
-      return null;
-    }
-
-    return (
-      candidates.find((candidate) => {
-        const candidateIdentifier = candidate.id ?? candidate._id ?? candidate.clientId;
-        return candidateIdentifier != null && String(candidateIdentifier) === clientId;
-      }) || null
-    );
-  }, [candidates, clientId]);
 
   const clientLabel = useMemo(() => {
     if (!clientId) {
@@ -770,40 +852,150 @@ export function ClientDetails() {
     [assignmentByCompanyId, clientId, setAssignments, setCandidates, setSuggestionStatusByCompany, suggestAssignment, token]
   );
 
-  const selectedCandidateStatus = selectedCandidate?.status;
-
   const { label: statusLabel, className: statusClassName } = useMemo(() => {
-    const pendingStatus = STATUS_VARIANTS.pending;
+    const pendingStatus = CLIENT_STATUS_VARIANTS.pending;
 
     if (isLoadingCandidates) {
       return {
         label: 'Loading...',
-        className: pendingStatus.className
+        className: pendingStatus.className,
       };
     }
 
-    const rawStatus = typeof selectedCandidateStatus === 'string' ? selectedCandidateStatus.trim() : '';
-
-    if (!rawStatus) {
+    if (!selectedStatusNormalized) {
       return pendingStatus;
     }
 
-    const normalizedStatus = rawStatus.toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
-    const matchedStatus = STATUS_VARIANTS[normalizedStatus];
+    const matchedStatus = CLIENT_STATUS_VARIANTS[selectedStatusNormalized];
 
     if (matchedStatus) {
       return matchedStatus;
     }
 
-    return {
-      label: rawStatus,
-      className: pendingStatus.className
-    };
-  }, [isLoadingCandidates, selectedCandidateStatus]);
+    const rawStatus = typeof selectedCandidateStatus === 'string' ? selectedCandidateStatus.trim() : '';
+
+    if (rawStatus) {
+      return {
+        label: rawStatus,
+        className: pendingStatus.className,
+      };
+    }
+
+    return pendingStatus;
+  }, [isLoadingCandidates, selectedCandidateStatus, selectedStatusNormalized]);
 
   const secondaryButtonClassName = `client-details__secondary-btn ${statusClassName}`;
+  const statusButtonLabel = isUpdatingStatus ? 'Updating...' : statusLabel;
 
-    const normaliseValue = (value) => {
+  const handleStatusToggle = useCallback(() => {
+    if (isUpdatingStatus || !selectedCandidate) {
+      return;
+    }
+
+    setIsStatusMenuOpen((previous) => !previous);
+  }, [isUpdatingStatus, selectedCandidate]);
+
+  const handleStatusSelect = useCallback(
+    async (nextStatusValue) => {
+      if (!selectedCandidate || !clientId) {
+        setStatusFeedback({
+          type: 'error',
+          message: 'A client must be selected before updating the status.',
+        });
+        return;
+      }
+
+      if (!token) {
+        setStatusFeedback({
+          type: 'error',
+          message: 'Please sign in to update the client status.',
+        });
+        return;
+      }
+
+      const normalizedNext = normaliseClientStatus(nextStatusValue);
+
+      if (!normalizedNext) {
+        setStatusFeedback({
+          type: 'error',
+          message: 'Select a valid status option.',
+        });
+        return;
+      }
+
+      const normalizedCurrent = normaliseClientStatus(selectedCandidate.status);
+      const option = CLIENT_STATUS_OPTIONS.find(
+        (candidateStatus) => candidateStatus.normalizedValue === normalizedNext,
+      );
+      const nextLabel = option?.label ?? getClientStatusLabel(nextStatusValue);
+
+      if (normalizedCurrent === normalizedNext) {
+        setIsStatusMenuOpen(false);
+        setStatusFeedback({
+          type: 'info',
+          message: `Status is already ${nextLabel}.`,
+        });
+        return;
+      }
+
+      setIsUpdatingStatus(true);
+
+      try {
+        const response = await updateClientStatus(clientId, nextStatusValue, token);
+        const updatedClient = response?.client;
+        const updatedStatus = updatedClient?.status ?? nextStatusValue;
+        const updatedLabel = getClientStatusLabel(updatedStatus);
+
+        setCandidates((previousCandidates) => {
+          if (!Array.isArray(previousCandidates) || previousCandidates.length === 0) {
+            if (updatedClient) {
+              return [updatedClient];
+            }
+
+            return selectedCandidate ? [{ ...selectedCandidate, status: updatedStatus }] : [];
+          }
+
+          let found = false;
+          const nextCandidates = previousCandidates.map((candidate) => {
+            const candidateIdentifier = candidate.id ?? candidate._id ?? candidate.clientId;
+
+            if (candidateIdentifier != null && String(candidateIdentifier) === String(clientId)) {
+              found = true;
+
+              if (updatedClient) {
+                return { ...candidate, ...updatedClient };
+              }
+
+              return { ...candidate, status: updatedStatus };
+            }
+
+            return candidate;
+          });
+
+          if (!found && updatedClient) {
+            nextCandidates.push(updatedClient);
+          }
+
+          return nextCandidates;
+        });
+
+        setStatusFeedback({
+          type: 'success',
+          message: `Status updated to ${updatedLabel}.`,
+        });
+      } catch (error) {
+        const message =
+          error?.details?.message || error?.message || 'Failed to update status.';
+        setStatusFeedback({ type: 'error', message });
+      } finally {
+        setIsUpdatingStatus(false);
+        setIsStatusMenuOpen(false);
+      }
+    },
+    [clientId, selectedCandidate, setCandidates, token],
+  );
+
+  const normaliseValue = (value) => {
     if (value == null) {
       return '';
     }
@@ -1166,11 +1358,72 @@ export function ClientDetails() {
                     >
                       {isManaging ? 'Unmanage' : 'Manage'}
                     </button>
-                    <button type="button" className={secondaryButtonClassName}>
-                      {statusLabel}
-                    </button>
+                    <div className="client-details__status-control">
+                      <button
+                        type="button"
+                        className={secondaryButtonClassName}
+                        onClick={handleStatusToggle}
+                        disabled={isUpdatingStatus || !selectedCandidate}
+                        aria-haspopup="listbox"
+                        aria-expanded={isStatusMenuOpen}
+                        aria-controls={statusDropdownId}
+                        aria-label={`Change status, current: ${statusLabel}`}
+                        ref={statusButtonRef}
+                      >
+                        {statusButtonLabel}
+                      </button>
+                      {isStatusMenuOpen && (
+                        <div
+                          id={statusDropdownId}
+                          className="client-details__status-dropdown"
+                          role="listbox"
+                          aria-label="Select a new status"
+                          ref={statusMenuRef}
+                        >
+                          {CLIENT_STATUS_OPTIONS.map((option) => {
+                            const isSelected = option.normalizedValue === selectedStatusNormalized;
+
+                            return (
+                              <button
+                                key={option.value}
+                                type="button"
+                                role="option"
+                                aria-selected={isSelected}
+                                className="client-details__status-option"
+                                onClick={() => handleStatusSelect(option.value)}
+                                disabled={isUpdatingStatus}
+                                ref={(node) => {
+                                  const normalized = option.normalizedValue;
+                                  if (!normalized) {
+                                    return;
+                                  }
+
+                                  if (node) {
+                                    statusOptionRefs.current.set(normalized, node);
+                                  } else {
+                                    statusOptionRefs.current.delete(normalized);
+                                  }
+                                }}
+                              >
+                                {option.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
+                {statusFeedback && (
+                  <p
+                    className={`dashboard__status-text${
+                      statusFeedback.type === 'error' ? ' dashboard__status-text--error' : ''
+                    }`}
+                    role={statusFeedback.type === 'error' ? 'alert' : 'status'}
+                  >
+                    {statusFeedback.message}
+                  </p>
+                )}
 
                 <div className="dashboard__main-grid">
                   <section className="dashboard__candidate-panel">
@@ -1342,16 +1595,16 @@ export function ClientDetails() {
                               typeof existingAssignment?.status === 'string'
                                 ? existingAssignment.status
                                 : '';
-                            const assignmentStatusNormalized = assignmentStatusRaw
-                              ? assignmentStatusRaw.trim().toLowerCase()
-                              : '';
+                            const assignmentStatusNormalized = normaliseClientStatus(
+                              assignmentStatusRaw,
+                            );
                             const suggestionState = suggestionStatusByCompany[companyKey] || {};
                             const isLoading = Boolean(suggestionState.loading);
                             const companyErrorMessage = suggestionState.error;
                             const hasValidCompanyId = normalizedCompanyId != null;
                             const hasExistingAssignment = Boolean(existingAssignment);
                             const statusVariant = hasExistingAssignment
-                              ? STATUS_VARIANTS[assignmentStatusNormalized]
+                              ? CLIENT_STATUS_VARIANTS[assignmentStatusNormalized]
                               : null;
                             const statusVariantClassName = statusVariant?.className;
                             const relatedStatusClassName = statusVariantClassName
