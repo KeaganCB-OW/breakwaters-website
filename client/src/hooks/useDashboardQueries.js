@@ -4,6 +4,7 @@ import { DashboardDataContext } from '../components/ui/dashboard/DashboardContex
 import { fetchClients } from '../services/clientService';
 import { fetchCompanies } from '../services/companyService';
 import { fetchAssignments } from '../services/assignmentService';
+import { normaliseClientStatus } from '../constants/clientStatuses';
 
 function toArray(value) {
   if (!value) {
@@ -167,6 +168,7 @@ export function useCandidatesQuery({ search = '', filters = {}, page = 1, pageSi
         }
         return skillsValue;
       },
+      status: (record) => normaliseClientStatus(getField(record, 'status')),
     };
 
     const dataWithSearch = source.data.filter((record) => {

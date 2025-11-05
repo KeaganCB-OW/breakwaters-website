@@ -10,8 +10,14 @@ const buildAuthHeaders = (token) => {
   };
 };
 
-export async function fetchAssignments(token) {
-  const response = await fetch(`${API_URL}/assignments`, {
+export async function fetchAssignments(token, params = {}) {
+  const url = new URL(`${API_URL}/assignments`);
+
+  if (params.limit) {
+    url.searchParams.set('limit', String(params.limit));
+  }
+
+  const response = await fetch(url.toString(), {
     headers: {
       ...buildAuthHeaders(token),
     },
