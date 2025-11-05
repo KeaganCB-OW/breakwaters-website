@@ -22,8 +22,7 @@ const defaultItems = [
     textColor: '#fff',
     links: [
       { label: 'Email', ariaLabel: 'Email us', href: 'mailto:support@breakwaters.co.za' },
-      { label: 'Twitter', ariaLabel: 'Twitter', href: '#' },
-      { label: 'LinkedIn', ariaLabel: 'LinkedIn', href: '#' }
+      { label: 'LinkedIn', ariaLabel: 'LinkedIn', href: 'https://www.linkedin.com/' }
     ]
   }
 ];
