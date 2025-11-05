@@ -267,6 +267,22 @@ export function ClientDetails() {
     navigate('/login', { replace: true });
   }, [logout, navigate]);
 
+  const selectedCandidate = useMemo(() => {
+    if (!clientId || !Array.isArray(candidates)) {
+      return null;
+    }
+
+    return (
+      candidates.find((candidate) => {
+        const candidateIdentifier = candidate.id ?? candidate._id ?? candidate.clientId;
+        return candidateIdentifier != null && String(candidateIdentifier) === clientId;
+      }) || null
+    );
+  }, [candidates, clientId]);
+
+  const selectedCandidateStatus = selectedCandidate?.status;
+  const selectedStatusNormalized = normaliseClientStatus(selectedCandidateStatus);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -503,19 +519,6 @@ export function ClientDetails() {
     setSuggestionStatusByCompany({});
     setShowAllCompanies(false);
   }, [clientId]);
-
-  const selectedCandidate = useMemo(() => {
-    if (!clientId || !Array.isArray(candidates)) {
-      return null;
-    }
-
-    return (
-      candidates.find((candidate) => {
-        const candidateIdentifier = candidate.id ?? candidate._id ?? candidate.clientId;
-        return candidateIdentifier != null && String(candidateIdentifier) === clientId;
-      }) || null
-    );
-  }, [candidates, clientId]);
 
   const clientLabel = useMemo(() => {
     if (!clientId) {
@@ -848,9 +851,6 @@ export function ClientDetails() {
     },
     [assignmentByCompanyId, clientId, setAssignments, setCandidates, setSuggestionStatusByCompany, suggestAssignment, token]
   );
-
-  const selectedCandidateStatus = selectedCandidate?.status;
-  const selectedStatusNormalized = normaliseClientStatus(selectedCandidateStatus);
 
   const { label: statusLabel, className: statusClassName } = useMemo(() => {
     const pendingStatus = CLIENT_STATUS_VARIANTS.pending;
