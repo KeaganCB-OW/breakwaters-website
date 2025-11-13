@@ -1,215 +1,294 @@
 # Breakwaters Recruitment Platform
 
-![Built with React](https://img.shields.io/badge/Frontend-React-61DAFB?logo=react&logoColor=white) ![Backend Express](https://img.shields.io/badge/Backend-Express-000000?logo=express&logoColor=white) ![Database MySQL](https://img.shields.io/badge/Database-MySQL-4479A1?logo=mysql&logoColor=white) ![Hosted on Hostinger](https://img.shields.io/badge/Frontend%20Hosting-Hostinger-673de6?logo=hostinger&logoColor=white) ![Hosted on Render](https://img.shields.io/badge/API-Render-46E3B7?logo=render&logoColor=white) ![License BSD](https://img.shields.io/badge/License-BSD-blue)
+> A human centered recruitment management system that connects qualified candidates with verified companies.
 
-## Overview
-Breakwaters Recruitment Platform is a human-centered recruitment management system that connects qualified candidates with verified companies. The application streamlines the full recruitment lifecycle, from initial client intake to company placement, while providing transparency for every stakeholder.
+<p align="center">
+  <img src="https://img.shields.io/badge/Frontend-React-61DAFB?logo=react&logoColor=white" />
+  <img src="https://img.shields.io/badge/Backend-Express-000000?logo=express&logoColor=white" />
+  <img src="https://img.shields.io/badge/API-Node.js-339933?logo=node.js&logoColor=white" />
+  <img src="https://img.shields.io/badge/Database-MySQL-4479A1?logo=mysql&logoColor=white" />
+</p>
 
-The platform centralizes candidate information, manages CV submissions, and automates communication so teams can collaborate efficiently. Purpose-built dashboards empower clients, recruitment officers, and company representatives to track progress, manage assignments, and make data-informed decisions.
+<p align="center">
+  <img src="https://img.shields.io/badge/Storage-Cloudflare%20R2-F38020?logo=cloudflare&logoColor=white" />
+  <img src="https://img.shields.io/badge/Frontend%20Hosting-Hostinger-673de6?logo=hostinger&logoColor=white" />
+  <img src="https://img.shields.io/badge/API%20Hosting-Render-46E3B7?logo=render&logoColor=white" />
+  <img src="https://img.shields.io/badge/License-BUSL--1.0-blue" />
+</p>
 
-The stack combines a React frontend, Node.js/Express backend, and Hostinger-managed MySQL database, with secure file storage on Cloudflare R2, a frontend hosted on Hostinger, and API services deployed to Render. Authentication is role-based, ensuring each user type accesses the tools and information relevant to their responsibilities.
+<p align="center">
+  <img src="https://img.shields.io/github/stars/KeaganCB-OW/breakwaters-website?style=social" />
+  <img src="https://img.shields.io/github/last-commit/KeaganCB-OW/breakwaters-website" />
+  <img src="https://img.shields.io/badge/Made%20in-%E2%9D%A4%EF%B8%8F%20South%20Africa-red" />
+  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen?logo=github" />
+</p>
 
-## Features
-### Clients
-- Guided onboarding flow with profile creation and document upload
-- CV management with Cloudflare R2-backed storage and secure signed URLs
-- Real-time recruitment status tracking across company assignments
-- Notifications for status updates, interview requests, and feedback
+---
 
-### Recruitment Officers
-- Candidate intake review and approval workflows
-- Role-based dashboards for monitoring recruitment pipelines
-- Assignment management to connect candidates with partner companies
-- Automated email notifications via Nodemailer for key lifecycle events
-- Bulk status updates and audit-friendly activity history
+## 2.1 Project Header
 
-### Company Representatives
-- Curated candidate suggestions with supporting CVs
-- Dashboard to monitor interview progress shared by recruitment officers
-- Secure document access through expiring Cloudflare R2 links
+### Project title block
 
-### Platform & Backend Services
-- JWT authentication with bcrypt-secured credentials
-- Fine-grained role-based access control across all routes
-- RESTful API built with Express.js and documented endpoints
-- Cloudflare R2 object storage for CVs and supporting documentation
-- Nodemailer email service with Hostinger SMTP integration
-- Configurable environment-driven settings for multi-tenant deployments
+- **Name:** Breakwaters Recruitment Platform  
+- **Type of digital solution:** Full stack web application  
+- **Primary purpose:** Manage the recruitment lifecycle from client intake to company placement  
+- **Author:** Keagan Boucher  
 
-## Technology Stack
-- **Frontend:** React, Vite, Axios, Tailwind CSS (or preferred styling system)
-- **Backend:** Node.js, Express.js, TypeScript
-- **Database:** MySQL with Knex/Prisma query layer (Hostinger managed or self-hosted)
-- **Authentication:** JWT with bcrypt password hashing
-- **File Storage:** Cloudflare R2 (S3-compatible object storage)
-- **Email Delivery:** Nodemailer + Hostinger SMTP
-- **Hosting:** Render (API) and Hostinger (frontend + managed MySQL)
-- **CI/CD:** GitHub Actions-ready workflow templates (optional)
+### Table of contents
 
-## Project Structure
-```
-project-root/
-│
-├── client/               # React frontend application
-├── server/               # Node.js/Express backend services
-├── db-upload/            # SQL seeds and data import utilities
-├── .env.example          # Root environment template (if required)
-├── package.json          # Workspace dependency management
-├── README.md
-└── SEO_Documentation.md  # Marketing copy and SEO guidelines
-```
+1. [2.1 Project Header](#21-project-header)  
+2. [2.2 About The Project](#22-about-the-project)  
+3. [2.3 Getting Started](#23-getting-started)  
+4. [2.4 Project Features](#24-project-features)  
+5. [2.4 Development Process](#24-development-process)  
+6. [2.5 Final Outcome](#25-final-outcome)  
+7. [2.6 Conclusion](#26-conclusion)  
+8. [2.7 Footer](#27-footer)
 
-## Getting Started
+---
+
+## 2.2 About The Project
+
+### Short project description
+
+Breakwaters is a recruitment management platform that helps agencies match job seekers with verified companies in a transparent and structured way. Clients submit their CVs through a guided intake flow and recruitment officers review and assign candidates to companies through an internal dashboard. The system tracks status changes so that the team can see where a candidate is in the process, from first contact to interview and placement.
+
+The aim is to move away from generic job boards and toward a curated, human centered process where recruitment officers remain in control of the matching, but are supported by clear tools and consistent data.
+
+### Built with
+
+- React and React Router  
+- Node.js and Express  
+- MySQL (Hostinger managed database)  
+- JWT and bcrypt for authentication and role based access control  
+- Axios for API requests  
+- Cloudflare R2 for CV storage  
+- Nodemailer with Hostinger SMTP for email notifications  
+
+### Core UI mockups
+
+<p align="center">
+  <img src="./documentation/mockups/homepage-desktop.png" alt="Homepage mockup" width="48%" />
+  <img src="./documentation/mockups/ro-dashboard.png" alt="Recruitment officer dashboard mockup" width="48%" />
+</p>
+
+<p align="center">
+  <img src="./documentation/mockups/client-intake.png" alt="Client intake form mockup" width="48%" />
+  <img src="./documentation/mockups/login-screen.png" alt="Login screen mockup" width="48%" />
+</p>
+
+---
+
+## 2.3 Getting Started
+
+All repositories require installation instructions. This section explains how to clone and run the project locally.
 
 ### Prerequisites
-- Node.js v18 or higher
-- npm or yarn package manager
-- MySQL Server 8.x (Hostinger managed database or self-hosted equivalent)
-- Cloudflare R2 bucket and credentials
-- Hostinger account for static hosting and transactional email
 
-### 1️⃣ Clone the repository
-```bash
-git clone https://github.com/<your-username>/<your-repo>.git
-cd <your-repo>
-```
+- Node.js 18 or higher  
+- npm or yarn  
+- MySQL Server 8 or compatible Hostinger database  
+- Cloudflare R2 bucket and credentials  
+- Hostinger account for hosting and SMTP mail  
 
-### 2️⃣ Install dependencies
-```bash
-cd server && npm install
-cd ../client && npm install
-```
+### How to install
 
-### 3️⃣ Configure environment variables
-Create `.env` files in both `server/` and `client/` directories based on the examples below.
+1. **Clone the repository**
 
-```
-# server/.env
-DB_HOST=your-hostinger-db-host
-DB_PORT=3306
-DB_USER=root
-DB_PASS=yourpassword
-DB_NAME=breakwaters
-DB_SSL=true
-JWT_SECRET=your_jwt_secret
-TOKEN_EXPIRY=1d
-BCRYPT_ROUNDS=12
-CLIENT_ORIGIN=http://localhost:3000
-MAIL_HOST=smtp.hostinger.com
-MAIL_PORT=587
-MAIL_SECURE=false
-MAIL_USER=no-reply@yourdomain.com
-MAIL_PASS=your-mail-password
-MAIL_FROM="Breakwaters <no-reply@yourdomain.com>"
-APP_URL=https://breakwatersrecruitment.co.za
-S3_BUCKET=your-bucket-name
-S3_ACCOUNT_ID=your-account-id
-S3_ACCESS_KEY_ID=your-access-key
-S3_SECRET_ACCESS_KEY=your-secret-key
-S3_REGION=auto
-CV_SIGNED_URL_TTL=900
-SHARE_LINK_SECRET=optional-share-secret
-SHARE_LINK_TTL_SECONDS=3600
-TEST_ENDPOINT_TOKEN=optional-test-token
-```
+   ```bash
+   git clone https://github.com/KeaganCB-OW/breakwaters-website.git
+   cd breakwaters-website
+   ```
 
-```
-# client/.env
-VITE_API_URL=http://localhost:5000
-VITE_APP_NAME=Breakwaters Recruitment Platform
-VITE_SENTRY_DSN=
-VITE_ENABLE_ANALYTICS=false
-```
+2. **Install dependencies**
 
-### 4️⃣ Run development servers
-Use separate terminals for the backend and frontend.
+   ```bash
+   # Backend
+   cd server
+   npm install
 
-```bash
-# Terminal 1 - backend
-cd server
-npm run dev
+   # Frontend
+   cd ../client
+   npm install
+   ```
 
-# Terminal 2 - frontend
-cd client
-npm start
-```
+3. **Environment configuration**
 
-The development frontend runs on **http://localhost:3000** and the backend API listens on **http://localhost:5000** by default.
+   Create a `.env` file in the `server` folder with values similar to:
 
-## Deployment
+   ```env
+   DB_HOST=your-hostinger-db-host
+   DB_PORT=3306
+   DB_USER=your-db-user
+   DB_PASS=your-db-password
+   DB_NAME=breakwaters
+   DB_SSL=true
 
-### Backend on Render
-1. Push the latest code to your GitHub repository.
-2. Create a new **Web Service** on Render and connect it to the repository.
-3. Set build command to `npm install` (or `yarn install`) and start command to `npm run start` inside the `server` directory.
-4. Configure all environment variables under the Render **Environment** tab.
-5. Provision a MySQL database (Hostinger managed instance or other external provider) and update connection strings accordingly.
-6. Enable automatic deployments from the main branch for continuous delivery.
+   JWT_SECRET=your-jwt-secret
+   TOKEN_EXPIRY=1d
+   BCRYPT_ROUNDS=12
+   CLIENT_ORIGIN=http://localhost:3000
 
-### Frontend on Hostinger Static Hosting
-1. Build the production bundle: `npm run build` inside `/client` (or `npm run build -- --base=/` if using Vite base paths).
-2. Upload the generated `client/dist` (or `client/build`) directory to Hostinger using hPanel File Manager, FTP, or Git deploy.
-3. Configure rewrite rules (e.g., single-page app fallback to `index.html`) within Hostinger's advanced settings if the frontend relies on client-side routing.
-4. Update the frontend environment variables or API URLs (such as `VITE_API_URL`) through Hostinger's hPanel configuration or by injecting them at build time.
-5. Enable Hostinger CDN and caching optimizations as needed for global performance.
+   MAIL_HOST=smtp.hostinger.com
+   MAIL_PORT=587
+   MAIL_SECURE=false
+   MAIL_USER=no-reply@yourdomain.com
+   MAIL_PASS=your-mail-password
+   MAIL_FROM="Breakwaters <no-reply@yourdomain.com>"
 
-## Usage
-1. **Clients** register accounts, complete intake questionnaires, and upload CVs. They monitor recruitment milestones in a personalized dashboard and receive email notifications for every status change.
-2. **Recruitment Officers** log in to review new applicants, verify credentials, and assign candidates to partner companies. Officers manage interview scheduling, send status updates, and maintain data hygiene across the pipeline.
-3. **Company Representatives** access curated talent lists matched to their requisitions and download CVs through expiring Cloudflare R2 links. Feedback and hiring decisions are coordinated with recruitment officers through established communication channels.
+   APP_URL=http://localhost:3000
 
-API consumers can authenticate via JWT and interact with REST endpoints such as:
-```http
-POST /api/auth/login        # Obtain access and refresh tokens
-GET  /api/clients           # List clients (restricted to officer roles)
-POST /api/assignments       # Create a company assignment for a client
-```
+   S3_BUCKET=your-r2-bucket
+   S3_ACCOUNT_ID=your-account-id
+   S3_ACCESS_KEY_ID=your-access-key
+   S3_SECRET_ACCESS_KEY=your-secret-key
+   S3_REGION=auto
+   CV_SIGNED_URL_TTL=900
+   ```
 
-## Environment Variables Reference
-| Variable | Description |
-| --- | --- |
-| `DB_HOST` | Hostinger MySQL database host |
-| `DB_PORT` | Port for the MySQL server |
-| `DB_USER` | Database user with required privileges |
-| `DB_PASS` | Password for the database user |
-| `DB_NAME` | Target MySQL database name |
-| `DB_SSL` | Enable SSL for database connections |
-| `JWT_SECRET` | Secret key for signing JWTs |
-| `TOKEN_EXPIRY` | Lifespan of issued JWTs |
-| `BCRYPT_ROUNDS` | Cost factor for bcrypt hashing |
-| `CLIENT_ORIGIN` | Allowed CORS origin for the frontend |
-| `MAIL_HOST` | SMTP host for email delivery |
-| `MAIL_PORT` | SMTP port |
-| `MAIL_SECURE` | Toggle TLS/SSL for SMTP |
-| `MAIL_USER` | SMTP authentication username |
-| `MAIL_PASS` | SMTP authentication password |
-| `MAIL_FROM` | Default sender name and email |
-| `APP_URL` | Public URL of the production site |
-| `S3_BUCKET` | Cloudflare R2 bucket storing CVs |
-| `S3_ACCOUNT_ID` | Cloudflare account identifier |
-| `S3_ACCESS_KEY_ID` | API access key for R2 |
-| `S3_SECRET_ACCESS_KEY` | Secret key for R2 access |
-| `S3_REGION` | R2 region (often `auto`) |
-| `CV_SIGNED_URL_TTL` | Lifetime in seconds for CV download URLs |
-| `SHARE_LINK_SECRET` | Optional override secret for share links |
-| `SHARE_LINK_TTL_SECONDS` | Lifetime for read-only share links |
-| `TEST_ENDPOINT_TOKEN` | Token required to trigger test email hooks |
-| `VITE_API_URL` | Frontend base URL for API requests |
-| `VITE_APP_NAME` | Frontend display name |
-| `VITE_SENTRY_DSN` | Optional Sentry DSN for error monitoring |
-| `VITE_ENABLE_ANALYTICS` | Flag to enable analytics tooling |
+   Create a `.env` file in the `client` folder:
 
-## Testing & Quality Assurance
-- **Database Seeding:** Use scripts in `db-upload/` to seed sample data. Import SQL files via MySQL Workbench or the CLI before running integration tests.
-- **Backend Tests:** Run `npm test` (inside `server/`) to execute Jest or Vitest suites covering services, controllers, and utilities.
-- **Linting & Type Checks:** Execute `npm run lint` and `npm run typecheck` as configured in `package.json` to ensure code quality.
-- **API Smoke Tests:** Use REST clients (Postman/Insomnia) or automated scripts to hit `/api/health` and key endpoints after deployment.
+   ```env
+   VITE_API_URL=http://localhost:5000
+   VITE_APP_NAME=Breakwaters Recruitment Platform
+   VITE_ENABLE_ANALYTICS=false
+   ```
 
-## License
-Distributed under the [BSD License](LICENSE). Review `LICENSE` for full terms.
+4. **Run the project**
 
-## Acknowledgements
-- Hostinger for powering static hosting, managed MySQL, and SMTP services.
-- Cloudflare for resilient R2 storage infrastructure.
-- Render for seamless API deployment and scaling.
-- And last but not Least Tsungai, My amazing Lecturer who has helped me grow as a developer!
+   ```bash
+   # Terminal 1 - backend API
+   cd server
+   npm run dev
+
+   # Terminal 2 - frontend client
+   cd client
+   npm start
+   ```
+
+The frontend runs on `http://localhost:3000` and the API on `http://localhost:5000` by default.
+
+If you separate your backend and frontend into different repositories for deployment, you can link to the other repository here as part of the installation steps.
+
+---
+
+## 2.4 Project Features
+
+### Main features and functionality
+
+#### Public client flow
+
+- Public facing intake form that collects personal details, skills, and career preferences.  
+- CV upload flow that stores PDFs in Cloudflare R2 and links them to the correct client profile.  
+- Automated email confirmation on successful CV submission (where configured).  
+
+#### Recruitment officer dashboard (currently implemented)
+
+- Dashboard that lists new and in progress clients with filters for status and company.  
+- Ability to review client details, view CVs, verify information, and update candidate statuses.  
+- Assignment tools that link clients to registered companies and track those assignments over time.  
+- Optional activity logging so that important actions such as status changes or assignments can be audited later.
+
+#### Platform and security
+
+- JWT based authentication with bcrypt hashed passwords and role based access control.  
+- MySQL database design that separates users, clients, companies, CVs, and assignments.  
+- Clear separation between React frontend and Express backend for easier maintenance and deployment.
+
+#### Planned / future features
+
+- Dedicated company representative dashboard to view assigned candidates.  
+- Richer analytics for recruitment performance and candidate pipelines.  
+- Smarter recommendation tooling for matching candidates to company requirements.
+
+### Feature mockup
+
+<p align="center">
+  <img src="./documentation/mockups/client-view.png" alt="Client view mockup" width="48%" />
+  <img src="./documentation/mockups/client-manage.png" alt="Client Manage mockup" width="48%" />
+</p>
+
+<p align="center">
+  <img src="./documentation/mockups/candidate-list.png" alt="Candidate list view mockup" width="48%" />
+</p>
+
+---
+
+## 2.4 Development Process
+
+This section documents the design and technical decisions made while building the system.
+
+### Architecture overview
+
+The platform uses a classic three layer structure:
+
+- **Frontend:** React single page application that handles routing, forms, and dashboards.  
+- **API layer:** Express server that exposes REST endpoints for authentication, clients, companies, CVs, and assignments.  
+- **Database:** MySQL schema with separate tables for users, clients, companies, CVs, assignments, and optional activity logs.
+
+### Data design
+
+The database is normalised so that a single `users` record links either to a `clients` profile or a `companies` profile. Relationships handle many CVs per client and many assignments between clients and companies.
+
+#### ERD diagram
+
+<p align="center">
+  <img src="./documentation/Entity-Relationship Diagram.png" alt="Entity relationship diagram" width="800">
+</p>
+
+### Key implementation notes
+
+- Authentication routes issue JWTs and store hashes instead of plain text passwords.  
+- Middleware checks roles before allowing access to sensitive endpoints like client lists or assignment management.  
+- CV uploads are handled through a dedicated endpoint that streams files to Cloudflare R2 and stores metadata in the `cvs` table.  
+- Nodemailer integrates with Hostinger SMTP to send status updates when officers change candidate states or assign clients to a company.  
+- The client uses Axios for API calls and React context to manage authentication state and user roles across the app.
+
+---
+
+## 2.5 Final Outcome
+
+### Demonstration video
+
+A walkthrough of the deployed application is available here:
+
+- [Breakwaters Recruitment Platform walkthrough](https://drive.google.com/file/d/1_ypvovtx7XAwqgLDi4TmZw9sYt58C3Oh/view?usp=sharing)
+
+### Deployed application
+
+Live site:
+
+- https://breakwatersrecruitment.co.za/
+
+---
+
+## 2.6 Conclusion
+
+Breakwaters started as a response to common problems in recruitment workflows, such as scattered candidate data, unverified companies, and poor visibility of candidate progress. The final application provides a central place where recruitment officers can collaborate around the same information and move candidates through a clear, trackable process. Building the platform involved balancing UX decisions with security considerations, especially around how CVs and personal data are stored and accessed.
+
+During development, the main challenges included configuring secure file storage with Cloudflare R2, integrating Hostinger SMTP with Nodemailer, and managing role based access without making the experience feel heavy or complex. These challenges informed the architecture and led to clearer route structures, better environment configuration, and more robust error handling.
+
+Future improvements could include in app messaging between candidates and recruiters, more detailed analytics for recruitment performance, and AI assisted matching that suggests candidates to companies based on skills and role requirements.
+
+---
+
+## 2.7 Footer
+
+### License
+
+This project is licensed under the **Business Source License 1.0 (BUSL-1.0)**.  
+See the `LICENSE` file in the repository for the full license text and usage terms.
+
+### Author
+
+**Keagan Boucher**  
+
+- GitHub: [KeaganCB-OW](https://github.com/KeaganCB-OW)  
+- LinkedIn: [Keagan Boucher](https://www.linkedin.com/in/keagan-boucher-0a5820353/)
+
+### Acknowledgements
+
+- Hostinger for hosting the frontend, database, and SMTP services.  
+- Cloudflare for providing resilient object storage through R2.  
+- Render for running the backend API.  
+- All lecturers and peers who provided feedback throughout the development, especially Tsungai for guidance on full stack implementation.
