@@ -25,7 +25,11 @@
 
 ---
 
-## 2.1 Project Header
+## Project Header
+
+<p align="center">
+  <img src="./documentation/mockups/Breakwaters-project-header.png" alt="Project Header" width="100%">
+</p>
 
 ### Project title block
 
@@ -36,18 +40,18 @@
 
 ### Table of contents
 
-1. [2.1 Project Header](#21-project-header)  
-2. [2.2 About The Project](#22-about-the-project)  
-3. [2.3 Getting Started](#23-getting-started)  
-4. [2.4 Project Features](#24-project-features)  
-5. [2.4 Development Process](#24-development-process)  
-6. [2.5 Final Outcome](#25-final-outcome)  
-7. [2.6 Conclusion](#26-conclusion)  
-8. [2.7 Footer](#27-footer)
+1. [Project Header](#project-header)  
+2. [About The Project](#about-the-project)  
+3. [Getting Started](#getting-started)  
+4. [Project Features](project-features)  
+5. [Development Process](development-process)  
+6. [Final Outcome](#final-outcome)  
+7. [Conclusion](#conclusion)  
+8. [Footer](#footer)
 
 ---
 
-## 2.2 About The Project
+## About The Project
 
 ### Short project description
 
@@ -79,7 +83,7 @@ The aim is to move away from generic job boards and toward a curated, human cent
 
 ---
 
-## 2.3 Getting Started
+## Getting Started
 
 All repositories require installation instructions. This section explains how to clone and run the project locally.
 
@@ -172,7 +176,7 @@ If you separate your backend and frontend into different repositories for deploy
 
 ---
 
-## 2.4 Project Features
+## Project Features
 
 ### Main features and functionality
 
@@ -214,7 +218,7 @@ If you separate your backend and frontend into different repositories for deploy
 
 ---
 
-## 2.4 Development Process
+## Development Process
 
 This section documents the design and technical decisions made while building the system.
 
@@ -246,7 +250,7 @@ The database is normalised so that a single `users` record links either to a `cl
 
 ---
 
-## 2.5 Final Outcome
+## Final Outcome
 
 ### Demonstration video
 
@@ -262,7 +266,7 @@ Live site:
 
 ---
 
-## 2.6 Conclusion
+## Conclusion
 
 Breakwaters started as a response to common problems in recruitment workflows, such as scattered candidate data, unverified companies, and poor visibility of candidate progress. The final application provides a central place where recruitment officers can collaborate around the same information and move candidates through a clear, trackable process. Building the platform involved balancing UX decisions with security considerations, especially around how CVs and personal data are stored and accessed.
 
@@ -272,7 +276,7 @@ Future improvements could include in app messaging between candidates and recrui
 
 ---
 
-## 2.7 Footer
+## Footer
 
 ### License
 
