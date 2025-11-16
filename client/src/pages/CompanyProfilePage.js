@@ -55,6 +55,7 @@ export default function CompanyProfilePage() {
         { label: 'Company name', value: companyProfile.company_name },
         { label: 'Industry', value: companyProfile.industry },
         { label: 'Company email', value: companyProfile.email },
+        { label: 'LinkedIn', value: companyProfile.linkedin_url },
         { label: 'Phone number', value: companyProfile.phone_number },
         { label: 'Workforce size', value: companyProfile.workforce_size },
         { label: 'Location', value: companyProfile.location },

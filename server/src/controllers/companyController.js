@@ -2,6 +2,7 @@ import { pool } from '../config/db.js';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
 const PHONE_REGEX = /^[0-9+\-\s()]{7,}$/;
+const LINKEDIN_REGEX = /^(https?:\/\/)?([\w]+\.)?linkedin\.com\/.*$/i;
 
 const sanitizeString = (value) => (typeof value === 'string' ? value.trim() : '');
 
@@ -64,6 +65,7 @@ export const createCompany = async (req, res) => {
     location,
     available_roles,
     specifications,
+    linkedin_url,
   } = req.body ?? {};
 
   const errors = {};
@@ -76,6 +78,7 @@ export const createCompany = async (req, res) => {
   const specificationsValue = sanitizeString(specifications);
   const workforceSizeValue = parseWorkforceSize(workforce_size);
   const availableRolesValue = formatAvailableRoles(available_roles);
+  const linkedinUrl = sanitizeString(linkedin_url);
   const userId = req.user?.id;
 
   if (!companyName) {
@@ -108,6 +111,10 @@ export const createCompany = async (req, res) => {
 
   if (!specificationsValue) {
     errors.specifications = 'Please share a short description of the roles you need.';
+  }
+
+  if (linkedinUrl && !LINKEDIN_REGEX.test(linkedinUrl)) {
+    errors.linkedin_url = 'Please provide a valid LinkedIn URL.';
   }
 
   if (!userId) {
@@ -179,7 +186,7 @@ export const createCompany = async (req, res) => {
         locationValue,
         availableRolesValue,
         specificationsValue,
-        null,
+        linkedinUrl || null,
       ]
     );
 
@@ -202,6 +209,7 @@ export const createCompany = async (req, res) => {
       location: locationValue,
       available_roles: parseAvailableRolesList(availableRolesValue),
       specifications: specificationsValue,
+      linkedin_url: linkedinUrl || null,
       status: 'unverified',
     });
   } catch (error) {
