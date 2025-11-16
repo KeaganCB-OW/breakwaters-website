@@ -9,7 +9,7 @@ import {
   useId,
 } from 'react';
 import PropTypes from 'prop-types';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from './AuthContext';
 import { fetchCurrentClient } from '../services/clientService';
 import { createCompany, fetchCurrentCompany } from '../services/companyService';
@@ -39,6 +39,7 @@ export const ClientIntakeContext = createContext({
 
 export function ClientIntakeProvider({ children }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, token, setUser } = useContext(AuthContext);
 
   const [mode, setMode] = useState('closed'); // closed | loading | auth | stepper | already-submitted | status-error
@@ -65,6 +66,17 @@ export function ClientIntakeProvider({ children }) {
     setMode('closed');
     setActiveIntakeType('client');
   }, []);
+
+  useEffect(() => {
+    closeClientIntake();
+
+    if (typeof document !== 'undefined') {
+      const { body, documentElement } = document;
+      body.style.removeProperty('overflow');
+      body.style.removeProperty('overscrollBehavior');
+      documentElement.style.removeProperty('overflow');
+    }
+  }, [closeClientIntake, location]);
 
   const loadClientStatus = useCallback(async () => {
     if (!token || !user) {
@@ -324,20 +336,6 @@ export function ClientIntakeProvider({ children }) {
       if (previousElement && typeof previousElement.focus === 'function') {
         previousElement.focus({ preventScroll: true });
       }
-    };
-  }, [isOverlayOpen]);
-
-  useEffect(() => {
-    if (!isOverlayOpen || typeof document === 'undefined') {
-      return undefined;
-    }
-
-    const { body } = document;
-    const previousOverflow = body.style.overflow;
-    body.style.overflow = 'hidden';
-
-    return () => {
-      body.style.overflow = previousOverflow;
     };
   }, [isOverlayOpen]);
 
