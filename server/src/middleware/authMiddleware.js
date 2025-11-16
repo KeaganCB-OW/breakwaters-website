@@ -11,3 +11,8 @@ export const authenticate = (req, res, next) => {
     res.status(403).json({ message: 'Invalid token' });
   }
 };
+
+import { authenticate } from '../middleware/authMiddleware.js';
+import { authorize } from '../middleware/roleMiddleware.js';
+
+router.get('/clients', authenticate, authorize('recruitment_officer'), listClients);
