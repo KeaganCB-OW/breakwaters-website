@@ -9,6 +9,7 @@ import BecomeClientPage from './pages/BecomeClientPage';
 import SharedClientDetailsPage from './pages/SharedClientDetails';
 import RegisterBusinessPage from './pages/RegisterBusinessPage';
 import CompanyProfilePage from './pages/CompanyProfilePage';
+import ClientApplicationPage from './pages/ClientApplicationPage';
 import { AuthProvider } from './context/AuthContext';
 import { ClientIntakeProvider } from './context/ClientIntakeContext';
 import RequireAuth from './components/routing/RequireAuth';
@@ -60,6 +61,7 @@ function App() {
               )}
             />
             <Route path="/share/clients/:clientId" element={<SharedClientDetailsPage />} />
+            <Route path="/client/:clientId" element={<ClientApplicationPage />} />
           </Routes>
         </ClientIntakeProvider>
       </Router>
