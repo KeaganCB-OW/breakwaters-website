@@ -18,6 +18,7 @@
   border-radius: 28px;
   box-shadow: 0 30px 80px rgba(8, 38, 88, 0.2);
   padding: 32px;
+  padding-top: clamp(80px, 14vw, 132px);
   position: relative;
   overflow: hidden;
 }
@@ -254,8 +255,9 @@
 }
 
 @media (max-width: 768px) {
-  .client-application-card {
+.client-application-card {
     padding: 24px;
+    padding-top: clamp(72px, 18vw, 120px);
   }
 
   .client-application__status {

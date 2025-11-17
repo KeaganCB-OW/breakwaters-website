@@ -362,7 +362,75 @@ export const listCompanies = async (req, res) => {
   }
 };
 
-export const getCandidates = (req, res) => {
-  res.send('List of assigned candidates');
-};
+export const getCandidates = async (req, res) => {
+  const userId = req.user?.id;
 
+  if (!userId) {
+    return res.status(401).json({ message: 'Authentication required.' });
+  }
+
+  try {
+    const [companyRows] = await pool.query(
+      `SELECT
+        id,
+        company_name AS companyName
+      FROM companies
+      WHERE user_id = ?
+      LIMIT 1`,
+      [userId]
+    );
+
+    if (!Array.isArray(companyRows) || companyRows.length === 0) {
+      return res.status(404).json({ message: 'No company registration found for this user.' });
+    }
+
+    const company = companyRows[0];
+
+    const [assignmentRows] = await pool.query(
+      `SELECT
+        a.id AS assignmentId,
+        a.client_id AS clientId,
+        a.status AS assignmentStatus,
+        a.assigned_at AS assignedAt,
+        c.full_name AS fullName,
+        c.email,
+        c.phone_number AS phoneNumber,
+        c.location,
+        c.preferred_role AS preferredRole,
+        c.skills,
+        c.status AS clientStatus,
+        c.linkedin_url AS linkedinUrl
+      FROM assignments a
+      JOIN clients c ON c.id = a.client_id
+      WHERE a.company_id = ?
+      ORDER BY a.assigned_at DESC`,
+      [company.id]
+    );
+
+    const suggestions = Array.isArray(assignmentRows)
+      ? assignmentRows.map((row) => ({
+          assignmentId: row.assignmentId,
+          clientId: row.clientId,
+          assignmentStatus: row.assignmentStatus,
+          assignedAt: row.assignedAt,
+          fullName: row.fullName,
+          email: row.email,
+          phoneNumber: row.phoneNumber,
+          location: row.location,
+          preferredRole: row.preferredRole,
+          skills: row.skills,
+          clientStatus: row.clientStatus,
+          linkedinUrl: row.linkedinUrl,
+        }))
+      : [];
+
+    return res.json({
+      companyId: company.id,
+      companyName: company.companyName,
+      suggestions,
+    });
+  } catch (error) {
+    console.error('Failed to load company candidates', error);
+    return res.status(500).json({ message: 'Failed to load suggested candidates.' });
+  }
+};
