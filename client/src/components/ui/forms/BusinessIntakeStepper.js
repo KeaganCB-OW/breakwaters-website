@@ -12,6 +12,7 @@ const INITIAL_FORM_DATA = {
   industry: '',
   phone_number: '',
   email: '',
+  linkedin_url: '',
   workforce_size: '',
   location: '',
   available_roles: [],
@@ -20,7 +21,7 @@ const INITIAL_FORM_DATA = {
 
 const STEP_FIELDS = [
   ['company_name', 'industry', 'workforce_size', 'location'],
-  ['phone_number', 'email', 'available_roles', 'specifications'],
+  ['phone_number', 'email', 'linkedin_url', 'available_roles', 'specifications'],
 ];
 
 const FIELD_LABELS = {
@@ -28,6 +29,7 @@ const FIELD_LABELS = {
   industry: 'Industry',
   phone_number: 'Phone number',
   email: 'Company email',
+  linkedin_url: 'LinkedIn URL',
   workforce_size: 'Workforce size',
   location: 'Primary location',
   available_roles: 'Roles you are hiring for',
@@ -39,6 +41,7 @@ const FIELD_PLACEHOLDERS = {
   industry: 'Technology, Finance, Healthcare, etc.',
   phone_number: '+1 (555) 123-4567',
   email: 'talent@company.com',
+  linkedin_url: 'https://www.linkedin.com/company/your-company',
   workforce_size: 'Size of your team (e.g. 25)',
   location: 'City, Country or Remote',
   specifications: 'Share details about the roles, requirements, and timeline.',
@@ -46,6 +49,7 @@ const FIELD_PLACEHOLDERS = {
 
 const emailPattern = /^\S+@\S+\.\S+$/;
 const phonePattern = /^[0-9+\-\s()]{7,}$/;
+const linkedinPattern = /^(https?:\/\/)?([\w]+\.)?linkedin\.com\/.*$/i;
 
 const buildEmptyErrors = () =>
   Object.keys(INITIAL_FORM_DATA).reduce(
@@ -58,6 +62,7 @@ const sanitizePayload = (data) => ({
   industry: data.industry.trim(),
   phone_number: data.phone_number.trim(),
   email: data.email.trim(),
+  linkedin_url: data.linkedin_url.trim(),
   workforce_size: data.workforce_size.trim(),
   location: data.location.trim(),
   available_roles: Array.isArray(data.available_roles)
@@ -82,6 +87,7 @@ function BusinessIntakeStepper({ onSubmitCompany }) {
       { key: 'industry', label: FIELD_LABELS.industry, value: formData.industry },
       { key: 'phone_number', label: FIELD_LABELS.phone_number, value: formData.phone_number },
       { key: 'email', label: FIELD_LABELS.email, value: formData.email },
+      { key: 'linkedin_url', label: FIELD_LABELS.linkedin_url, value: formData.linkedin_url },
       { key: 'workforce_size', label: FIELD_LABELS.workforce_size, value: formData.workforce_size },
       { key: 'location', label: FIELD_LABELS.location, value: formData.location },
       {
@@ -156,6 +162,16 @@ function BusinessIntakeStepper({ onSubmitCompany }) {
       Array.isArray(value) && value.length > 0
         ? ''
         : 'Select at least one role.',
+    linkedin_url: (value) => {
+      const trimmed = value.trim();
+      if (!trimmed) {
+        return '';
+      }
+
+      return linkedinPattern.test(trimmed)
+        ? ''
+        : 'Enter a valid LinkedIn URL.';
+    },
   };
 
   const validateFields = (fields) => {
@@ -335,6 +351,7 @@ function BusinessIntakeStepper({ onSubmitCompany }) {
                   {renderField('phone_number')}
                   {renderField('email', { type: 'email' })}
                 </div>
+                {renderField('linkedin_url', { type: 'url' })}
                 <RolesDropdown
                   id="available_roles"
                   label={FIELD_LABELS.available_roles}

@@ -41,7 +41,7 @@ const AppCardNav = ({
   rightContent,
   ...rest
 }) => {
-  const { openClientIntake } = useClientIntake();
+  const { openClientIntake, hasRegisteredBusiness } = useClientIntake();
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -65,14 +65,24 @@ const AppCardNav = ({
       return rightContent;
     }
 
-    const primaryButton = (
+    const ctaText = hasRegisteredBusiness ? 'View Company Profile' : ctaLabel;
+    const primaryButton = hasRegisteredBusiness ? (
+      <a
+        className="card-nav-cta-button"
+        style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
+        href="/business/profile"
+        aria-label="View company profile"
+      >
+        {ctaText}
+      </a>
+    ) : (
       <button
         type="button"
         className="card-nav-cta-button"
         style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
         onClick={handleGetStarted}
       >
-        {ctaLabel}
+        {ctaText}
       </button>
     );
 
@@ -98,6 +108,7 @@ const AppCardNav = ({
     buttonBgColor,
     buttonTextColor,
     handleGetStarted,
+    hasRegisteredBusiness,
     ctaLabel,
     handleLogout,
   ]);

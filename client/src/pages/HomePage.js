@@ -29,7 +29,12 @@ const HOW_IT_WORKS_STEPS = [
 
 export default function HomePage() {
   const { user } = useContext(AuthContext);
-  const { openClientIntake, openBusinessIntake, hasSubmitted } = useClientIntake();
+  const {
+    openClientIntake,
+    openBusinessIntake,
+    hasSubmitted,
+    hasRegisteredBusiness,
+  } = useClientIntake();
   const howItWorksRef = useRef(null);
   const aboutBreakwatersRef = useRef(null);
   const [howItWorksVisible, setHowItWorksVisible] = useState(false);
@@ -54,9 +59,11 @@ export default function HomePage() {
   const navCtaLabel = user
     ? user.role === 'recruitment_officer'
       ? "Dashboard"
-      : hasSubmitted
-        ? "Resume Sent"
-        : "Get Started"
+      : hasRegisteredBusiness
+        ? "View Company Profile"
+        : hasSubmitted
+          ? "Resume Sent"
+          : "Get Started"
     : "Sign Up / Sign In";
 
   useEffect(() => {

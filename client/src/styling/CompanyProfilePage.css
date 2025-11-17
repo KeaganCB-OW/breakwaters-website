@@ -1,0 +1,184 @@
+.company-profile-dashboard .dashboard__panel {
+  background: var(--glass-white-light);
+}
+
+.company-profile__header {
+  align-items: flex-start;
+}
+
+.company-profile__status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(8, 38, 88, 0.1);
+  font-family: var(--font-roboto);
+  color: rgba(8, 38, 88, 0.85);
+}
+
+.company-profile__status-tag strong {
+  font-weight: 600;
+}
+
+.company-profile__value {
+  margin: 0;
+  font-size: 1.05rem;
+  color: rgba(8, 38, 88, 0.85);
+}
+
+.company-profile__link {
+  color: #0b63f6;
+  font-size: 1.05rem;
+  text-decoration: none;
+}
+
+.company-profile__link:hover,
+.company-profile__link:focus-visible {
+  text-decoration: underline;
+}
+
+.company-profile__placeholder {
+  margin: 0;
+  font-size: 1.05rem;
+  color: rgba(8, 38, 88, 0.45);
+}
+
+.company-profile__roles-section {
+  margin-top: 24px;
+}
+
+.company-profile__roles-section h3,
+.company-profile__specifications h3 {
+  margin: 0 0 12px;
+  font-family: var(--font-roboto);
+  font-size: 1.05rem;
+  color: rgba(8, 38, 88, 0.85);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.company-profile__pills {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.company-profile__pills--compact {
+  margin-top: 16px;
+}
+
+.company-profile__pill {
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(8, 38, 88, 0.08);
+  color: #082658;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.company-profile__specifications {
+  margin-top: 24px;
+}
+
+.company-profile__suggestions {
+  min-height: 100%;
+}
+
+.company-profile__suggestions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.company-profile__refresh-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 18px;
+  background: rgba(8, 38, 88, 0.1);
+  color: #082658;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.company-profile__refresh-btn:hover:not(:disabled),
+.company-profile__refresh-btn:focus-visible:not(:disabled) {
+  transform: translateY(-1px);
+  background: rgba(8, 38, 88, 0.18);
+  box-shadow: 0 12px 24px rgba(8, 38, 88, 0.16);
+}
+
+.company-profile__refresh-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.company-profile__suggestions-list {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.company-profile__candidate-card {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 16px;
+  box-shadow: 0 14px 38px rgba(8, 38, 88, 0.15);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.company-profile__candidate-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.company-profile__candidate-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #082658;
+}
+
+.company-profile__candidate-header p {
+  margin: 4px 0 0;
+  color: rgba(8, 38, 88, 0.75);
+}
+
+.company-profile__candidate-meta {
+  margin: 4px 0 0;
+  font-size: 0.95rem;
+  color: rgba(8, 38, 88, 0.65);
+}
+
+.company-profile__candidate-contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.company-profile__grid {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+@media (max-width: 768px) {
+  .company-profile__status-tag {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .company-profile__candidate-card {
+    padding: 18px;
+  }
+}
+

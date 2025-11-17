@@ -1,133 +1,77 @@
-.shared-client__panel {
-  background: transparent;
-  box-shadow: none;
-}
-
 .shared-client__panel-body {
-  padding: 32px;
-  max-width: 960px;
+  padding: 32px 24px 48px;
+  max-width: 1080px;
   margin: 0 auto;
 }
 
 .shared-client__state {
-  padding: 48px 24px;
+  padding: 64px 24px;
   text-align: center;
   font-size: 1.1rem;
-  color: #0f172a;
+  color: #082658;
 }
 
 .shared-client__state--error {
   color: #b91c1c;
 }
 
-.shared-client__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.shared-client__title {
-  margin: 0;
-  font-size: 2rem;
-  color: #0f172a;
-}
-
 .shared-client__subtitle {
   margin: 8px 0 0 0;
-  color: #475569;
-}
-
-.shared-client__status-badge {
-  display: inline-block;
-  padding: 10px 20px;
-  border-radius: 999px;
-  font-weight: 600;
-  color: #ffffff;
-  text-transform: capitalize;
-  white-space: nowrap;
-}
-
-.shared-client__status-badge.client-details__secondary-btn--interview-pending {
-  color: #082658;
+  color: rgba(8, 38, 88, 0.75);
+  font-size: 1rem;
 }
 
 .shared-client__meta {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
-  margin-bottom: 32px;
-  color: #475569;
+  margin: 16px 0 24px;
+  color: rgba(8, 38, 88, 0.75);
+  font-family: var(--font-roboto);
 }
 
 .shared-client__meta strong {
-  color: #0f172a;
+  color: #082658;
+}
+
+.shared-client__title-row {
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .shared-client__section {
-  margin-bottom: 32px;
+  margin-top: 32px;
 }
 
-.shared-client__section-title {
-  margin: 0 0 16px 0;
-  font-size: 1.35rem;
-  color: #1f2937;
-}
-
-.shared-client__info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 20px;
-}
-
-.shared-client__card {
-  background-color: rgba(255, 255, 255, 0.9);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-}
-
-.shared-client__card h3 {
-  margin: 0 0 16px 0;
-  font-size: 1.1rem;
-  color: #0f172a;
-}
-
-.shared-client__field-row {
+.shared-client__section-heading {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 8px 0;
-  border-bottom: 1px solid #e2e8f0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-.shared-client__field-row:last-child {
-  border-bottom: none;
+.shared-client__value {
+  margin: 0;
+  font-size: 1.05rem;
+  color: rgba(8, 38, 88, 0.85);
 }
 
-.shared-client__field-label {
-  font-weight: 600;
-  color: #475569;
-}
-
-.shared-client__field-value {
-  color: #1f2937;
-  word-break: break-word;
-}
-
-.shared-client__field-value a {
-  color: #0d6efd;
+.shared-client__link {
+  font-size: 1.05rem;
+  color: #0b63f6;
   text-decoration: none;
 }
 
-.shared-client__field-value a:hover,
-.shared-client__field-value a:focus {
+.shared-client__link:hover,
+.shared-client__link:focus-visible {
   text-decoration: underline;
 }
 
-.shared-client__field-placeholder {
-  color: #94a3b8;
+.shared-client__placeholder {
+  margin: 0;
+  font-size: 1.05rem;
+  color: rgba(8, 38, 88, 0.45);
 }
 
 .shared-client__skill-list {
@@ -140,19 +84,12 @@
 }
 
 .shared-client__skill-chip {
-  background-color: rgba(13, 110, 253, 0.1);
-  color: #0d6efd;
-  padding: 8px 14px;
+  background-color: rgba(8, 38, 88, 0.08);
+  color: #082658;
+  padding: 8px 16px;
   border-radius: 999px;
   font-weight: 600;
   font-size: 0.95rem;
-}
-
-.shared-client__section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
 }
 
 .shared-client__cta {
@@ -170,19 +107,20 @@
   background-color: #0b5ed7;
 }
 
-.shared-client__cv-preview {
+.shared-client__cv-frame {
   margin-top: 20px;
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
-  background-color: #0f172a;
-  min-height: 480px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  background-color: rgba(8, 38, 88, 0.3);
+  min-height: 420px;
+  box-shadow: 0 18px 60px rgba(8, 38, 88, 0.25);
 }
 
-.shared-client__cv-preview iframe {
+.shared-client__cv-frame iframe {
   width: 100%;
   height: 100%;
   border: none;
+  background-color: #fff;
 }
 
 @media (max-width: 768px) {
@@ -190,16 +128,7 @@
     padding: 24px 16px;
   }
 
-  .shared-client__header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .shared-client__status-badge {
-    align-self: flex-start;
-  }
-
-  .shared-client__cv-preview {
+  .shared-client__cv-frame {
     min-height: 360px;
   }
 }
