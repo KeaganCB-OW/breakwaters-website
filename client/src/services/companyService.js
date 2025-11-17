@@ -117,3 +117,26 @@ export async function checkCompanyExists(token) {
 
   return { exists, companyId };
 }
+
+export async function fetchCompanyCandidates(token) {
+  const response = await fetch(`${API_URL}/companies/candidates`, {
+    headers: {
+      ...buildAuthHeaders(token),
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await parseJson(response);
+
+  if (response.status === 404) {
+    return { suggestions: [] };
+  }
+
+  if (!response.ok) {
+    const message = data?.message || 'Failed to load suggested candidates';
+    throw buildError(message, data);
+  }
+
+  const suggestions = Array.isArray(data?.suggestions) ? data.suggestions : [];
+  return { suggestions };
+}

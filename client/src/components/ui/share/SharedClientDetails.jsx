@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
+import AppCardNav from '../layout/AppCardNav';
 import { fetchSharedClient } from '../../../services/shareService';
 import '../../../styling/dashboard.css';
+import '../../../styling/ClientDetails.css';
 import '../../../styling/SharedClientDetails.css';
 
 const STATUS_VARIANTS = {
@@ -70,27 +72,32 @@ const formatText = (value) => {
   return String(value).trim();
 };
 
-const FieldRow = ({ label, value, fallback = 'Not provided', href }) => {
-  const content = formatText(value);
+const buildMailto = (value) => {
+  const trimmed = formatText(value);
+  return trimmed ? `mailto:${trimmed}` : '';
+};
 
-  return (
-    <div className="shared-client__field-row">
-      <span className="shared-client__field-label">{label}</span>
-      <span className="shared-client__field-value">
-        {content ? (
-          href ? (
-            <a href={href} target="_blank" rel="noopener noreferrer">
-              {content}
-            </a>
-          ) : (
-            content
-          )
-        ) : (
-          <span className="shared-client__field-placeholder">{fallback}</span>
-        )}
-      </span>
-    </div>
-  );
+const buildPhoneHref = (value) => {
+  const trimmed = formatText(value);
+  if (!trimmed) {
+    return '';
+  }
+
+  const normalised = trimmed.replace(/[^\d+]/g, '');
+  return normalised ? `tel:${normalised}` : '';
+};
+
+const buildLinkedInHref = (value) => {
+  const trimmed = formatText(value);
+  if (!trimmed) {
+    return '';
+  }
+
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+
+  return `https://${trimmed}`;
 };
 
 export function SharedClientDetails() {
@@ -119,17 +126,16 @@ export function SharedClientDetails() {
         if (isMounted) {
           setState({
             loading: false,
-            error: 'This secure link is missing a token. Please use the link from your email.',
+            error: 'This secure link is missing a token. Please use the link sent to your inbox.',
             data: null,
           });
         }
         return;
       }
 
-      setState((previous) => ({ ...previous, loading: true, error: '' }));
-
       try {
         const result = await fetchSharedClient(clientId, token);
+
         if (isMounted) {
           setState({ loading: false, error: '', data: result });
         }
@@ -137,7 +143,7 @@ export function SharedClientDetails() {
         if (isMounted) {
           setState({
             loading: false,
-            error: error?.message || 'Failed to load client details.',
+            error: error?.message || 'Failed to load candidate details.',
             data: null,
           });
         }
@@ -151,172 +157,195 @@ export function SharedClientDetails() {
     };
   }, [clientId, token]);
 
-  const statusVariant = useMemo(() => {
-    const status = state.data?.client?.status;
-    if (!status) {
-      return STATUS_VARIANTS.pending;
-    }
-
-    const normalised = normaliseStatus(status);
-    return STATUS_VARIANTS[normalised] || {
-      label: status,
-      className: STATUS_VARIANTS.pending.className,
-    };
-  }, [state.data?.client?.status]);
-
-  const skillList = useMemo(() => splitSkills(state.data?.client?.skills), [state.data?.client?.skills]);
-
-  const linkExpiry = useMemo(() => formatDateTime(state.data?.tokenExpiresAt), [state.data?.tokenExpiresAt]);
-
-  const cv = state.data?.cv;
-  const assignment = state.data?.assignment;
   const client = state.data?.client;
-
-  const statusBadgeClassName = useMemo(() => {
-    const modifier = statusVariant?.className || STATUS_VARIANTS.pending.className;
-    return `shared-client__status-badge ${modifier}`;
-  }, [statusVariant]);
-
-  const linkedinHref = useMemo(() => {
-    const raw = formatText(client?.linkedinUrl);
-    if (!raw) {
+  const assignment = state.data?.assignment;
+  const cv = state.data?.cv;
+  const linkExpiry = useMemo(() => {
+    if (!state.data?.tokenExpiresAt) {
       return '';
     }
-    if (/^https?:\/\//i.test(raw)) {
-      return raw;
-    }
-    return `https://${raw}`;
-  }, [client?.linkedinUrl]);
+    const expires = new Date(state.data.tokenExpiresAt);
+    return Number.isNaN(expires.getTime()) ? '' : formatDateTime(expires);
+  }, [state.data]);
 
-  const phoneHref = useMemo(() => {
-    const raw = formatText(client?.phoneNumber);
-    if (!raw) {
-      return '';
+  const phoneHref = useMemo(() => buildPhoneHref(client?.phoneNumber), [client?.phoneNumber]);
+  const linkedinHref = useMemo(() => buildLinkedInHref(client?.linkedinUrl), [client?.linkedinUrl]);
+
+  const contactFields = useMemo(
+    () => [
+      { label: 'Email', value: client?.email, href: buildMailto(client?.email) },
+      { label: 'Phone', value: client?.phoneNumber, href: phoneHref },
+      { label: 'Location', value: client?.location },
+      { label: 'LinkedIn', value: client?.linkedinUrl, href: linkedinHref },
+    ],
+    [client, linkedinHref, phoneHref]
+  );
+
+  const profileFields = useMemo(
+    () => [
+      { label: 'Preferred Role', value: client?.preferredRole },
+      { label: 'Education', value: client?.education },
+      { label: 'Experience', value: client?.experience },
+      { label: 'Application Status', value: client?.status },
+    ],
+    [client]
+  );
+
+  const skillList = useMemo(() => splitSkills(client?.skills), [client]);
+  const statusVariant = useMemo(() => {
+    const normalised = normaliseStatus(client?.status || assignment?.status);
+    return STATUS_VARIANTS[normalised] || STATUS_VARIANTS.pending;
+  }, [assignment?.status, client?.status]);
+
+  const statusBadgeClassName = ['client-details__secondary-btn', statusVariant?.className]
+    .filter(Boolean)
+    .join(' ');
+
+  const renderFields = (fields) =>
+    fields.map((field) => {
+      const value = formatText(field.value);
+      const href = field.href && formatText(field.href);
+
+      return (
+        <div className="client-details__field" key={field.label}>
+          <span className="client-details__label">{field.label}</span>
+          {value ? (
+            href ? (
+              <a
+                className="shared-client__link"
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {value}
+              </a>
+            ) : (
+              <p className="shared-client__value">{value}</p>
+            )
+          ) : (
+            <p className="shared-client__placeholder">Not provided</p>
+          )}
+        </div>
+      );
+    });
+
+  const renderPanelContent = () => {
+    if (state.loading) {
+      return <div className="shared-client__state">Loading candidate profile...</div>;
     }
-    return `tel:${raw.replace(/\s+/g, '')}`;
-  }, [client?.phoneNumber]);
+
+    if (state.error) {
+      return (
+        <div className="shared-client__state shared-client__state--error">
+          {state.error}
+        </div>
+      );
+    }
+
+    if (!client) {
+      return (
+        <div className="shared-client__state shared-client__state--error">
+          Candidate information is unavailable for this link.
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <div className="client-details__title shared-client__title-row">
+          <div>
+            <h1 className="dashboard__headline">{client.fullName || 'Candidate profile'}</h1>
+            {client.preferredRole && (
+              <p className="shared-client__subtitle">
+                Preferred role:&nbsp;
+                <strong>{client.preferredRole}</strong>
+              </p>
+            )}
+          </div>
+          <span className={statusBadgeClassName}>{statusVariant?.label}</span>
+        </div>
+
+        <div className="shared-client__meta">
+          {assignment?.assignedAt && (
+            <span>
+              Suggested on&nbsp;
+              <strong>{formatDateTime(assignment.assignedAt)}</strong>
+            </span>
+          )}
+          {linkExpiry && (
+            <span>
+              Link valid until&nbsp;
+              <strong>{linkExpiry}</strong>
+            </span>
+          )}
+        </div>
+
+        <div className="dashboard__divider" />
+
+        <div className="client-details__columns">
+          <div className="client-details__column">{renderFields(contactFields)}</div>
+          <div className="client-details__column">{renderFields(profileFields)}</div>
+        </div>
+
+        <section className="shared-client__section">
+          <div className="shared-client__section-heading">
+            <h2 className="dashboard__section-title">Skills & strengths</h2>
+          </div>
+          {skillList.length > 0 ? (
+            <ul className="shared-client__skill-list">
+              {skillList.map((skill) => (
+                <li key={skill} className="shared-client__skill-chip">
+                  {skill}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="shared-client__placeholder">Skills not provided.</p>
+          )}
+        </section>
+
+        <section className="shared-client__section">
+          <div className="shared-client__section-heading">
+            <h2 className="dashboard__section-title">Candidate CV</h2>
+            {cv?.exists ? (
+              <a
+                className="client-details__cv-button"
+                href={cv.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open CV
+              </a>
+            ) : (
+              <span className="shared-client__placeholder">CV not available.</span>
+            )}
+          </div>
+
+          {cv?.exists && (
+            <div className="client-details__cv-frame shared-client__cv-frame">
+              <iframe
+                title="Candidate CV preview"
+                src={`${cv.url}#toolbar=0`}
+                loading="lazy"
+              />
+            </div>
+          )}
+        </section>
+      </>
+    );
+  };
 
   return (
-    <div className="dashboard shared-client">
+    <div className="dashboard shared-client-dashboard">
       <div className="dashboard__background-image" />
       <div className="dashboard__overlay" />
       <div className="dashboard__content">
+        <AppCardNav />
         <div className="dashboard__layout">
           <div className="dashboard__container">
-            <section className="dashboard__panel shared-client__panel">
+            <section className="dashboard__panel">
               <div className="dashboard__panel-body shared-client__panel-body">
-                {state.loading && (
-                  <div className="shared-client__state">Loading candidate profile...</div>
-                )}
-
-                {!state.loading && state.error && (
-                  <div className="shared-client__state shared-client__state--error">
-                    {state.error}
-                  </div>
-                )}
-
-                {!state.loading && !state.error && client && (
-                  <>
-                    <header className="shared-client__header">
-                      <div>
-                        <h1 className="shared-client__title">{client.fullName || 'Candidate profile'}</h1>
-                        {client.preferredRole && (
-                          <p className="shared-client__subtitle">
-                            Preferred role: <strong>{client.preferredRole}</strong>
-                          </p>
-                        )}
-                      </div>
-
-                      <span className={statusBadgeClassName}>{statusVariant?.label}</span>
-                    </header>
-
-                    <div className="shared-client__meta">
-                      {assignment?.assignedAt && (
-                        <span>
-                          Suggested on&nbsp;
-                          <strong>{formatDateTime(assignment.assignedAt)}</strong>
-                        </span>
-                      )}
-                      {linkExpiry && (
-                        <span>
-                          Link valid until&nbsp;
-                          <strong>{linkExpiry}</strong>
-                        </span>
-                      )}
-                    </div>
-
-                    <section className="shared-client__section">
-                      <h2 className="shared-client__section-title">Candidate Details</h2>
-                      <div className="shared-client__info-grid">
-                        <div className="shared-client__card">
-                          <h3>Contact</h3>
-                          <FieldRow
-                            label="Email"
-                            value={client.email}
-                            href={client.email ? `mailto:${client.email}` : undefined}
-                          />
-                          <FieldRow
-                            label="Phone"
-                            value={client.phoneNumber}
-                            href={phoneHref || undefined}
-                          />
-                          <FieldRow label="Location" value={client.location} />
-                          <FieldRow label="LinkedIn" value={client.linkedinUrl} href={linkedinHref || undefined} />
-                        </div>
-                        <div className="shared-client__card">
-                          <h3>Profile</h3>
-                          <FieldRow label="Preferred Role" value={client.preferredRole} />
-                          <FieldRow label="Education" value={client.education} />
-                          <FieldRow label="Experience" value={client.experience} />
-                        </div>
-                      </div>
-                    </section>
-
-                    <section className="shared-client__section">
-                      <h2 className="shared-client__section-title">Top Skills</h2>
-                      {skillList.length > 0 ? (
-                        <ul className="shared-client__skill-list">
-                          {skillList.map((skill) => (
-                            <li key={skill} className="shared-client__skill-chip">
-                              {skill}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="shared-client__field-placeholder">Skills not provided.</p>
-                      )}
-                    </section>
-
-                    <section className="shared-client__section">
-                      <div className="shared-client__section-header">
-                        <h2 className="shared-client__section-title">Candidate CV</h2>
-                        {cv?.exists ? (
-                          <a
-                            className="shared-client__cta"
-                            href={cv.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            View CV
-                          </a>
-                        ) : (
-                          <span className="shared-client__field-placeholder">CV not available.</span>
-                        )}
-                      </div>
-
-                      {cv?.exists && (
-                        <div className="shared-client__cv-preview">
-                          <iframe
-                            title="Candidate CV preview"
-                            src={`${cv.url}#toolbar=0`}
-                            frameBorder="0"
-                            loading="lazy"
-                          />
-                        </div>
-                      )}
-                    </section>
-                  </>
-                )}
+                {renderPanelContent()}
               </div>
             </section>
           </div>
@@ -327,3 +356,4 @@ export function SharedClientDetails() {
 }
 
 export default SharedClientDetails;
+
