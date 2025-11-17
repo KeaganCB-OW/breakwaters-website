@@ -66,6 +66,7 @@ export const createCompany = async (req, res) => {
     available_roles,
     specifications,
     linkedin_url,
+    linkedinUrl: camelLinkedinUrl,
   } = req.body ?? {};
 
   const errors = {};
@@ -78,7 +79,8 @@ export const createCompany = async (req, res) => {
   const specificationsValue = sanitizeString(specifications);
   const workforceSizeValue = parseWorkforceSize(workforce_size);
   const availableRolesValue = formatAvailableRoles(available_roles);
-  const linkedinUrl = sanitizeString(linkedin_url);
+  const linkedinInput = linkedin_url ?? camelLinkedinUrl ?? '';
+  const linkedinUrl = sanitizeString(linkedinInput);
   const userId = req.user?.id;
 
   if (!companyName) {
